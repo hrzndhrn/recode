@@ -1,4 +1,3 @@
 %{
-  "nimble_options": {:hex, :nimble_options, "0.4.0", "c89babbab52221a24b8d1ff9e7d838be70f0d871be823165c94dd3418eea728f", [:mix], [], "hexpm", "e6701c1af326a11eea9634a3b1c62b475339ace9456c1a23ec3bc9a847bca02d"},
-  "sourceror": {:hex, :sourceror, "0.8.7", "bd75db56e7d206c078189c0d252dd42a8eb3af8c067a018468b29b234e637998", [:mix], [], "hexpm", "e4b127f48e6b9dc1be18f14cb422c51a3e3cf1e8d2e9c95acc9bcd803b3768b4"},
+  "sourceror": {:git, "https://github.com/doorgan/sourceror", "e8eaf2c378bac6993e581a7b83d6a79f808c9611", []},
 }

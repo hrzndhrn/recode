@@ -19,8 +19,8 @@ defmodule Recode.MixProject do
 
   defp deps do
     [
-      {:nimble_options, "~> 0.3"},
-      {:sourceror, "~> 0.8"}
+      {:sourceror, git: "https://github.com/doorgan/sourceror"}
+      # {:sourceror, "~> 0.8"}
     ]
   end
 end
