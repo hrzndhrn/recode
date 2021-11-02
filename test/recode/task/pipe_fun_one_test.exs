@@ -1,4 +1,4 @@
-defmodule Recode.Task.AliasExapnasionTest do
+defmodule Recode.Task.PipeFunOneTest do
   use ExUnit.Case
 
   alias Recode.Task.PipeFunOne
