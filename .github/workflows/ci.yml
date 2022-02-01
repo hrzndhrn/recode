@@ -66,8 +66,3 @@ jobs:
       - name: Run tests
         run: MIX_ENV=test mix test
         if: ${{ !(contains(matrix.elixir, '1.13.2') && contains(matrix.otp, '24.1')) }}
-      - name: Run tests with coverage
-        run: MIX_ENV=test mix coveralls.github
-        if: ${{ contains(matrix.elixir, '1.13.2') && contains(matrix.otp, '24.1') }}
-      - name: Static code analysis
-        run: mix dialyzer
