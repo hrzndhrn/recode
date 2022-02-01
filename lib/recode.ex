@@ -4,7 +4,7 @@ defmodule Recode do
 
   # TODO: ???
   @type path :: [atom()]
-  @type mod ::  module() | path()
+  @type mod :: module() | path()
   @type fun :: atom()
   @type mod_fun_arity :: {mod(), fun(), arity()}
 
@@ -133,7 +133,6 @@ defmodule Recode do
   defp do_traverse({{:require, _, [arg]}, _} = zipper, context, acc, fun) do
     cont(zipper, Context.add_require(context, get_alias(arg)), acc, fun)
   end
-
 
   defp do_traverse({{definition, _, args}, _} = zipper, context, acc, fun)
        when definition in [:def, :defp, :defmacro, :defmacrop] do

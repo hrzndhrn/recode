@@ -103,12 +103,13 @@ defmodule Recode.Context do
   end
 
   defp mfa(:import, %Context{imports: imports}, {nil, fun, arity} = mfa) do
-    module = Enum.find_value(imports, fn {module, _args} ->
-      case do_has_function?(module, mfa) do
-        true -> module
+    module =
+      Enum.find_value(imports, fn {module, _args} ->
+        case do_has_function?(module, mfa) do
+          true -> module
           false -> nil
         end
-    end)
+      end)
 
     {module, fun, arity}
   end
