@@ -49,9 +49,6 @@ jobs:
       - name: Check code format
         if: ${{ contains(matrix.elixir, '1.13.2') && contains(matrix.otp, '24.1') }}
         run: MIX_ENV=test mix format --check-formatted
-      - name: Lint code
-        if: ${{ contains(matrix.elixir, '1.13.2') && contains(matrix.otp, '24.1') }}
-        run: MIX_ENV=test mix credo --strict
       - name: Run tests
         run: MIX_ENV=test mix test
         if: ${{ !(contains(matrix.elixir, '1.13.2') && contains(matrix.otp, '24.1')) }}
