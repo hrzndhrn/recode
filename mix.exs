@@ -59,7 +59,8 @@ defmodule Recode.MixProject do
   defp deps do
     [
       # {:sourceror, "~> 0.9"},
-      {:sourceror, path: "../../forks/sourceror"},
+      # {:sourceror, path: "../../forks/sourceror"},
+      {:sourceror, git: "https://github.com/doorgan/sourceror"},
       {:credo, "~> 1.6", runtime: false},
       # dev and test
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
