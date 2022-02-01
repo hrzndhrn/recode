@@ -2,9 +2,10 @@ defmodule Recode.Task.PipeFunOne do
   @moduledoc """
   Add parentheses to one-arity functions.
   """
-  alias Sourceror.Zipper
 
-  def run(quoted) do
+  use Recode.Task
+
+  def run(quoted, _opts) do
     Zipper.zip(quoted)
     |> Zipper.traverse(&pipe_fun_one/1)
     |> Zipper.root()

@@ -3,9 +3,9 @@ defmodule Recode.Task.AliasExpansion do
   TODO: moduledoc
   """
 
-  alias Sourceror.Zipper
+  use Recode.Task
 
-  def run(quoted) do
+  def run(quoted, _opts) do
     Zipper.zip(quoted)
     |> Zipper.traverse(&expand_alias/1)
     |> Zipper.root()

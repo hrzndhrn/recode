@@ -1,13 +1,7 @@
 defmodule Recode.Task.PipeFunOneTest do
-  use ExUnit.Case
+  use RecodeCase
 
   alias Recode.Task.PipeFunOne
-
-  defp run(string) do
-    string
-    |> Sourceror.parse_string!()
-    |> PipeFunOne.run()
-  end
 
   describe "run/1" do
     test "expands aliases" do
@@ -29,7 +23,7 @@ defmodule Recode.Task.PipeFunOneTest do
       end\
       """
 
-      assert source |> run() |> Sourceror.to_string() == expected
+      assert run_task(PipeFunOne, source) == expected
     end
   end
 end

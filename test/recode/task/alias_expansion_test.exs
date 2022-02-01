@@ -1,13 +1,7 @@
 defmodule Recode.Task.AliasExapnasionTest do
-  use ExUnit.Case
+  use RecodeCase
 
   alias Recode.Task.AliasExpansion
-
-  defp run(string) do
-    string
-    |> Sourceror.parse_string!()
-    |> AliasExpansion.run()
-  end
 
   describe "run/1" do
     test "expands aliases" do
@@ -28,7 +22,7 @@ defmodule Recode.Task.AliasExapnasionTest do
       end\
       """
 
-      assert source |> run() |> Sourceror.to_string() == expected
+      assert run_task(AliasExpansion, source) == expected
     end
   end
 end

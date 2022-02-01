@@ -21,7 +21,7 @@ end
 
 ## Usage
 
-`recode` comes with two tasks to reformat code:
+`recode` comes with three tasks to reformat code:
 
 * Alias expansion (`alias-expansion`):
   This task expands multi-alias syntax like `alias Foo.{Bar, Baz}` into multiple
@@ -34,9 +34,11 @@ end
   proposes to add parentheses for one-arity functions when using the pipe
   operator. This task will add such parentheses.
 
+* Single pipe operator (`single-pipe`, not yet released)
+  Any single pipe operation will be reformat to a function call.
+
 The mix task `mix recode` performs the changes below on all files in your project.
 
 With `mix recode --pipe-fun-one`, `recode` will make only the changes for `pipe-fun-one`.
 
 With `mix recode --no-pipe-fun-one`, `recode` will skip the changes for `pipe-fun-one`.
-

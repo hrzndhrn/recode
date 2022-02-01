@@ -7,13 +7,14 @@ defmodule Mix.Tasks.Recode do
 
   use Mix.Task
 
-  alias Recode.Task.PipeFunOne
   alias Recode.Task.AliasExpansion
+  alias Recode.Task.PipeFunOne
+  alias Recode.Task.SinglePipe
 
   @inputs "{lib,test}/**/*.{ex,exs}"
-  @tasks [alias_expansion: AliasExpansion, pipe_fun_one: PipeFunOne]
+  @tasks [alias_expansion: AliasExpansion, pipe_fun_one: PipeFunOne, single_pipe: SinglePipe]
 
-  @opts strict: [pipe_fun_one: :boolean, alias_expansion: :boolean]
+  @opts strict: [pipe_fun_one: :boolean, alias_expansion: :boolean, single_pipe: :boolean]
 
   @impl Mix.Task
   def run(opts) do
