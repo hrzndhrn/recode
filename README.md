@@ -34,7 +34,7 @@ end
   proposes to add parentheses for one-arity functions when using the pipe
   operator. This task will add such parentheses.
 
-* Single pipe operator (`single-pipe`, not yet released)
+* Single pipe operator (`single-pipe`)
   Any single pipe operation will be reformat to a function call.
 
 The mix task `mix recode` performs the changes below on all files in your project.
