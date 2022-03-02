@@ -5,6 +5,8 @@ defmodule Recode.Task.PipeFunOne do
 
   use Recode.Task.Source
 
+  alias Sourceror.Zipper
+
   def run(quoted, _opts) do
     Zipper.zip(quoted)
     |> Zipper.traverse(&pipe_fun_one/1)

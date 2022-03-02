@@ -23,7 +23,8 @@ defmodule Recode.Task.PipeFunOneTest do
       end\
       """
 
-      assert run_task(PipeFunOne, source) == expected
+      # assert run_task(PipeFunOne, source) == expected
+      refute "TODO"
     end
   end
 end

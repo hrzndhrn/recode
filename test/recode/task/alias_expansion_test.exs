@@ -22,7 +22,8 @@ defmodule Recode.Task.AliasExapnasionTest do
       end\
       """
 
-      assert run_task(AliasExpansion, source) == expected
+      # assert run_task(AliasExpansion, source) == expected
+      refute "TODO"
     end
   end
 end

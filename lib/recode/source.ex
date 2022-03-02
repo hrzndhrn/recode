@@ -26,7 +26,7 @@ defmodule Recode.Source do
     )
   end
 
-  @deprectead "will be deleted"
+  @deprecated "will be deleted"
   def update(%Source{} = source, by, [{:zipper, {ast, _meta}}]) do
     code = Sourceror.to_string(ast)
     update(source, by, code: code)
@@ -163,7 +163,7 @@ defmodule Recode.Source do
     Sourceror.parse_string!(code)
   end
 
-  @deprectead "will be deleted"
+  @deprecated "will be deleted"
   def zipper(%Source{} = source) do
     with {:ok, ast} <- ast(source) do
       {:ok, Zipper.zip(ast)}
