@@ -1,77 +1,102 @@
 defmodule Recode.Project do
-  @moduledoc """
-  TODO: extend docs
-  A map with all modules and all infos to the module.
-  """
+  alias Recode.Project
+  alias Recode.Source
+  alias Recode.ProjectError
 
-  alias Recode.Context
-  alias Recode.ModuleInfo
-  alias Sourceror.Zipper
+  defstruct [:sources, :paths, :modules, :inputs]
 
-  def new(files) when is_list(files) do
-    Enum.reduce(files, %{}, fn file, acc ->
-      file
-      |> read()
-      |> Enum.into(%{}, fn {key, value} -> {key, Map.put(value, :file, file)} end)
-      |> Map.merge(acc)
-    end)
+  def new(inputs) when is_list(inputs) do
+    inputs = Enum.flat_map(inputs, &Path.wildcard/1)
+
+    {sources, paths, modules} =
+      Enum.reduce(inputs, {%{}, %{}, %{}}, fn path, {sources, paths, modules} ->
+        source = Source.new!(path)
+        update_internals({sources, paths, modules}, source)
+      end)
+
+    struct!(Project, sources: sources, paths: paths, modules: modules, inputs: inputs)
   end
 
-  def mfa(project, context, mfa) when is_map(project) do
-    case fetch_module_info(project, context.module) do
-      {:ok, module_info} ->
-        with {nil, _fun, _arity} <- ModuleInfo.mfa(module_info, mfa) do
-          mfa(:import, project, module_info, mfa)
-        end
-
-      :error ->
-        mfa
+  def source(%Project{sources: sources, modules: modules}, module) when is_atom(module) do
+    with {:ok, ref} <- Map.fetch(modules, module) do
+      Map.fetch(sources, ref)
     end
   end
 
-  defp mfa(:import, _project, %ModuleInfo{imports: []}, mfa), do: mfa
-
-  defp mfa(:import, project, %ModuleInfo{imports: imports}, {nil, fun, arity} = mfa) do
-    module =
-      Enum.find_value(imports, fn {path, _opts} ->
-        case fetch_module_info(project, path) do
-          {:ok, module_info} ->
-            with true <- ModuleInfo.has_definition?(module_info, mfa) do
-              module_info.module
-            end
-
-          :error ->
-            false
-        end
-      end)
-
-    {module, fun, arity}
+  def source(%Project{sources: sources, paths: paths}, path) when is_binary(path) do
+    with {:ok, ref} <- Map.fetch(paths, path) do
+      Map.fetch(sources, ref)
+    end
   end
 
-  def fetch_module_info(project, module) when is_map(project) do
-    Map.fetch(project, module)
+  def source!(%Project{} = project, key) do
+    case source(project, key) do
+      {:ok, source} -> source
+      :error -> raise ProjectError, "No source for #{inspect(key)} found."
+    end
   end
 
-  defp read(file) do
-    file
-    |> File.read!()
-    |> Sourceror.parse_string!()
-    |> Zipper.zip()
-    |> Recode.traverse(%{}, fn zipper, context, acc ->
-      {zipper, context, put(acc, context)}
+  def update(
+        %Project{sources: sources, paths: paths, modules: modules} = project,
+        %Source{} = source
+      ) do
+    case update?(project, source) do
+      false ->
+        project
+
+      true ->
+        {sources, paths, modules} = update_internals({sources, paths, modules}, source)
+        %Project{project | sources: sources, paths: paths, modules: modules}
+    end
+  end
+
+  def state(%Project{paths: paths, sources: sources}) do
+    paths
+    |> Enum.map(fn {path, id} ->
+      source = Map.fetch!(sources, id)
+      {path, Source.version(source)}
     end)
-    |> elem(1)
+    |> Enum.sort()
   end
 
-  defp put(map, %Context{module: nil}), do: map
-
-  defp put(map, %Context{module: []}), do: map
-
-  defp put(map, %Context{module: module} = context) do
-    module_info = ModuleInfo.from_context(context)
-
-    Map.update(map, module, module_info, fn existing_value ->
-      ModuleInfo.update(existing_value, module_info)
-    end)
+  defp update?(%Project{sources: sources}, %Source{id: id} = source) do
+    case Map.fetch(sources, id) do
+      {:ok, legacy} -> legacy != source
+      :error -> true
+    end
   end
+
+  defp update_internals({sources, paths, modules}, source) do
+    sources = Map.put(sources, source.id, source)
+    paths = Map.put(paths, source.path, source.id)
+
+    modules =
+      source.modules
+      |> Enum.into(%{}, fn module -> {module, source.id} end)
+      |> Map.merge(modules)
+
+    {sources, paths, modules}
+  end
+
+  def map(%Project{sources: sources} = project, fun, opts \\ nil) do
+    sources = sources |> Map.values() |> Enum.sort()
+    map(project, sources, fun, opts)
+  end
+
+  defp map(project, [], _fun, _opts), do: project
+
+  defp map(project, [source | sources], fun, opts) do
+    case map_apply(source, fun, opts) do
+      :error ->
+        map(project, sources, fun, opts)
+
+      {:ok, source} ->
+        project = update(project, source)
+        map(project, sources, fun, opts)
+    end
+  end
+
+  defp map_apply(source, fun, nil), do: fun.(source)
+
+  defp map_apply(source, fun, opts), do: fun.(source, opts)
 end

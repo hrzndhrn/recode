@@ -1,9 +1,10 @@
-defmodule Recode.ModuleInfo do
-  # TODO: This module is obsolete
+defmodule Recode.Source.Info do
+  # TODO: This module is obsolete. It is just used to extract all moudles from
+  #       code. This should be just a function or a differen module (maybe Recode.Code.modules/1)
 
   alias Recode.Context
-  alias Recode.ModuleInfo
   alias Recode.Source
+  alias Recode.Source.Info
   alias Sourceror.Zipper
 
   defstruct [
@@ -12,13 +13,12 @@ defmodule Recode.ModuleInfo do
     :requirements,
     :usages,
     :imports,
-    :aliases,
-    file: nil
+    :aliases
   ]
 
   def from_context(%Context{} = context) do
-    struct!(ModuleInfo,
-      module: Module.concat(context.module),
+    struct!(Info,
+      module: context.module,
       definitions: definitions(context),
       usages: context.usages,
       aliases: context.aliases,
@@ -27,16 +27,17 @@ defmodule Recode.ModuleInfo do
     )
   end
 
-  def from_code(%Source{code: code}), do: from_code(code)
+  def new(%Source{code: code}), do: from_code(code)
 
   def from_code(code) do
     code
     |> Sourceror.parse_string!()
     |> Zipper.zip()
-    |> Recode.traverse(%{}, fn zipper, context, acc ->
+    |> Context.traverse(%{}, fn zipper, context, acc ->
       {zipper, context, put(acc, context)}
     end)
     |> elem(1)
+    |> Map.values()
   end
 
   defp put(map, %Context{module: nil}), do: map
@@ -51,22 +52,22 @@ defmodule Recode.ModuleInfo do
     end)
   end
 
-  def update(%ModuleInfo{module: module} = old, %ModuleInfo{module: module} = new) do
-    %ModuleInfo{new | definitions: Enum.uniq(old.definitions ++ new.definitions)}
+  def update(%Info{module: module} = old, %Info{module: module} = new) do
+    %Info{new | definitions: Enum.uniq(old.definitions ++ new.definitions)}
   end
 
   defp definitions(%Context{definition: nil}), do: []
 
   defp definitions(%Context{definition: definition}), do: [definition]
 
-  def mfa(%ModuleInfo{module: module} = module_info, {nil, fun, arity} = mfa) do
+  def mfa(%Info{module: module} = module_info, {nil, fun, arity} = mfa) do
     case has_definition?(module_info, mfa) do
       true -> {module, fun, arity}
       false -> mfa
     end
   end
 
-  def mfa(%ModuleInfo{aliases: aliases}, {alias, fun, arity}) do
+  def mfa(%Info{aliases: aliases}, {alias, fun, arity}) do
     path =
       Enum.find_value(aliases, alias, fn {path, opts} ->
         cond do
@@ -79,7 +80,7 @@ defmodule Recode.ModuleInfo do
     {Module.concat(path), fun, arity}
   end
 
-  def has_definition?(%ModuleInfo{definitions: definitions}, {nil, fun, arity}) do
+  def has_definition?(%Info{definitions: definitions}, {nil, fun, arity}) do
     Enum.find_value(definitions, false, fn
       {_kind, ^fun, ^arity} -> true
       _definition -> false

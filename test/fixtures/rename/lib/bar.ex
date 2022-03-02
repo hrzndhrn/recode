@@ -4,7 +4,7 @@ defmodule Rename.Bar do
   @doc """
   Bla `baz/1` bla
   """
-  @spec baz(interger()) :: integer
+  @spec baz(integer()) :: integer
   def baz(z) do
     z + 10
   end

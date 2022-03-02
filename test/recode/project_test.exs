@@ -1,68 +1,67 @@
 defmodule Recode.ProjectTest do
   use ExUnit.Case
 
-  alias Recode.ModuleInfo
   alias Recode.Project
+  alias Recode.Source
 
   describe "new/1" do
-    test "creates a project map form a simple module" do
-      assert Project.new(["test/fixtures/traverse/simple.ex"]) ==
-               %{
-                 [:Traverse, :Simple] => %ModuleInfo{
-                   aliases: [],
-                   file: "test/fixtures/traverse/simple.ex",
-                   imports: [],
-                   definitions: [{:def, :foo, 1}],
-                   module: Traverse.Simple,
-                   requirements: [],
-                   usages: []
-                 }
-               }
+    test "creates a project from one file" do
+      inputs = ["test/fixtures/source/simple.ex"]
+      assert project = Project.new(inputs)
+      assert project.inputs == inputs
+      assert Map.keys(project.paths) == inputs
+      assert Enum.count(project.sources) == 1
+      assert Map.keys(project.modules) == [MyApp.Simple]
     end
 
-    test "creates a project map from rename/lib/definition.ex" do
-      assert Project.new(["test/fixtures/rename/lib/definition.ex"]) ==
-               %{
-                 [:Rename, :Bar] => %ModuleInfo{
-                   aliases: [],
-                   file: "test/fixtures/rename/lib/definition.ex",
-                   imports: [],
-                   definitions: [
-                     {:def, :baz, 0},
-                     {:def, :baz, 1},
-                     {:def, :when, 2},
-                     {:def, :baz, 2},
-                     {:defp, :baz, 3}
-                   ],
-                   module: Rename.Bar,
-                   requirements: [],
-                   usages: []
-                 }
-               }
+    # test "creates a project" do
+    #   project = Project.new(["test/fixtures/source/**/*.ex"])
+
+    #   refute "TODO"
+    # end
+
+    # # TODO: remove this test
+    # test "rename-import" do
+    #   project = Project.new(["test/fixtures/rename/lib/import.ex"])
+    #   Project.source(project, Rename.Bar)
+
+    #   refute "TODO"
+    # end
+  end
+
+  describe "source/2" do
+    test "returns the source struct for a module" do
+      project = Project.new(["test/fixtures/source/simple.ex"])
+      assert {:ok, %Source{}} = Project.source(project, MyApp.Simple)
+    end
+  end
+
+  describe "map/2" do
+    test "maps a project without any changes" do
+      inputs = ["test/fixtures/source/simple.ex"]
+
+      project = Project.new(inputs)
+
+      mapped =
+        Project.map(project, fn source ->
+          {:ok, source}
+        end)
+
+      assert project == mapped
     end
 
-    test "creates a project map from rename/lib/import.ex" do
-      assert Project.new(["test/fixtures/rename/lib/import.ex"]) ==
-               %{
-                 [:Rename, :Bar] => %ModuleInfo{
-                   aliases: [],
-                   file: "test/fixtures/rename/lib/import.ex",
-                   imports: [],
-                   definitions: [{:def, :baz, 0}],
-                   module: Rename.Bar,
-                   requirements: [],
-                   usages: []
-                 },
-                 [:Rename, :Foo] => %ModuleInfo{
-                   aliases: [],
-                   file: "test/fixtures/rename/lib/import.ex",
-                   imports: [{[:Rename, :Bar], nil}],
-                   definitions: [{:def, :foo, 1}],
-                   module: Rename.Foo,
-                   requirements: [],
-                   usages: []
-                 }
-               }
+    test "maps a project" do
+      inputs = ["test/fixtures/source/simple.ex"]
+
+      project = Project.new(inputs)
+
+      mapped =
+        Project.map(project, fn source ->
+          source = Source.update(source, :test, path: "new/path/simple.ex")
+          {:ok, source}
+        end)
+
+      assert project == mapped
     end
   end
 end

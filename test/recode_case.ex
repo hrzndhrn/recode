@@ -3,9 +3,11 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
+  alias Recode.Project
+
   using do
     quote do
-      def run_task(task, opts \\ [], input)
+      # def run_task(task, opts \\ [], input)
 
       # def run_task(task, opts, source) when is_binary(source) do
       #   source
@@ -15,20 +17,25 @@ defmodule RecodeCase do
       #   |> Sourceror.to_string()
       # end
 
-      def run_task(task, opts, file: file) do
-        file
-        |> RecodeCase.eval()
-        |> Sourceror.parse_string!()
-        |> task.run(Keyword.put(opts, :project, Recode.Project.new([file])))
-        |> Sourceror.to_string()
+      def run_task(task, config, opts) do
+        project = Project.new(config[:inputs])
+        task.run(project, opts)
       end
 
-      def run_task(task, opts, string) when is_binary(string) do
-        string
-        |> Sourceror.parse_string!()
-        |> task.run(opts)
-        |> Sourceror.to_string()
-      end
+      # def run_task(task, opts, file: file) do
+      #   file
+      #   |> RecodeCase.eval()
+      #   |> Sourceror.parse_string!()
+      #   |> task.run(Keyword.put(opts, :project, Recode.ProjectOld.new([file])))
+      #   |> Sourceror.to_string()
+      # end
+
+      # def run_task(task, opts, string) when is_binary(string) do
+      #   string
+      #   |> Sourceror.parse_string!()
+      #   |> task.run(opts)
+      #   |> Sourceror.to_string()
+      # end
 
       # def run_task(task, opts \\ [], params)
 
@@ -48,21 +55,21 @@ defmodule RecodeCase do
       #   end)
       # end
 
-      def read(path) do
-        path
-        |> Path.join("**/*.ex")
-        |> Path.wildcard()
-        |> Enum.into(%{}, fn file ->
-          {String.replace_leading(file, path, ""), File.read!(file)}
-        end)
-      end
+      # def read(path) do
+      #   path
+      #   |> Path.join("**/*.ex")
+      #   |> Path.wildcard()
+      #   |> Enum.into(%{}, fn file ->
+      #     {String.replace_leading(file, path, ""), File.read!(file)}
+      #   end)
+      # end
 
-      def assert_files(files, expected) do
-        Enum.each(files, fn {name, content} ->
-          expected_content = expected |> Map.get(name) |> RecodeCase.trim_trailing()
-          assert {name, content} == {name, expected_content}
-        end)
-      end
+      # def assert_files(files, expected) do
+      #   Enum.each(files, fn {name, content} ->
+      #     expected_content = expected |> Map.get(name) |> RecodeCase.trim_trailing()
+      #     assert {name, content} == {name, expected_content}
+      #   end)
+      # end
     end
   end
 

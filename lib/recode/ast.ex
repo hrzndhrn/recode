@@ -2,6 +2,7 @@ defmodule Recode.AST do
   def get_aliases([{:__aliases__, _, path}, name]), do: {path, name}
   def get_aliases(_), do: nil
 
+  @deprecated "obsolete?"
   def fetch_aliases(ast) do
     case get_aliases(ast) do
       nil -> :error
@@ -9,6 +10,7 @@ defmodule Recode.AST do
     end
   end
 
+  @deprecated "obsolete?"
   def get_dot({{:., _meta1, aliases}, _meta2, args}) do
     case fetch_aliases(aliases) do
       :error -> nil
@@ -16,7 +18,7 @@ defmodule Recode.AST do
     end
   end
 
-  # TODO: rename to get_afa (afa = alias-function-arity eq. moudle-function-arity)
+  @deprecated "obsolete?"
   def get_mfa({{:., _, aliases}, _, args}) do
     case fetch_aliases(aliases) do
       :error -> nil
@@ -48,34 +50,66 @@ defmodule Recode.AST do
     end
   end
 
+  def update_definition(
+        {:def, meta, [{:when, meta1, [{name, meta2, args}, expr1]}, expr2]},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {:def, meta, [{:when, meta1, [{name, meta2, args}, expr1]}, expr2]}
+  end
+
+  def update_definition({def, meta, [{name, meta1, args}, expr]}, updates) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {def, meta, [{name, meta1, args}, expr]}
+  end
+
+  def update_call({name, meta, args}, updates) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {name, meta, args}
+  end
+
+  def update_dot_call(
+        {{:., meta, [{:__aliases__, meta1, module}, name]}, meta2, args},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {{:., meta, [{:__aliases__, meta1, module}, name]}, meta2, args}
+  end
+
+  def mfa({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, args}) do
+    {Module.concat(aliases), fun, length(args)}
+  end
+
+  @deprecated "obsolete?"
   def update_mfa({{:., meta1, aliases}, meta2, args}, {nil, fun, nil}) do
     {{:., meta1, update_aliases(aliases, name: fun)}, meta2, args}
   end
 
+  @deprecated "obsolete?"
   def update_aliases([{:__aliases__, meta, path}, name], opts) do
     name = Keyword.get(opts, :name, name)
     path = Keyword.get(opts, :path, path)
     [{:__aliases__, meta, path}, name]
   end
 
+  @deprecated "obsolete?"
   def update_function({_name, meta, args}, {nil, fun, nil}) do
     {fun, meta, args}
   end
 
-  [
-    {
-      {:__block__,
-       [
-         trailing_comments: [],
-         leading_comments: [],
-         format: :keyword,
-         line: 2,
-         column: 12
-       ], [:do]},
-      {:__block__, [trailing_comments: [], leading_comments: [], line: 2, column: 16], [:baz]}
-    }
-  ]
-
+  @deprecated "obsolete?"
   def do_block?([{{:__block__, _meta, [:do]}, _block}]), do: true
 
   def do_block?(_ast), do: false

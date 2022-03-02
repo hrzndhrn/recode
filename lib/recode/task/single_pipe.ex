@@ -3,7 +3,7 @@ defmodule Recode.Task.SinglePipe do
   Add parentheses to one-arity functions.
   """
 
-  use Recode.Task
+  use Recode.Task.Source
 
   def run(quoted, _opts) do
     Zipper.zip(quoted)

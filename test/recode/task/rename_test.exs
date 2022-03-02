@@ -2,16 +2,28 @@ defmodule Recode.Task.RenameTest do
   use RecodeCase
 
   alias Recode.Task
+  alias Recode.Project
+  alias Recode.Source
 
+  # TODO: rename Rename.Bar to Fixture.Rename.Bar
   @path "test/fixtures/rename"
-  @opts [from: {Rename.Bar, :baz, nil}, to: {nil, :bar, nil}]
+  @opts [from: {Rename.Bar, :baz, nil}, to: %{fun: :bar}]
+
   # mix rc.reanme --fun Rename.Bar.baz --to bar
 
   defp test_rename(file, opts) do
-    lib = run_task(Task.Rename, opts, file: Path.join([@path, "lib", file]))
+    path = Path.join([@path, "lib", file])
+    config = [inputs: [path]]
+
+    lib =
+      Task.Rename
+      |> run_task(config, opts)
+      |> Project.source!(path)
+      |> Source.code()
+
     exp = [@path, "exp", file] |> Path.join() |> File.read!()
 
-    assert lib == String.trim_trailing(exp)
+    assert lib == exp
   end
 
   test "renames function calls" do
