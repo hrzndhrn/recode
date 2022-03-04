@@ -1,5 +1,10 @@
 defmodule Recode.AST do
+  @moduledoc """
+  TODO: @moduledoc
+  """
+
   def get_aliases([{:__aliases__, _, path}, name]), do: {path, name}
+
   def get_aliases(_), do: nil
 
   @deprecated "obsolete?"

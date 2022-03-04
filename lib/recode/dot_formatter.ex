@@ -1,4 +1,6 @@
 defmodule Recode.DotFormatter do
+  @moduledoc false
+
   def opts do
     ".formatter.exs"
     |> eval_file_with_keyword_list()

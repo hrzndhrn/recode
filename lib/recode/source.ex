@@ -1,6 +1,10 @@
 defmodule Recode.Source do
+  @moduledoc """
+  TODO: @moduledoc
+  """
+
+  alias Recode.Context
   alias Recode.Source
-  alias Recode.Source.Info
   alias Sourceror.Zipper
 
   defstruct [
@@ -14,8 +18,10 @@ defmodule Recode.Source do
   ]
 
   def new!(path) do
-    code = File.read!(path)
+    path |> File.read!() |> from_code(path)
+  end
 
+  def from_code(code, path \\ nil) do
     struct!(
       Source,
       id: make_ref(),
@@ -26,7 +32,6 @@ defmodule Recode.Source do
     )
   end
 
-  @deprecated "will be deleted"
   def update(%Source{} = source, by, [{:zipper, {ast, _meta}}]) do
     code = Sourceror.to_string(ast)
     update(source, by, code: code)
@@ -43,7 +48,7 @@ defmodule Recode.Source do
 
       false ->
         source
-        |> Map.put(key, value)
+        |> put(key, value)
         |> update_versions(version)
         |> update_modules(key, value)
         |> update_hash()
@@ -81,18 +86,40 @@ defmodule Recode.Source do
   end
 
   defp get_modules(code) do
-    code |> Info.from_code() |> Enum.map(fn info -> elem(info.module, 0) end)
+    code
+    |> Sourceror.parse_string!()
+    |> Zipper.zip()
+    |> Context.traverse(MapSet.new(), fn zipper, context, acc ->
+      acc =
+        case Context.module(context) do
+          nil -> acc
+          module -> MapSet.put(acc, module)
+        end
+
+      {zipper, context, acc}
+    end)
+    |> elem(1)
+    |> MapSet.to_list()
   end
 
   defp update_modules(source, :code, code), do: %{source | modules: get_modules(code)}
 
   defp update_modules(source, _key, _value), do: source
 
+  defp hash(nil, code), do: :crypto.hash(:md5, code)
+
   defp hash(path, code), do: :crypto.hash(:md5, path <> code)
 
   defp update_hash(%Source{path: path, code: code} = source) do
     %{source | hash: hash(path, code)}
   end
+
+  defp put(source, :code, value) do
+    code = newline(value)
+    Map.put(source, :code, code)
+  end
+
+  defp put(source, key, value), do: Map.put(source, key, value)
 
   defp update_versions(%Source{versions: versions} = source, version) do
     %{source | versions: [version | versions]}
@@ -151,7 +178,7 @@ defmodule Recode.Source do
   end
 
   defp compile_module(code, path, module) do
-    IO.inspect(path, label: :compile_module)
+    # TODO cache the modle with the version of the source
     code |> Code.compile_string(path) |> Keyword.fetch!(module)
   end
 
@@ -163,7 +190,6 @@ defmodule Recode.Source do
     Sourceror.parse_string!(code)
   end
 
-  @deprecated "will be deleted"
   def zipper(%Source{} = source) do
     with {:ok, ast} <- ast(source) do
       {:ok, Zipper.zip(ast)}
@@ -173,4 +199,6 @@ defmodule Recode.Source do
   def zipper!(%Source{} = source) do
     source |> ast!() |> Zipper.zip()
   end
+
+  defp newline(string), do: String.trim_trailing(string) <> "\n"
 end

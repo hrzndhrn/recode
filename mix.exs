@@ -58,16 +58,12 @@ defmodule Recode.MixProject do
 
   defp deps do
     [
-      # {:sourceror, "~> 0.9"},
-      # {:sourceror, path: "../../forks/sourceror"},
-      {:sourceror, git: "https://github.com/doorgan/sourceror"},
-      # dev and test
+      {:beam_file, "~> 0.3"},
+      {:sourceror, "~> 0.10"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      # {:beam_file, "~> 0.3", only: [:dev, :test]},
-      {:beam_file, path: "../beam_file"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:excoveralls, "~> 0.10", only: :test},
-      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.10", only: :test}
     ]
   end
 

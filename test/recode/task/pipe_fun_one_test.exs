@@ -20,11 +20,12 @@ defmodule Recode.Task.PipeFunOneTest do
         |> bar()
         |> baz(:baz)
         |> zoo()
-      end\
+      end
       """
 
-      # assert run_task(PipeFunOne, source) == expected
-      refute "TODO"
+      [updated] = run_task_with_sources({PipeFunOne, []}, [source])
+
+      assert updated == expected
     end
   end
 end

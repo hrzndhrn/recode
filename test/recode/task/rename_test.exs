@@ -1,9 +1,9 @@
 defmodule Recode.Task.RenameTest do
   use RecodeCase
 
-  alias Recode.Task
   alias Recode.Project
   alias Recode.Source
+  alias Recode.Task
 
   # TODO: rename Rename.Bar to Fixture.Rename.Bar
   @path "test/fixtures/rename"
@@ -16,8 +16,8 @@ defmodule Recode.Task.RenameTest do
     config = [inputs: [path]]
 
     lib =
-      Task.Rename
-      |> run_task(config, opts)
+      {Task.Rename, opts}
+      |> run_task(config)
       |> Project.source!(path)
       |> Source.code()
 

@@ -28,11 +28,12 @@ defmodule Recode.Task.SinglePipeTest do
       def fixme(arg) do
         zoo(arg)
         zoo(arg, :tiger)
-      end\
+      end
       """
 
-      # assert run_task(SinglePipe, source) == expected
-      refute "TODO"
+      [updated] = run_task_with_sources({SinglePipe, []}, [source])
+
+      assert updated == expected
     end
   end
 end

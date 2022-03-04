@@ -19,11 +19,12 @@ defmodule Recode.Task.AliasExapnasionTest do
         alias Foo.Baz
 
         def zoo, do: :zoo
-      end\
+      end
       """
 
-      # assert run_task(AliasExpansion, source) == expected
-      refute "TODO"
+      [updated] = run_task_with_sources({AliasExpansion, []}, [source])
+
+      assert updated == expected
     end
   end
 end

@@ -3,14 +3,24 @@ defmodule Recode.Task.AliasExpansion do
   TODO: moduledoc
   """
 
-  use Recode.Task.Source
+  use Recode.Task, correct: true
 
+  alias Recode.Project
+  alias Recode.Source
+  alias Recode.Task.SinglePipe
   alias Sourceror.Zipper
 
-  def run(quoted, _opts) do
-    Zipper.zip(quoted)
-    |> Zipper.traverse(&expand_alias/1)
-    |> Zipper.root()
+  def run(project, _opts) do
+    Project.map(project, fn source ->
+      zipper =
+        source
+        |> Source.zipper!()
+        |> Zipper.traverse(&expand_alias/1)
+
+      source = Source.update(source, SinglePipe, zipper: zipper)
+
+      {:ok, source}
+    end)
   end
 
   defp expand_alias({{:alias, _, _}, _} = zipper) do

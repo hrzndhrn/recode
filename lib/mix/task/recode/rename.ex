@@ -1,7 +1,9 @@
 defmodule Mix.Tasks.Recode.Rename do
-  # TODO
-  # @moduledoc
-  # @shortdoc
+  @shortdoc "TODO: @shortdoc"
+
+  @moduledoc """
+  TODO: @moduledoc
+  """
 
   # TODO
   # mix call:
@@ -11,35 +13,16 @@ defmodule Mix.Tasks.Recode.Rename do
 
   use Mix.Task
 
-  alias Recode.Project
-  alias Recode.Task.Rename
   alias Recode.Runner
-  alias Recode.Source
+  alias Recode.Task.Rename
 
   def run(opts) do
     {task_opts, runner_opts} = opts(opts)
     runner_opts = Keyword.put_new(runner_opts, :inputs, "{lib,test}/**/*.{ex,exs}")
-    # runner_opts = Keyword.put_new(runner_opts, :inputs, "lib/mix/task/recode/rename.ex")
 
     runner_opts |> Keyword.get(:inputs) |> prepare()
 
-    project = Runner.run({Rename, task_opts}, runner_opts)
-    s = Project.source!(project, "lib/mix/task/recode/rename.ex")
-
-    project
-    |> Project.state()
-    |> IO.inspect(limit: :infinity)
-
-    Source.code(s, 1) |> IO.puts()
-
-    # IO.puts(Source.code(s, 0))
-    # IO.puts("---")
-    # IO.puts(Source.code(s, 1))
-    # IO.puts("---")
-    String.myers_difference(Source.code(s, 0), Source.code(s, 1))
-    |> IO.inspect()
-
-    raise "TODO"
+    Runner.run({Rename, task_opts}, runner_opts)
   end
 
   defp prepare(inputs) do
@@ -64,10 +47,11 @@ defmodule Mix.Tasks.Recode.Rename do
   end
 
   defp opts([from, to]) do
-    with {:ok, from_mfa} <- to_mfa(from) do
-      to = %{fun: String.to_atom(to)}
-      {[from: from_mfa, to: to], []}
-    else
+    case to_mfa(from) do
+      {:ok, from_mfa} ->
+        to = %{fun: String.to_atom(to)}
+        {[from: from_mfa, to: to], []}
+
       :error ->
         Mix.raise("""
         Can not parse from/to arguments.

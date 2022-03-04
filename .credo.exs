@@ -34,7 +34,8 @@
         excluded: [
           ~r"/_build/",
           ~r"/deps/",
-          ~r"/node_modules/"
+          ~r"/node_modules/",
+          ~r"/test/fixtures/"
         ]
       },
       #
@@ -127,7 +128,6 @@
           {Credo.Check.Readability.SeparateAliasRequire, []},
           {Credo.Check.Readability.SingleFunctionToBlockPipe, []},
           {Credo.Check.Readability.SinglePipe, []},
-          {Credo.Check.Readability.Specs, []},
           {Credo.Check.Readability.StrictModuleLayout, []},
           {Credo.Check.Readability.WithCustomTaggedTuple, []},
 
@@ -175,9 +175,7 @@
           {Credo.Check.Warning.UnusedRegexOperation, []},
           {Credo.Check.Warning.UnusedStringOperation, []},
           {Credo.Check.Warning.UnusedTupleOperation, []},
-          {Credo.Check.Warning.UnsafeExec, []},
-          {Credo.Check.Warning.UnsafeToAtom, []},
-          {Credo.Check.Warning.MixEnv, []}
+          {Credo.Check.Warning.UnsafeExec, []}
         ],
         disabled: [
           #
@@ -190,6 +188,7 @@
           {Credo.Check.Design.DuplicatedCode, []},
           {Credo.Check.Design.SkipTestWithoutComment, []},
           {Credo.Check.Readability.ImplTrue, []},
+          {Credo.Check.Readability.Specs, []},
           {Credo.Check.Refactor.ABCSize, []},
           {Credo.Check.Refactor.AppendSingleItem, []},
           {Credo.Check.Refactor.IoPuts, []},
@@ -201,7 +200,9 @@
           {Credo.Check.Refactor.VariableRebinding, []},
           {Credo.Check.Warning.LazyLogging, []},
           {Credo.Check.Warning.LeakyEnvironment, []},
-          {Credo.Check.Warning.MapGetUnsafePass, []}
+          {Credo.Check.Warning.MapGetUnsafePass, []},
+          {Credo.Check.Warning.UnsafeToAtom, []},
+          {Credo.Check.Warning.MixEnv, []}
 
           # {Credo.Check.Refactor.MapInto, []},
 

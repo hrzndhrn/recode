@@ -1,5 +1,9 @@
 defmodule Recode.Task.Rename do
-  use Recode.Task.Project
+  @moduledoc """
+  TODO: @moduledoc
+  """
+
+  use Recode.Task, refactor: true
 
   import Kernel, except: [match?: 2]
 
@@ -21,18 +25,11 @@ defmodule Recode.Task.Rename do
           rename(zipper, context, opts)
         end)
 
-      source = update(source, zipper)
+      source = Source.update(source, Rename, zipper: zipper)
 
       {:ok, source}
     end)
   end
-
-  defp update(source, {ast, _meta}) do
-    code = ast |> Sourceror.to_string() |> newline()
-    Source.update(source, Rename, code: code)
-  end
-
-  defp newline(string), do: String.trim_trailing(string) <> "\n"
 
   defp rename({{fun, _meta, [call, _expr]}, _zipper_meta} = zipper, context, opts)
        when fun in [
@@ -124,15 +121,8 @@ defmodule Recode.Task.Rename do
     from = opts[:from]
 
     with true <- fun == elem(from, 1) do
-      source = opts[:source]
-
       mfa = {nil, fun, length(args)}
-      debug_info = Source.debug_info!(source, Context.module(context))
-
-      case DebugInfo.expand_mfa(debug_info, context, mfa) do
-        {:ok, mfa} -> match?(mfa, from)
-        :error -> false
-      end
+      rename?(:debug, mfa, context, opts)
     end
   end
 
@@ -155,10 +145,6 @@ defmodule Recode.Task.Rename do
     end
   end
 
-  defp fun?({_module1, fun, _arity1}, {_module2, fun, _arity2}), do: true
-
-  defp fun?(_mfa1, _mfa2), do: false
-
   defp rename?(:debug, mfa, context, opts) do
     source = opts[:source]
 
@@ -167,12 +153,16 @@ defmodule Recode.Task.Rename do
         false
 
       {:ok, debug_info} ->
-      case DebugInfo.expand_mfa(debug_info, context, mfa)  do
+        case DebugInfo.expand_mfa(debug_info, context, mfa) do
           {:ok, mfa} -> match?(mfa, opts[:from])
           :error -> false
         end
     end
   end
+
+  defp fun?({_module1, fun, _arity1}, {_module2, fun, _arity2}), do: true
+
+  defp fun?(_mfa1, _mfa2), do: false
 
   defp match?({module, fun, arity}, {module, fun, arity}), do: true
 

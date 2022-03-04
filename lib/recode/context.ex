@@ -1,4 +1,8 @@
 defmodule Recode.Context do
+  @moduledoc """
+  TODO: @moduledoc
+  """
+
   alias Recode.Context
   alias Sourceror.Zipper
 

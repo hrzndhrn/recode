@@ -18,6 +18,16 @@ defmodule Recode.SourceTest do
     end
   end
 
+  describe "from_code" do
+    test "creates a source from code" do
+      code = "def foo, do: :foo"
+      source = Source.from_code(code)
+      assert source.code == code
+      assert source.path == nil
+      assert source.modules == []
+    end
+  end
+
   describe "update/1" do
     test "updates the code" do
       path = "test/fixtures/source/simple.ex"
@@ -177,7 +187,8 @@ defmodule Recode.SourceTest do
     test "returns the abstract code for a module" do
       source = Source.new!("test/fixtures/source/simple.ex")
 
-      assert Source.abstract_code(source, MyApp.Simple) == :todo
+      assert {:ok, data} = Source.abstract_code(source, MyApp.Simple)
+      assert hd(data) == {:attribute, 1, :file, {'test/fixtures/source/simple.ex', 1}}
     end
   end
 

@@ -3,12 +3,24 @@ defmodule Recode.Task.SinglePipe do
   Add parentheses to one-arity functions.
   """
 
-  use Recode.Task.Source
+  use Recode.Task, correct: true
 
-  def run(quoted, _opts) do
-    Zipper.zip(quoted)
-    |> Zipper.traverse(&single_pipe/1)
-    |> Zipper.root()
+  alias Recode.Project
+  alias Recode.Source
+  alias Recode.Task.SinglePipe
+  alias Sourceror.Zipper
+
+  def run(project, _opts) do
+    Project.map(project, fn source ->
+      zipper =
+        source
+        |> Source.zipper!()
+        |> Zipper.traverse(&single_pipe/1)
+
+      source = Source.update(source, SinglePipe, zipper: zipper)
+
+      {:ok, source}
+    end)
   end
 
   defp single_pipe({{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper) do

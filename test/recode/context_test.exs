@@ -80,90 +80,123 @@ defmodule Recode.ContextTest do
 
       assert hd(acc) == %Context{
                aliases: [
-                 {Traverse.Nested.Simple,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 1, line: 4, column: 31],
-                    line: 4,
-                    column: 3
-                  ], nil},
-                 {Donald.Duck,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 1, line: 5, column: 31],
-                    line: 5,
-                    column: 3
-                  ], [as: Goofy]},
-                 {Foo.Bar,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 6, column: 23],
-                    line: 6,
-                    column: 3
-                  ], nil},
-                 {Foo.Baz,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 6, column: 23],
-                    line: 6,
-                    column: 3
-                  ], nil}
+                 {
+                   Traverse.Nested.Simple,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 1, line: 18, column: 31],
+                     line: 18,
+                     column: 3
+                   ],
+                   nil
+                 },
+                 {
+                   Donald.Duck,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 1, line: 19, column: 31],
+                     line: 19,
+                     column: 3
+                   ],
+                   [as: Goofy]
+                 },
+                 {
+                   Foo.Bar,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 2, line: 20, column: 23],
+                     line: 20,
+                     column: 3
+                   ],
+                   nil
+                 },
+                 {
+                   Foo.Baz,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 2, line: 20, column: 23],
+                     line: 20,
+                     column: 3
+                   ],
+                   nil
+                 }
                ],
                assigns: %{},
-               definition:
-                 {{:def, :foo, 0},
-                  [trailing_comments: [], leading_comments: [], line: 13, column: 3]},
+               definition: {
+                 {:def, :mouse, 0},
+                 [
+                   {:trailing_comments, []},
+                   {:leading_comments, []},
+                   {:do, [line: 33, column: 13]},
+                   {:end, [line: 35, column: 3]},
+                   {:line, 33},
+                   {:column, 3}
+                 ]
+               },
                imports: [
-                 {Traverse.Pluto,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 1, line: 8, column: 24],
-                    line: 8,
-                    column: 3
-                  ], nil},
-                 {Traverse.Mouse,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 9, column: 42],
-                    line: 9,
-                    column: 3
-                  ], [only: [micky: 1]]}
+                 {
+                   Traverse.Pluto,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 1, line: 22, column: 24],
+                     line: 22,
+                     column: 3
+                   ],
+                   nil
+                 },
+                 {
+                   Traverse.Mouse,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 2, line: 23, column: 42],
+                     line: 23,
+                     column: 3
+                   ],
+                   [only: [micky: 1]]
+                 }
                ],
-               module:
-                 {Traverse.Foo,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    do: [line: 1, column: 24],
-                    end: [line: 14, column: 1],
-                    line: 1,
-                    column: 1
-                  ]},
+               module: {
+                 Traverse.Foo,
+                 [
+                   trailing_comments: [],
+                   leading_comments: [],
+                   do: [line: 15, column: 24],
+                   end: [line: 36, column: 1],
+                   line: 15,
+                   column: 1
+                 ]
+               },
                requirements: [
-                 {Logger,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 11, column: 17],
-                    line: 11,
-                    column: 3
-                  ], nil}
+                 {
+                   Logger,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 2, line: 25, column: 17],
+                     line: 25,
+                     column: 3
+                   ],
+                   nil
+                 }
                ],
                usages: [
-                 {Traverse.Obelix,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 2, column: 37],
-                    line: 2,
-                    column: 3
-                  ], [app: Traverse]}
+                 {
+                   Traverse.Obelix,
+                   [
+                     trailing_comments: [],
+                     leading_comments: [],
+                     end_of_expression: [newlines: 2, line: 16, column: 37],
+                     line: 16,
+                     column: 3
+                   ],
+                   [app: Traverse]
+                 }
                ]
              }
     end
@@ -254,10 +287,10 @@ defmodule Recode.ContextTest do
       assert result |> Zipper.node() |> Sourceror.to_string() == String.trim(src)
 
       assert output =~ ~r/^1: module: nil/m
-      assert output =~ ~r/^16: module:.{Traverse.SomeModule/m
-      assert output =~ ~r/^66: module:.{Traverse.Simple/m
-      assert output =~ ~r/^67: module:.{Traverse.Simple.Nested/m
-      assert output =~ ~r/^85: module:.{Traverse.Simple/m
+      assert output =~ ~r/^16: module:.{Traverse.SomeModule,/m
+      assert output =~ ~r/^76: module:.{Traverse.Simple,/m
+      assert output =~ ~r/^113: module:.{Traverse.Simple.Nested,/m
+      assert output =~ ~r/^134: module:.{Traverse.Simple,/m
     end
 
     test "collect use, import, etc..." do
@@ -280,10 +313,10 @@ defmodule Recode.ContextTest do
 
       assert result |> Zipper.node() |> Sourceror.to_string() == String.trim(src)
 
-      assert output =~ ~r/^77: aliases:.*Donald.Duck/m
-      assert output =~ ~r/^77: requirements:.*Logger/m
-      assert output =~ ~r/^77: usages:.*Traverse.Obelix/m
-      assert output =~ ~r/^77: imports:.*Traverse.Pluto/m
+      assert output =~ ~r/^158: aliases:.*Donald.Duck/m
+      assert output =~ ~r/^158: requirements:.*Logger/m
+      assert output =~ ~r/^158: usages:.*Traverse.Obelix/m
+      assert output =~ ~r/^158: imports:.*Traverse.Pluto/m
     end
   end
 

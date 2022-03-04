@@ -13,20 +13,6 @@ defmodule Recode.ProjectTest do
       assert Enum.count(project.sources) == 1
       assert Map.keys(project.modules) == [MyApp.Simple]
     end
-
-    # test "creates a project" do
-    #   project = Project.new(["test/fixtures/source/**/*.ex"])
-
-    #   refute "TODO"
-    # end
-
-    # # TODO: remove this test
-    # test "rename-import" do
-    #   project = Project.new(["test/fixtures/rename/lib/import.ex"])
-    #   Project.source(project, Rename.Bar)
-
-    #   refute "TODO"
-    # end
   end
 
   describe "source/2" do
@@ -61,7 +47,9 @@ defmodule Recode.ProjectTest do
           {:ok, source}
         end)
 
-      assert project == mapped
+      assert project.inputs == mapped.inputs
+      assert project.modules == mapped.modules
+      assert project != mapped
     end
   end
 end

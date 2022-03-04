@@ -1,9 +1,12 @@
 defmodule Recode.DebugInfo do
-  alias Sourceror.Zipper
+  @moduledoc """
+  TODO: @moduledoc
+  """
+
   alias Recode.Context
+  alias Sourceror.Zipper
 
   def expand_mfa(debug_info, context, {_module, fun, arity} = mfa) do
-    IO.inspect("expand_mfa")
     with {:ok, definitions} <- Map.fetch(debug_info, :definitions),
          {:ok, block} <- find_block(definitions, context) do
       expand =

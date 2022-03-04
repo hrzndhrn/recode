@@ -1,7 +1,11 @@
 defmodule Recode.Project do
+  @moduledoc """
+  TODO: @moduledoc
+  """
+
   alias Recode.Project
-  alias Recode.Source
   alias Recode.ProjectError
+  alias Recode.Source
 
   defstruct [:sources, :paths, :modules, :inputs]
 
@@ -15,6 +19,19 @@ defmodule Recode.Project do
       end)
 
     struct!(Project, sources: sources, paths: paths, modules: modules, inputs: inputs)
+  end
+
+  def from_sources(sources) do
+    {sources, paths, modules} =
+      Enum.reduce(sources, {%{}, %{}, %{}}, fn source, {sources, paths, modules} ->
+        update_internals({sources, paths, modules}, source)
+      end)
+
+    struct!(Project, sources: sources, paths: paths, modules: modules, inputs: nil)
+  end
+
+  def source_by_id!(%Project{sources: sources}, id) do
+    Map.fetch!(sources, id)
   end
 
   def source(%Project{sources: sources, modules: modules}, module) when is_atom(module) do

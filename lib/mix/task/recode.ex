@@ -1,9 +1,9 @@
 defmodule Mix.Tasks.Recode do
+  @shortdoc "TODO: add shortdoc"
+
   @moduledoc """
   TODO: add moduledoc
   """
-
-  @shortdoc "TODO: add shortdoc"
 
   use Mix.Task
 
@@ -68,10 +68,12 @@ defmodule Mix.Tasks.Recode do
   defp tasks([], tasks), do: Keyword.values(tasks)
 
   defp tasks(opts, tasks) do
-    opts
-    |> Keyword.values()
-    |> Enum.any?()
-    |> case do
+    include =
+      opts
+      |> Keyword.values()
+      |> Enum.any?()
+
+    case include do
       true -> tasks(opts, tasks, :include)
       false -> tasks(opts, tasks, :exclude)
     end
