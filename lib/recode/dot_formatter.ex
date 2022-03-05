@@ -1,14 +1,28 @@
 defmodule Recode.DotFormatter do
-  @moduledoc false
+  @moduledoc """
+  This module provides the information from `.formatter.exs`.
+  """
 
+  @doc """
+  Returns the options from the `.formatter.exs`.
+  """
+  @spec opts :: keyword()
   def opts do
     ".formatter.exs"
     |> eval_file_with_keyword_list()
     |> eval_deps_opts()
   end
 
+  @doc """
+  Returns the option `inputs` from the `.formatter.exs`.
+  """
+  @spec inputs :: list()
   def inputs, do: Keyword.get(opts(), :inputs, [])
 
+  @doc """
+  Returns the option `locals_without_parens` from the `.formatter.exs`.
+  """
+  @spec locals_without_parens :: keyword()
   def locals_without_parens, do: Keyword.get(opts(), :locals_without_parens, [])
 
   defp eval_deps_opts(formatter_opts) do
