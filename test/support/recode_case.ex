@@ -5,6 +5,7 @@ defmodule RecodeCase do
 
   alias Recode.Project
   alias Recode.Source
+  alias Recode.Runner
 
   using do
     quote do
@@ -12,20 +13,14 @@ defmodule RecodeCase do
     end
   end
 
+  setup context do
+    Mox.stub_with(Recode.RunnerMock, Recode.Runner.Impl)
+
+    context
+  end
+
   def run_task({task, opts}, config) do
-    project =
-      case Keyword.has_key?(config, :sources) do
-        true ->
-          config
-          |> Keyword.fetch!(:sources)
-          |> Enum.map(&Source.from_code/1)
-          |> Project.from_sources()
-
-        false ->
-          Project.new(config[:inputs])
-      end
-
-    task.run(project, opts)
+    Runner.run({task, opts}, config)
   end
 
   def run_task_with_sources({task, opts}, sources) do

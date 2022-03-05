@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Recode.RenameTest do
-  use ExUnit.Case
+  use RecodeCase
 
   import Mox
 
@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Recode.RenameTest do
     expect(RunnerMock, :run, fn {task, opts}, config ->
       assert task == Recode.Task.Rename
       assert opts == [from: {Rename.Bar, :baz, nil}, to: %{fun: :bar}]
-      assert config ==  [inputs: "{lib,test}/**/*.{ex,exs}"]
+      assert config == [inputs: "{lib,test}/**/*.{ex,exs}"]
     end)
 
     Task.run(["Rename.Bar.baz", "bar"])
