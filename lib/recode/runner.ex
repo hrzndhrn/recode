@@ -2,15 +2,11 @@ defmodule Recode.Runner do
   @moduledoc false
 
   alias Recode.Project
+  alias Recode.Runner
 
-  def run({task_module, task_opts}, runner_opts) do
-    project = runner_opts |> Keyword.fetch!(:inputs) |> List.wrap() |> Project.new()
-    type = task_module.type
+  @callback run({Project.t(), opts :: keyword()}, config :: keyword()) :: Project.t()
 
-    run(type, project, task_module, task_opts, runner_opts)
-  end
+  def run(task, config), do: impl().run(task, config)
 
-  def run(:project, project, task_module, task_opts, _runner_opts) do
-    task_module.run(project, task_opts)
-  end
+  defp impl, do: Application.get_env(:recode, :runner, Runner.Impl)
 end
