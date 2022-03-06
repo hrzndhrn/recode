@@ -1,9 +1,9 @@
 defmodule Recode.Runner.Impl do
   @moduledoc false
 
-  alias Recode.Project
-
   @behaviour Recode.Runner
+
+  alias Recode.Project
 
   @impl true
   def run({module, opts}, config) do

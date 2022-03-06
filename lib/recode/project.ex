@@ -56,7 +56,7 @@ defmodule Recode.Project do
   def sources(%Project{paths: paths, sources: sources}) do
     paths
     |> Enum.sort()
-    |> Enum.map(fn {path, id} ->
+    |> Enum.map(fn {_path, id} ->
       Map.fetch!(sources, id)
     end)
   end

@@ -1,8 +1,8 @@
 defmodule Mix.Tasks.Recode.Gen.Config do
-  use Mix.Task
-
   @shortdoc "Generate a new config for Recode"
   @moduledoc @shortdoc
+
+  use Mix.Task
 
   @doc false
   def run([]) do
