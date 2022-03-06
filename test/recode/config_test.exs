@@ -5,19 +5,8 @@ defmodule Recode.ConfigTest do
 
   describe "read/1" do
     test "reads config" do
-      assert Config.read("priv/config.exs") ==
-               {:ok,
-                [
-                  autocorrect: true,
-                  dry: false,
-                  verbose: false,
-                  inputs: ["{config,lib,test}/**/*.{ex,exs}"],
-                  tasks: [
-                    {Recode.Task.SinglePipe, []},
-                    {Recode.Task.PipeFunOne, []},
-                    {Recode.Task.AliasExpansion, []}
-                  ]
-                ]}
+      {config, []} = "priv/config.exs" |> File.read!() |> Code.eval_string()
+      assert Config.read("priv/config.exs") == {:ok, config}
     end
 
     test "returns an error tuple for a missing config file" do

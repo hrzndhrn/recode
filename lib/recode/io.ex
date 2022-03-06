@@ -15,7 +15,7 @@ defmodule Recode.IO do
   def puts(chardata) do
     chardata
     |> Enum.map(&colors/1)
-    |> Bunt.puts
+    |> Bunt.puts()
   end
 
   defp colors(data) when is_atom(data), do: Map.get(@colors, data, data)
