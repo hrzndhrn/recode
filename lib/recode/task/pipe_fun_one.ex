@@ -7,7 +7,7 @@ defmodule Recode.Task.PipeFunOne do
 
   alias Recode.Project
   alias Recode.Source
-  alias Recode.Task.SinglePipe
+  alias Recode.Task.PipeFunOne
   alias Sourceror.Zipper
 
   def run(project, _opts) do
@@ -17,7 +17,7 @@ defmodule Recode.Task.PipeFunOne do
         |> Source.zipper!()
         |> Zipper.traverse(&pipe_fun_one/1)
 
-      source = Source.update(source, SinglePipe, zipper: zipper)
+      source = Source.update(source, PipeFunOne, zipper: zipper)
 
       {:ok, source}
     end)

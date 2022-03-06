@@ -33,20 +33,21 @@ defmodule Recode.Source do
   end
 
   def update(%Source{} = source, by, [{:zipper, {ast, _meta}}]) do
-    code = Sourceror.to_string(ast)
+    code = ast |> Sourceror.to_string() |> newline()
     update(source, by, code: code)
   end
 
   def update(%Source{} = source, by, [{key, value}])
       when is_atom(by) and key in [:code, :path] and is_binary(value) do
     legacy = Map.fetch!(source, key)
-    version = {key, by, legacy}
 
     case legacy == value do
       true ->
         source
 
       false ->
+        version = {key, by, legacy}
+
         source
         |> put(key, value)
         |> update_versions(version)
@@ -56,6 +57,8 @@ defmodule Recode.Source do
   end
 
   def version(%Source{versions: versions}), do: length(versions)
+
+  def changed?(%Source{versions: versions}), do: not Enum.empty?(versions)
 
   def path(%Source{path: path}), do: path
 

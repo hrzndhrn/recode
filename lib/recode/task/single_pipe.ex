@@ -24,7 +24,7 @@ defmodule Recode.Task.SinglePipe do
   end
 
   defp single_pipe({{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper) do
-    Zipper.next(zipper)
+    skip(zipper)
   end
 
   defp single_pipe({{:|>, _meta1, _ast}, _zipper_meta} = zipper) do
@@ -32,6 +32,12 @@ defmodule Recode.Task.SinglePipe do
   end
 
   defp single_pipe(zipper), do: zipper
+
+  defp skip({{:|>, _meta1, _ast}, _zipper_meta} = zipper) do
+    zipper |> Zipper.next() |> skip()
+  end
+
+  defp skip(zipper), do: zipper
 
   defp update({:|>, _meta, [arg, {fun, meta, args}]}) do
     {fun, meta, [arg | args]}

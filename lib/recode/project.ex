@@ -53,6 +53,14 @@ defmodule Recode.Project do
     end
   end
 
+  def sources(%Project{paths: paths, sources: sources}) do
+    paths
+    |> Enum.sort()
+    |> Enum.map(fn {path, id} ->
+      Map.fetch!(sources, id)
+    end)
+  end
+
   def update(
         %Project{sources: sources, paths: paths, modules: modules} = project,
         %Source{} = source

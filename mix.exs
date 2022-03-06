@@ -60,6 +60,7 @@ defmodule Recode.MixProject do
   defp deps do
     [
       {:beam_file, "~> 0.3"},
+      {:bunt, "~> 0.2.0"},
       {:sourceror, "~> 0.10"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},

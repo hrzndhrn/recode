@@ -7,96 +7,64 @@ defmodule Mix.Tasks.Recode do
 
   use Mix.Task
 
+  alias Recode.Config
   alias Recode.DotFormatter
-  alias Recode.Task.AliasExpansion
-  alias Recode.Task.PipeFunOne
-  alias Recode.Task.SinglePipe
+  alias Recode.Runner
 
-  @inputs "{lib,test}/**/*.{ex,exs}"
-  @tasks [alias_expansion: AliasExpansion, pipe_fun_one: PipeFunOne, single_pipe: SinglePipe]
-
-  @opts strict: [pipe_fun_one: :boolean, alias_expansion: :boolean, single_pipe: :boolean]
+  @opts strict: [autocorrect: :boolean, dry: :boolean, verbose: :boolean, config: :string]
 
   @impl Mix.Task
   def run(opts) do
-    tasks =
-      opts
-      |> OptionParser.parse!(@opts)
-      |> elem(0)
-      |> tasks(@tasks)
+    opts = opts(opts)
+    config = config(opts)
 
-    @inputs
-    |> Path.wildcard()
-    |> read!()
-    |> recode(tasks, locals_without_parens: DotFormatter.locals_without_parens())
-    |> write!()
+    config =
+      config
+      |> Keyword.merge(opts)
+      |> update(:verbose)
+      |> update(:locals_without_parens)
+      |> update(:tasks)
+
+    {tasks, config} = Keyword.pop!(config, :tasks)
+
+    Runner.run(tasks, config)
   end
 
-  defp write!(outputs) when is_list(outputs) do
-    Enum.map(outputs, &write!/1)
-  end
-
-  defp write!({path, old, new}) do
-    unless old == new do
-      File.write!(path, new)
-      Mix.Shell.IO.info([IO.ANSI.green(), "* update: ", IO.ANSI.reset(), path])
+  defp opts(opts) do
+    case OptionParser.parse!(opts, @opts) do
+      {opts, []} -> opts
+      {_opts, args} -> Mix.raise("#{inspect(args)} : Unknown")
     end
   end
 
-  defp read!(paths) do
-    Enum.map(paths, fn path -> {path, File.read!(path)} end)
-  end
+  defp config(opts) do
+    config_path = Keyword.get(opts, :config, ".config.exs")
 
-  defp recode(inputs, tasks, opts) when is_list(inputs) do
-    Enum.map(inputs, fn input -> recode(input, tasks, opts) end)
-  end
-
-  defp recode({path, code}, tasks, opts) do
-    {path, code, recode(code, tasks, opts)}
-  end
-
-  defp recode(code, tasks, opts) do
-    Enum.reduce(tasks, code, fn task, code ->
-      code
-      |> Sourceror.parse_string!()
-      |> task.run()
-      |> Sourceror.to_string(opts)
-      |> newline()
-    end)
-  end
-
-  defp tasks([], tasks), do: Keyword.values(tasks)
-
-  defp tasks(opts, tasks) do
-    include =
-      opts
-      |> Keyword.values()
-      |> Enum.any?()
-
-    case include do
-      true -> tasks(opts, tasks, :include)
-      false -> tasks(opts, tasks, :exclude)
+    case Config.read(config_path) do
+      {:ok, config} -> config
+      {:error, :not_found} -> Mix.raise("Config file not found")
     end
   end
 
-  defp tasks(opts, tasks, :include) do
-    opts
-    |> Enum.reduce([], fn {key, true}, acc ->
-      [Keyword.get(tasks, key) | acc]
-    end)
-    |> Enum.reverse()
+  defp update(opts, :verbose) do
+    case opts[:dry] do
+      true -> Keyword.put(opts, :verbose, true)
+      false -> opts
+    end
   end
 
-  defp tasks(opts, tasks, :exclude) do
-    tasks
-    |> Enum.reduce([], fn {key, task}, acc ->
-      case Keyword.get(opts, key, true) do
-        false -> acc
-        true -> [task | acc]
-      end
-    end)
-    |> Enum.reverse()
+  defp update(opts, :locals_without_parens) do
+    Keyword.put(opts, :locals_without_parens, DotFormatter.locals_without_parens())
   end
 
-  defp newline(string), do: string <> "\n"
+  defp update(opts, :tasks) do
+    groups =
+      Enum.group_by(opts[:tasks], fn {task, _opts} ->
+        task.config(:correct)
+      end)
+
+    tasks = Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
+
+    Keyword.put(opts, :tasks, tasks)
+  end
 end
