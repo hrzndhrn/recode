@@ -243,22 +243,20 @@ defmodule Recode.ContextTest do
     test "traverses a simple module" do
       src = File.read!("test/fixtures/context/simple.ex")
 
-      {result, output} =
-        assert with_io(:stdio, fn ->
-                 src
-                 |> Sourceror.parse_string!()
-                 |> Zipper.zip()
-                 |> Context.traverse(fn zipper, context ->
-                   context =
-                     context
-                     |> inc()
-                     |> write()
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
 
-                   {zipper, context}
-                 end)
-               end)
-
-      assert result |> Zipper.node() |> Sourceror.to_string() == String.trim(src)
+            {zipper, context}
+          end)
+        end)
 
       assert output =~ ~r/^1:.module:.{Traverse.Simple,.*line:.1,/m
       assert output =~ ~r/^9:.definition:.nil/m
@@ -269,22 +267,20 @@ defmodule Recode.ContextTest do
     test "traverse a nested module" do
       src = File.read!("test/fixtures/context/nested.ex")
 
-      {result, output} =
-        assert with_io(fn ->
-                 src
-                 |> Sourceror.parse_string!()
-                 |> Zipper.zip()
-                 |> Context.traverse(fn zipper, context ->
-                   context =
-                     context
-                     |> inc()
-                     |> write()
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
 
-                   {zipper, context}
-                 end)
-               end)
-
-      assert result |> Zipper.node() |> Sourceror.to_string() == String.trim(src)
+            {zipper, context}
+          end)
+        end)
 
       assert output =~ ~r/^1: module: nil/m
       assert output =~ ~r/^16: module:.{Traverse.SomeModule,/m
@@ -296,22 +292,20 @@ defmodule Recode.ContextTest do
     test "collect use, import, etc..." do
       src = File.read!("test/fixtures/context/use_import_etc.ex")
 
-      {result, output} =
-        assert with_io(fn ->
-                 src
-                 |> Sourceror.parse_string!()
-                 |> Zipper.zip()
-                 |> Context.traverse(fn zipper, context ->
-                   context =
-                     context
-                     |> inc()
-                     |> write()
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
 
-                   {zipper, context}
-                 end)
-               end)
-
-      assert result |> Zipper.node() |> Sourceror.to_string() == String.trim(src)
+            {zipper, context}
+          end)
+        end)
 
       assert output =~ ~r/^158: aliases:.*Donald.Duck/m
       assert output =~ ~r/^158: requirements:.*Logger/m
