@@ -1,0 +1,5 @@
+%{
+  "beam_file": {:hex, :beam_file, "0.3.1", "e4c1eb5f97785bed7f1f81aa6cfbf0bf8c9688ecff5342c448e5b47aebf56c2c", [:mix], [], "hexpm", "b0322437fa1936966095b7571281ff11e90c3eedfafe5fd707f25b35895d2a58"},
+  "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm", "7af5c7e09fe1d40f76c8e4f9dd2be7cebd83909f31fee7cd0e9eadc567da8353"},
+  "sourceror": {:hex, :sourceror, "0.10.0", "a6a85d8acc874df59bedb7497374f8f7517e4d54a5805da903ff31aaee14a1a7", [:mix], [], "hexpm", "ddd94d23d96ac949696616eb89cecac977dfed7ecdfac6bbd3f83617e4daea28"},
+}
