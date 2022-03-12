@@ -3,11 +3,12 @@ defmodule Recode.Context do
   TODO: @moduledoc
   """
 
+  import Recode.Utils, only: [ends_with?: 2]
+
   alias Recode.Context
   alias Sourceror.Zipper
 
   # TODO: add @moduledoc, @doc, @spec
-  # TODO: add key file to struct
 
   defstruct module: nil,
             aliases: [],
@@ -17,130 +18,14 @@ defmodule Recode.Context do
             definition: nil,
             assigns: %{}
 
-  # TODO: Most of this functions could be private because they are just called
-  #       by traverse
-
-  @deprecated "obsolete?"
-  def fa(%Context{definition: {{_kind, fun, arity}, _meta}}), do: {fun, arity}
-
   def module(%Context{module: nil}), do: nil
 
   def module(%Context{module: {name, _meta}}), do: name
-
-  defp module(%Context{module: nil}, :meta), do: nil
-
-  defp module(%Context{module: {_name, meta}}, :meta), do: meta
-
-  defp module_concat(%Context{module: nil}, module), do: module
-
-  defp module_concat(%Context{module: {module1, _meta}}, module2) do
-    Module.concat(module1, module2)
-  end
 
   def expand_mfa(%Context{aliases: aliases}, {module, fun, arity}) do
     with {:ok, alias} <- find_alias(aliases, module) do
       {:ok, {alias, fun, arity}}
     end
-  end
-
-  defp find_alias(aliases, module) do
-    Enum.find_value(aliases, :error, fn
-      {alias, _meta, nil} ->
-        case ends_with?(alias, module) do
-          false -> false
-          true -> {:ok, alias}
-        end
-
-      {alias, _meta, opts} ->
-        case Keyword.get(opts, :as, :none) == module do
-          false -> false
-          true -> {:ok, alias}
-        end
-    end)
-  end
-
-  # TODO: ends_with? is duplicated in this project
-  defp ends_with?(module1, module2) when is_atom(module1) and is_atom(module2) do
-    module1 = Module.split(module1)
-    module2 = Module.split(module2)
-
-    ends_with?(module1, module2)
-  end
-
-  defp ends_with?(list, postfix) do
-    case length(list) - length(postfix) do
-      diff when diff < 0 -> false
-      diff -> Enum.drop(list, diff) == postfix
-    end
-  end
-
-  @deprecated "use expand_mfa"
-  def as(%Context{aliases: aliases}, {module, fun, arity}) do
-    with {:ok, alias} <- find_as(aliases, module) do
-      {:ok, {alias, fun, arity}}
-    end
-  end
-
-  defp find_as(aliases, module) do
-    Enum.find_value(aliases, :error, fn
-      {_alias, _meta, nil} ->
-        false
-
-      {alias, _meta, opts} ->
-        case Keyword.get(opts, :as, :none) == module do
-          false -> false
-          true -> {:ok, alias}
-        end
-    end)
-  end
-
-  # def definition(%Context{definition: nil}), do: nil
-
-  # def definition(%Context{definition: {kind, fun, arity}, meta}) do
-  #   {}
-  #   end
-
-  defp definition(%Context{definition: nil}, :meta), do: nil
-
-  defp definition(%Context{definition: {_definition, meta}}, :meta), do: meta
-
-  # defp definition(%Context{} = context, definition) do
-  #   %Context{context | definition: definition}
-  # end
-
-  # @deprecated "obsolete"
-  # def module(%Context{} = context, module) do
-  #   %Context{context | module: module}
-  # end
-
-  # @deprecated "obsolete"
-  # defp nested_module(%Context{module: nil} = context, nested) do
-  #   %Context{context | module: Module.concat(nested)}
-  # end
-
-  # @deprecated "obsolete"
-  # defp nested_module(%Context{module: module} = context, nested) do
-  #   %Context{context | module: Module.concat(module, nested)}
-  # end
-
-  # defp x_module(%Context{module: nil} = context, module) do
-  #   %Context{context | module: module}
-  # end
-
-  defp add_aliases(%Context{aliases: aliases} = context, list) do
-    %Context{context | aliases: aliases ++ list}
-  end
-
-  defp add_import(%Context{imports: imports} = context, import) do
-    %Context{context | imports: imports ++ [import]}
-  end
-
-  def add_use(%Context{usages: usages} = context, use) do
-    %Context{context | usages: usages ++ [use]}
-  end
-
-  def add_require(%Context{requirements: requirements} = context, require) do
-    %Context{context | requirements: requirements ++ [require]}
   end
 
   def assign(%Context{assigns: assigns} = context, key, value) when is_atom(key) do
@@ -162,19 +47,13 @@ defmodule Recode.Context do
     {zipper, acc}
   end
 
+  # helpers for traverse/3
+
   defp run_traverse(zipper, context, fun) do
     Zipper.traverse_while(zipper, context, fn zipper, context ->
       do_traverse(zipper, context, fun)
     end)
   end
-
-  defp run_traverse(zipper, context, acc, fun) do
-    Zipper.traverse_while(zipper, {context, acc}, fn zipper, {context, acc} ->
-      do_traverse(zipper, context, acc, fun)
-    end)
-  end
-
-  # do_traverse/3
 
   defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, fun)
        when not is_nil(args) do
@@ -265,7 +144,13 @@ defmodule Recode.Context do
     {:skip, zipper, context}
   end
 
-  # do_traverse/4
+  # helpers for traverse/4
+
+  defp run_traverse(zipper, context, acc, fun) do
+    Zipper.traverse_while(zipper, {context, acc}, fn zipper, {context, acc} ->
+      do_traverse(zipper, context, acc, fun)
+    end)
+  end
 
   defp do_traverse({{:alias, meta, args}, _} = zipper, context, acc, fun) when not is_nil(args) do
     aliases = get_aliases(args, meta)
@@ -413,9 +298,49 @@ defmodule Recode.Context do
 
   defp sub_zipper({ast, _meta}), do: {ast, nil}
 
-  @deprecated "???"
-  def newline(string), do: String.trim_leading(string) <> "\n"
+  defp find_alias(aliases, module) do
+    Enum.find_value(aliases, :error, fn
+      {alias, _meta, nil} ->
+        case ends_with?(alias, module) do
+          false -> false
+          true -> {:ok, alias}
+        end
 
-  @deprecated "???"
-  def aliases, do: []
+      {alias, _meta, opts} ->
+        case Keyword.get(opts, :as, :none) == module do
+          false -> false
+          true -> {:ok, alias}
+        end
+    end)
+  end
+
+  defp definition(%Context{definition: nil}, :meta), do: nil
+
+  defp definition(%Context{definition: {_definition, meta}}, :meta), do: meta
+
+  defp add_aliases(%Context{aliases: aliases} = context, list) do
+    %Context{context | aliases: aliases ++ list}
+  end
+
+  defp add_import(%Context{imports: imports} = context, import) do
+    %Context{context | imports: imports ++ [import]}
+  end
+
+  defp add_use(%Context{usages: usages} = context, use) do
+    %Context{context | usages: usages ++ [use]}
+  end
+
+  defp add_require(%Context{requirements: requirements} = context, require) do
+    %Context{context | requirements: requirements ++ [require]}
+  end
+
+  defp module(%Context{module: nil}, :meta), do: nil
+
+  defp module(%Context{module: {_name, meta}}, :meta), do: meta
+
+  defp module_concat(%Context{module: nil}, module), do: module
+
+  defp module_concat(%Context{module: {module1, _meta}}, module2) do
+    Module.concat(module1, module2)
+  end
 end

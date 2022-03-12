@@ -23,6 +23,7 @@ defmodule Traverse.Foo do
   import Traverse.Mouse, only: [micky: 1]
 
   require Logger
+  require Traverse.Pluto, as: Animal
 
   def foo, do: Simple.foo()
 

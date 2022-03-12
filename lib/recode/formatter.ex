@@ -14,12 +14,19 @@ defmodule Recode.Formatter do
     project
     |> Project.sources()
     |> Enum.each(fn source -> format(source, opts) end)
+
+    project
   end
 
   defp format(source, _opts) do
-    puts([:file, "File: #{source.path}", :info, " Versions: #{Source.version(source)}"])
+    puts([
+      :file,
+      "File: #{source.path || "no file"}",
+      :info,
+      " Updates: #{Source.updates(source)}"
+    ])
 
-    if Source.changed?(source) do
+    if Source.updated?(source) do
       changed_by(source)
       diff(Source.code(source), Source.code(source, 0))
     end

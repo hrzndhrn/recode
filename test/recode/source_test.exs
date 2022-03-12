@@ -3,6 +3,8 @@ defmodule Recode.SourceTest do
 
   alias Recode.Source
 
+  doctest Recode.Source
+
   describe "new/1" do
     test "creates new source" do
       path = "test/fixtures/source/simple.ex"
@@ -18,10 +20,10 @@ defmodule Recode.SourceTest do
     end
   end
 
-  describe "from_code" do
+  describe "from_string/2" do
     test "creates a source from code" do
       code = "def foo, do: :foo"
-      source = Source.from_code(code)
+      source = Source.from_string(code)
       assert source.code == code
       assert source.path == nil
       assert source.modules == []
@@ -97,20 +99,20 @@ defmodule Recode.SourceTest do
     end
   end
 
-  describe "version/1" do
-    test "returns the version for an unchanged source" do
+  describe "updates/1" do
+    test "returns the updates count for an unchanged source" do
       source = Source.new!("test/fixtures/source/simple.ex")
 
-      assert Source.version(source) == 0
+      assert Source.updates(source) == 0
     end
 
-    test "returns the version for a changed source" do
+    test "returns the updates count for a changed source" do
       source =
         "test/fixtures/source/simple.ex"
         |> Source.new!()
         |> Source.update(:test, code: "adsf")
 
-      assert Source.version(source) == 1
+      assert Source.updates(source) == 1
     end
   end
 
@@ -149,7 +151,7 @@ defmodule Recode.SourceTest do
       assert Source.path(source, 3) == "c.ex"
     end
 
-    test "returns the path for given version withou path changes" do
+    test "returns the path for given version without path changes" do
       path = "test/fixtures/source/simple.ex"
 
       source =
@@ -161,6 +163,37 @@ defmodule Recode.SourceTest do
       assert Source.path(source, 0) == path
       assert Source.path(source, 1) == path
       assert Source.path(source, 2) == path
+    end
+  end
+
+  describe "code/2" do
+    test "returns the code for the given version without code changes" do
+      path = "test/fixtures/source/simple.ex"
+      code = File.read!(path)
+
+      source =
+        path
+        |> Source.new!()
+        |> Source.update(:test, path: "a.ex")
+        |> Source.update(:test, path: "b.ex")
+
+      assert Source.code(source, 0) == code
+      assert Source.code(source, 1) == code
+      assert Source.code(source, 2) == code
+    end
+
+    test "returns the code for given version" do
+      code = "a + b"
+
+      source =
+        code
+        |> Source.from_string()
+        |> Source.update(:test, code: "a + c")
+        |> Source.update(:test, code: "a + d")
+
+      assert Source.code(source, 0) == code
+      assert Source.code(source, 1) == "a + c\n"
+      assert Source.code(source, 2) == "a + d\n"
     end
   end
 
@@ -183,12 +216,23 @@ defmodule Recode.SourceTest do
     end
   end
 
-  describe "abstract_code/2" do
-    test "returns the abstract code for a module" do
-      source = Source.new!("test/fixtures/source/simple.ex")
+  describe "debug_info/2" do
+    test "returns debug info" do
+      source = Source.new!("lib/recode/source.ex")
+      dbgi = Source.debug_info(source, Recode.Source)
 
-      assert {:ok, data} = Source.abstract_code(source, MyApp.Simple)
-      assert hd(data) == {:attribute, 1, :file, {'test/fixtures/source/simple.ex', 1}}
+      check =
+        case dbgi do
+          {:ok, _dbgi} -> true
+          {:error, :cover_compiled} -> true
+        end
+
+      assert check
+    end
+
+    test "returns an error tuple for an unknown module" do
+      assert "a + b" |> Source.from_string() |> Source.debug_info(Unknown) ==
+               {:error, :non_existing}
     end
   end
 

@@ -17,13 +17,13 @@ defmodule Recode.Task.AliasExpansion do
         |> Source.zipper!()
         |> Zipper.traverse(&expand_alias/1)
 
-      source = Source.update(source, AliasExpansion, zipper: zipper)
+      source = Source.update(source, AliasExpansion, code: zipper)
 
       {:ok, source}
     end)
   end
 
-  defp expand_alias({{:alias, _, _}, _} = zipper) do
+  defp expand_alias({{:alias, _meta, _args}, _zipper_meta} = zipper) do
     with {base, segments, alias_meta, call_meta} <- extract(zipper) do
       segments
       |> segments_to_alias(base)
@@ -37,7 +37,7 @@ defmodule Recode.Task.AliasExpansion do
 
   defp extract({tree, _meta} = zipper) do
     case tree do
-      {:alias, alias_meta, [{{:., _, [base, :{}]}, call_meta, segments}]} ->
+      {:alias, alias_meta, [{{:., _meta, [base, :{}]}, call_meta, segments}]} ->
         {base, segments, alias_meta, call_meta}
 
       _tree ->
@@ -51,8 +51,8 @@ defmodule Recode.Task.AliasExpansion do
     |> Zipper.remove()
   end
 
-  defp segments_to_alias(segments, {_, _, base_segments}) when is_list(segments) do
-    Enum.map(segments, fn {_, meta, segments} ->
+  defp segments_to_alias(segments, {_name, _meta, base_segments}) when is_list(segments) do
+    Enum.map(segments, fn {_name, meta, segments} ->
       {:alias, meta, [{:__aliases__, [], base_segments ++ segments}]}
     end)
   end

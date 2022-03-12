@@ -24,7 +24,7 @@ defmodule RecodeCase do
   end
 
   def run_task_with_sources({task, opts}, sources) do
-    sources = Enum.map(sources, &Source.from_code/1)
+    sources = Enum.map(sources, &Source.from_string/1)
 
     project =
       sources

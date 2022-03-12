@@ -7,25 +7,51 @@ defmodule Mix.Tasks.Recode.Rename do
 
   # TODO
   # mix call:
-  # mix rc.reanme --fun Rename.Bar.baz --to bar
+  # mix rc.reanme Rename.Bar.baz bar
   # opts:
   # [from: {Rename.Bar, :baz, nil}, to: %{fun: :bar}]
 
   use Mix.Task
 
+  alias Recode.Config
   alias Recode.Runner
   alias Recode.Task.Rename
 
+  @opts strict: [config: :string]
+
+  @impl Mix.Task
   def run(opts) do
-    {task_opts, runner_opts} = opts(opts)
-    runner_opts = Keyword.put_new(runner_opts, :inputs, "{lib,test}/**/*.{ex,exs}")
+    {opts, args} = OptionParser.parse!(opts, @opts)
+    args = args!(args)
 
-    runner_opts |> Keyword.get(:inputs) |> prepare()
+    config = config!(opts)
 
-    Runner.run({Rename, task_opts}, runner_opts)
+    prepare(config)
+
+    Runner.run({Rename, args}, config)
   end
 
-  defp prepare(inputs) do
+  defp config!(opts) do
+    case Config.read(opts) do
+      {:ok, config} -> config
+      {:error, :not_found} -> Mix.raise("Config file not found")
+    end
+  end
+
+  defp prepare(opts) do
+    inputs = opts[:inputs]
+
+    exclude_compilation =
+      case Keyword.fetch(opts, :exclude_compilation) do
+        {:ok, wildcard} ->
+          wildcard
+          |> List.wrap()
+          |> Enum.flat_map(fn wildcard -> Path.wildcard(wildcard) end)
+
+        :error ->
+          []
+      end
+
     ExUnit.start()
 
     Code.put_compiler_option(:ignore_module_conflict, true)
@@ -38,33 +64,29 @@ defmodule Mix.Tasks.Recode.Rename do
     |> List.wrap()
     |> Enum.flat_map(&Path.wildcard/1)
     |> Enum.reject(fn input ->
-      # TODO to exclude test/fixtures is just needed for the recode project himself
       String.ends_with?(input, ".exs") or
-        String.starts_with?(input, "test/fixtures") or
-        Enum.any?(elixirc_paths, fn path -> String.starts_with?(input, path) end)
+        Enum.any?(elixirc_paths, fn path -> String.starts_with?(input, path) end) or
+        input in exclude_compilation
     end)
     |> Kernel.ParallelCompiler.compile_to_path(compile_path)
   end
 
-  defp opts([from, to]) do
+  defp args!([from, to]) do
     case to_mfa(from) do
       {:ok, from_mfa} ->
         to = %{fun: String.to_atom(to)}
-        {[from: from_mfa, to: to], []}
+        [from: from_mfa, to: to]
 
       :error ->
-        Mix.raise("""
-        Can not parse from/to arguments.
-        """)
+        Mix.raise("Can not parse arguments")
     end
   end
 
-  defp opts(_invalid) do
-    # TODO: Update error message
+  defp args!(_invalid) do
     Mix.raise("""
-    Expected a from and to mfa, module and/or function.
-    Example:
-    MyApp.Some.make_it do_it
+    Expected module.fun and the new function name.
+    Examples:
+    mix recode.rename MyApp.Some.make_it do_it\
     """)
   end
 
@@ -75,7 +97,7 @@ defmodule Mix.Tasks.Recode.Rename do
       cond do
         part =~ ~r/^[A-Z]/ -> :module
         part =~ ~r/^[a-z]/ -> :fun
-        part =~ ~r/^[0.9]/ -> :arity
+        part =~ ~r/^[0-9]/ -> :arity
         true -> :error
       end
     end)
@@ -86,25 +108,21 @@ defmodule Mix.Tasks.Recode.Rename do
 
   defp to_mfa(%{} = parts) do
     with {:ok, fun} <- to_fun(parts),
-         {:ok, arity} <- to_arity(parts) do
-      module = to_module(parts)
+         {:ok, arity} <- to_arity(parts),
+         {:ok, module} <- to_module(parts) do
       {:ok, {module, fun, arity}}
     end
   end
 
-  defp to_module(%{module: module}), do: Module.concat(module)
+  defp to_module(%{module: module}), do: {:ok, Module.concat(module)}
 
-  defp to_module(_parts), do: nil
+  defp to_module(_parts), do: :error
 
   defp to_fun(%{fun: [fun]}), do: {:ok, String.to_atom(fun)}
 
-  defp to_fun(%{fun: _fun}), do: :error
-
-  defp to_fun(_parts), do: {:ok, nil}
+  defp to_fun(_parts), do: :error
 
   defp to_arity(%{arity: [arity]}), do: {:ok, String.to_integer(arity)}
-
-  defp to_arity(%{arity: _arity}), do: :error
 
   defp to_arity(_parts), do: {:ok, nil}
 end

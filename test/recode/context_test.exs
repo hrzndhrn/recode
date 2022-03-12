@@ -6,6 +6,81 @@ defmodule Recode.ContextTest do
   alias Recode.Context
   alias Sourceror.Zipper
 
+  describe "traverse/2" do
+    test "traverses a simple module" do
+      src = File.read!("test/fixtures/context/simple.ex")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output =~ ~r/^1:.module:.{Traverse.Simple,.*line:.1,/m
+      assert output =~ ~r/^9:.definition:.nil/m
+      assert output =~ ~r/^10:.definition:.{{:def,.:foo,.1},.*line:.2/m
+      assert output =~ ~r/^21:.definition:.{{:def,.:baz,.0},.*line:.6/m
+    end
+
+    test "traverse a nested module" do
+      src = File.read!("test/fixtures/context/nested.ex")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output =~ ~r/^1: module: nil/m
+      assert output =~ ~r/^16: module:.{Traverse.SomeModule,/m
+      assert output =~ ~r/^76: module:.{Traverse.Simple,/m
+      assert output =~ ~r/^113: module:.{Traverse.Simple.Nested,/m
+      assert output =~ ~r/^134: module:.{Traverse.Simple,/m
+    end
+
+    test "collect use, import, etc..." do
+      src = File.read!("test/fixtures/context/use_import_etc.ex")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output =~ ~r/^158: aliases:.*Donald.Duck/m
+      assert output =~ ~r/^158: requirements:.*Logger/m
+      assert output =~ ~r/^158: usages:.*Traverse.Obelix/m
+      assert output =~ ~r/^158: imports:.*Traverse.Pluto/m
+    end
+  end
+
   describe "traverse/3" do
     test "traverses a simple module" do
       src = File.read!("test/fixtures/context/simple.ex")
@@ -129,12 +204,12 @@ defmodule Recode.ContextTest do
                definition: {
                  {:def, :mouse, 0},
                  [
-                   {:trailing_comments, []},
-                   {:leading_comments, []},
-                   {:do, [line: 33, column: 13]},
-                   {:end, [line: 35, column: 3]},
-                   {:line, 33},
-                   {:column, 3}
+                   trailing_comments: [],
+                   leading_comments: [],
+                   do: [line: 34, column: 13],
+                   end: [line: 36, column: 3],
+                   line: 34,
+                   column: 3
                  ]
                },
                imports: [
@@ -167,7 +242,7 @@ defmodule Recode.ContextTest do
                    trailing_comments: [],
                    leading_comments: [],
                    do: [line: 15, column: 24],
-                   end: [line: 36, column: 1],
+                   end: [line: 37, column: 1],
                    line: 15,
                    column: 1
                  ]
@@ -178,12 +253,20 @@ defmodule Recode.ContextTest do
                    [
                      trailing_comments: [],
                      leading_comments: [],
-                     end_of_expression: [newlines: 2, line: 25, column: 17],
+                     end_of_expression: [newlines: 1, line: 25, column: 17],
                      line: 25,
                      column: 3
                    ],
                    nil
-                 }
+                 },
+                 {Traverse.Pluto,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 2, line: 26, column: 37],
+                    line: 26,
+                    column: 3
+                  ], [as: Animal]}
                ],
                usages: [
                  {
@@ -236,81 +319,6 @@ defmodule Recode.ContextTest do
                   line: 6,
                   column: 3
                 ]}
-    end
-  end
-
-  describe "traverse/2" do
-    test "traverses a simple module" do
-      src = File.read!("test/fixtures/context/simple.ex")
-
-      output =
-        capture_io(fn ->
-          src
-          |> Sourceror.parse_string!()
-          |> Zipper.zip()
-          |> Context.traverse(fn zipper, context ->
-            context =
-              context
-              |> inc()
-              |> write()
-
-            {zipper, context}
-          end)
-        end)
-
-      assert output =~ ~r/^1:.module:.{Traverse.Simple,.*line:.1,/m
-      assert output =~ ~r/^9:.definition:.nil/m
-      assert output =~ ~r/^10:.definition:.{{:def,.:foo,.1},.*line:.2/m
-      assert output =~ ~r/^21:.definition:.{{:def,.:baz,.0},.*line:.6/m
-    end
-
-    test "traverse a nested module" do
-      src = File.read!("test/fixtures/context/nested.ex")
-
-      output =
-        capture_io(fn ->
-          src
-          |> Sourceror.parse_string!()
-          |> Zipper.zip()
-          |> Context.traverse(fn zipper, context ->
-            context =
-              context
-              |> inc()
-              |> write()
-
-            {zipper, context}
-          end)
-        end)
-
-      assert output =~ ~r/^1: module: nil/m
-      assert output =~ ~r/^16: module:.{Traverse.SomeModule,/m
-      assert output =~ ~r/^76: module:.{Traverse.Simple,/m
-      assert output =~ ~r/^113: module:.{Traverse.Simple.Nested,/m
-      assert output =~ ~r/^134: module:.{Traverse.Simple,/m
-    end
-
-    test "collect use, import, etc..." do
-      src = File.read!("test/fixtures/context/use_import_etc.ex")
-
-      output =
-        capture_io(fn ->
-          src
-          |> Sourceror.parse_string!()
-          |> Zipper.zip()
-          |> Context.traverse(fn zipper, context ->
-            context =
-              context
-              |> inc()
-              |> write()
-
-            {zipper, context}
-          end)
-        end)
-
-      assert output =~ ~r/^158: aliases:.*Donald.Duck/m
-      assert output =~ ~r/^158: requirements:.*Logger/m
-      assert output =~ ~r/^158: usages:.*Traverse.Obelix/m
-      assert output =~ ~r/^158: imports:.*Traverse.Pluto/m
     end
   end
 

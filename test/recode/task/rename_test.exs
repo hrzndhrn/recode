@@ -5,11 +5,12 @@ defmodule Recode.Task.RenameTest do
   alias Recode.Source
   alias Recode.Task
 
-  # TODO: rename Rename.Bar to Fixture.Rename.Bar
   @path "test/fixtures/rename"
   @opts [from: {Rename.Bar, :baz, nil}, to: %{fun: :bar}]
 
-  # mix rc.reanme --fun Rename.Bar.baz --to bar
+  setup do
+    on_exit(fn -> Code.put_compiler_option(:debug_info, true) end)
+  end
 
   defp test_rename(file, opts) do
     path = Path.join([@path, "lib", file])
@@ -42,7 +43,27 @@ defmodule Recode.Task.RenameTest do
     test_rename("import.ex", @opts)
   end
 
+  test "does not rename imported function" do
+    test_rename("import_no_change.ex", @opts)
+  end
+
   test "renames function with alias as" do
     test_rename("as.ex", @opts)
+  end
+
+  test "renames function aliased via use" do
+    test_rename("use.ex", @opts)
+  end
+
+  test "renames function with arity" do
+    opts = [from: {Rename.Bar, :baz, 1}, to: %{fun: :bar}]
+    test_rename("with_arity.ex", opts)
+  end
+
+  test "does not renames function with missing debug info" do
+    # The renaming fails just for functions calls that needs the debug info
+    # to determine the full alias.
+    Code.put_compiler_option(:debug_info, false)
+    test_rename("no_debug_info.ex", @opts)
   end
 end

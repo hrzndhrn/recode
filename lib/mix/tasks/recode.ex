@@ -15,8 +15,8 @@ defmodule Mix.Tasks.Recode do
 
   @impl Mix.Task
   def run(opts) do
-    opts = opts(opts)
-    config = config(opts)
+    opts = opts!(opts)
+    config = config!(opts)
 
     config =
       config
@@ -30,17 +30,15 @@ defmodule Mix.Tasks.Recode do
     Runner.run(tasks, config)
   end
 
-  defp opts(opts) do
+  defp opts!(opts) do
     case OptionParser.parse!(opts, @opts) do
       {opts, []} -> opts
       {_opts, args} -> Mix.raise("#{inspect(args)} : Unknown")
     end
   end
 
-  defp config(opts) do
-    config_path = Keyword.get(opts, :config, ".config.exs")
-
-    case Config.read(config_path) do
+  defp config!(opts) do
+    case Config.read(opts) do
       {:ok, config} -> config
       {:error, :not_found} -> Mix.raise("Config file not found")
     end

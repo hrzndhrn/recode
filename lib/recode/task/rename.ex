@@ -25,7 +25,7 @@ defmodule Recode.Task.Rename do
           rename(zipper, context, opts)
         end)
 
-      source = Source.update(source, Rename, zipper: zipper)
+      source = Source.update(source, Rename, code: zipper)
 
       {:ok, source}
     end)
@@ -90,33 +90,32 @@ defmodule Recode.Task.Rename do
     end
   end
 
-  defp rename(zipper, context, _) do
+  defp rename(zipper, context, _opts) do
     {zipper, context}
   end
 
   defp rename?(
          :definition,
-         {fun, _meta1, _args},
+         {fun, _meta1, args},
          %Context{module: {module, _meta2}},
-         {module, fun, nil}
+         {module, fun, arity}
        ) do
-    true
+    arity?(args, arity)
   end
 
   defp rename?(
          :definition,
-         {:when, _meta1, [{fun, _meta2, _args}, _when]},
+         {:when, _meta1, [{fun, _meta2, args}, _when]},
          %Context{module: {module, _meta3}},
-         {module, fun, nil}
+         {module, fun, arity}
        ) do
-    true
+    arity?(args, arity)
   end
 
   defp rename?(:definition, _ast, _context, _from) do
     false
   end
 
-  # defp rename?(:call, {fun, _meta, args}, context, opts) when not is_nil(args) do
   defp rename?(:call, {fun, _meta, args}, context, opts) when not is_nil(args) do
     from = opts[:from]
 
@@ -157,6 +156,14 @@ defmodule Recode.Task.Rename do
           {:ok, mfa} -> match?(mfa, opts[:from])
           :error -> false
         end
+    end
+  end
+
+  defp arity?(args, arity) do
+    cond do
+      is_nil(arity) -> true
+      is_nil(args) -> arity == 0
+      true -> length(args) == arity
     end
   end
 

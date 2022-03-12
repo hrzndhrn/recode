@@ -122,7 +122,7 @@
           {Credo.Check.Readability.UnnecessaryAliasExpansion, []},
           {Credo.Check.Readability.VariableNames, []},
           {Credo.Check.Readability.WithSingleClause, []},
-          {Credo.Check.Readability.AliasAs, []},
+          {Credo.Check.Readability.AliasAs, [files: %{excluded: ["**/*_test.exs"]}]},
           {Credo.Check.Readability.BlockPipe, []},
           {Credo.Check.Readability.MultiAlias, []},
           {Credo.Check.Readability.SeparateAliasRequire, []},

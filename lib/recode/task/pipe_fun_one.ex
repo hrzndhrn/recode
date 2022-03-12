@@ -17,7 +17,7 @@ defmodule Recode.Task.PipeFunOne do
         |> Source.zipper!()
         |> Zipper.traverse(&pipe_fun_one/1)
 
-      source = Source.update(source, PipeFunOne, zipper: zipper)
+      source = Source.update(source, PipeFunOne, code: zipper)
 
       {:ok, source}
     end)

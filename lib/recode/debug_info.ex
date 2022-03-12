@@ -3,6 +3,8 @@ defmodule Recode.DebugInfo do
   TODO: @moduledoc
   """
 
+  import Recode.Utils, only: [ends_with?: 2]
+
   alias Recode.Context
   alias Sourceror.Zipper
 
@@ -72,18 +74,4 @@ defmodule Recode.DebugInfo do
   end
 
   defp expand?(_mfa1, _mfa2), do: false
-
-  defp ends_with?(module1, module2) when is_atom(module1) and is_atom(module2) do
-    module1 = Module.split(module1)
-    module2 = Module.split(module2)
-
-    ends_with?(module1, module2)
-  end
-
-  defp ends_with?(list, postfix) do
-    case length(list) - length(postfix) do
-      diff when diff < 0 -> false
-      diff -> Enum.drop(list, diff) == postfix
-    end
-  end
 end

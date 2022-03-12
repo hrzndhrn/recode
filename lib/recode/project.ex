@@ -1,6 +1,8 @@
 defmodule Recode.Project do
   @moduledoc """
   TODO: @moduledoc
+  TODO: @docs
+  TODO: @specs
   """
 
   alias Recode.Project
@@ -8,6 +10,15 @@ defmodule Recode.Project do
   alias Recode.Source
 
   defstruct [:sources, :paths, :modules, :inputs]
+
+  @type id :: reference()
+
+  @type t :: [
+          sources: %{id() => Source.t()},
+          paths: %{Path.t() => id()},
+          modules: %{module() => id()},
+          inputs: [Path.t()]
+        ]
 
   def new(inputs) when is_list(inputs) do
     inputs = Enum.flat_map(inputs, &Path.wildcard/1)
@@ -75,15 +86,6 @@ defmodule Recode.Project do
     end
   end
 
-  def state(%Project{paths: paths, sources: sources}) do
-    paths
-    |> Enum.map(fn {path, id} ->
-      source = Map.fetch!(sources, id)
-      {path, Source.version(source)}
-    end)
-    |> Enum.sort()
-  end
-
   defp update?(%Project{sources: sources}, %Source{id: id} = source) do
     case Map.fetch(sources, id) do
       {:ok, legacy} -> legacy != source
@@ -103,7 +105,7 @@ defmodule Recode.Project do
     {sources, paths, modules}
   end
 
-  def map(%Project{sources: sources} = project, fun, opts \\ nil) do
+  def map(%Project{sources: sources} = project, opts \\ nil, fun) do
     sources = sources |> Map.values() |> Enum.sort()
     map(project, sources, fun, opts)
   end
