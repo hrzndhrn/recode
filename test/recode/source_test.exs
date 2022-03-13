@@ -2,6 +2,7 @@ defmodule Recode.SourceTest do
   use ExUnit.Case
 
   alias Recode.Source
+  alias Recode.SourceError
 
   doctest Recode.Source
 
@@ -233,6 +234,28 @@ defmodule Recode.SourceTest do
     test "returns an error tuple for an unknown module" do
       assert "a + b" |> Source.from_string() |> Source.debug_info(Unknown) ==
                {:error, :non_existing}
+    end
+  end
+
+  describe "debug_info!/2" do
+    test "returns debug info" do
+      source = Source.new!("test/fixtures/source/simple.ex")
+      assert Source.debug_info!(source, MyApp.Simple)
+    end
+
+    test "raises an error" do
+      source = Source.new!("test/fixtures/source/simple.ex")
+
+      assert_raise SourceError, "Can not find debug info, reason: :non_existing", fn ->
+        Source.debug_info!(source, MyApp.Unknown)
+      end
+    end
+  end
+
+  describe "zipper/1" do
+    test "returns a zipper" do
+      source = Source.new!("test/fixtures/source/simple.ex")
+      assert {:ok, _zipper} = Source.zipper(source)
     end
   end
 

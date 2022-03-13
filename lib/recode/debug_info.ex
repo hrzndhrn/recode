@@ -1,6 +1,6 @@
 defmodule Recode.DebugInfo do
   @moduledoc """
-  TODO: @moduledoc
+  This module provides helper functions to work with debug info.
   """
 
   import Recode.Utils, only: [ends_with?: 2]

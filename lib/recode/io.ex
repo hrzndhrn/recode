@@ -1,6 +1,6 @@
 defmodule Recode.IO do
   @moduledoc """
-  TODO: @moduledoc
+  This module provides IO functions and contains the color schema for `Recode`.
   """
 
   @colors %{

@@ -33,7 +33,7 @@ defmodule RecodeCase do
 
     Enum.map(sources, fn %{id: id} ->
       project
-      |> Project.source_by_id!(id)
+      |> Project.source!(id)
       |> Source.code()
     end)
   end
