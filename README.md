@@ -20,25 +20,3 @@ end
 ```
 
 ## Usage
-
-`recode` comes with three tasks to reformat code:
-
-* Alias expansion (`alias-expansion`):
-  This task expands multi-alias syntax like `alias Foo.{Bar, Baz}` into multiple
-  `alias` calls. This code was taken from the
-  [notebook](https://github.com/doorgan/sourceror/blob/main/notebooks/expand_multi_alias.livemd)
-  in the `sourceror` repo.
-
-* One arity functions in pipes (`pipe-fun-one`):
-  The [style guide](https://github.com/christopheradams/elixir_style_guide#parentheses-pipe-operator)
-  proposes to add parentheses for one-arity functions when using the pipe
-  operator. This task will add such parentheses.
-
-* Single pipe operator (`single-pipe`)
-  Any single pipe operation will be reformat to a function call.
-
-The mix task `mix recode` performs the changes below on all files in your project.
-
-With `mix recode --pipe-fun-one`, `recode` will make only the changes for `pipe-fun-one`.
-
-With `mix recode --no-pipe-fun-one`, `recode` will skip the changes for `pipe-fun-one`.

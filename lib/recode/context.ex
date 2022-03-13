@@ -1,14 +1,80 @@
 defmodule Recode.Context do
-  @moduledoc """
-  TODO: @moduledoc
-  """
+  @moduledoc ~S'''
+  This moudle provides functions to traverse an AST with a `%Context{}`.
+
+  ## Examples
+
+  The following example shows the `%Context{}` for the definition of
+  `MyApp.Bar.bar/1`.
+
+      iex> alias Recode.{Source, Context}
+      ...> """
+      ...> defmoudle MyApp.Foo do
+      ...>   def foo, do: :foo
+      ...> end
+      ...>
+      ...> defmodule MyApp.Bar do
+      ...>   alias MyApp.Foo
+      ...>
+      ...>   def bar(x) do
+      ...>     {Foo.foo(), x}
+      ...>   end
+      ...> end
+      ...> """
+      ...> |> Source.from_string()
+      ...> |> Source.zipper!()
+      ...> |> Context.traverse(nil, fn
+      ...>   zipper, context, nil ->
+      ...>     case context.definition do
+      ...>       {{:def, :bar, 1}, _meta} -> {zipper, context, context}
+      ...>       _def -> {zipper, context, nil}
+      ...>     end
+      ...>   zipper, context, acc ->
+      ...>     {zipper, context, acc}
+      ...> end)
+      ...> |> elem(1)
+      %Context{
+        aliases: [
+          {MyApp.Foo,
+           [
+             trailing_comments: [],
+             leading_comments: [],
+             end_of_expression: [newlines: 2, line: 6, column: 18],
+             line: 6,
+             column: 3
+           ], nil}
+        ],
+        assigns: %{},
+        definition:
+          {{:def, :bar, 1},
+           [
+             trailing_comments: [],
+             leading_comments: [],
+             do: [line: 8, column: 14],
+             end: [line: 10, column: 3],
+             line: 8,
+             column: 3
+           ]},
+        imports: [],
+        module:
+          {MyApp.Bar,
+           [
+             trailing_comments: [],
+             leading_comments: [],
+             do: [line: 5, column: 21],
+             end: [line: 11, column: 1],
+             line: 5,
+             column: 1
+           ]},
+        requirements: [],
+        usages: []
+      }
+  '''
 
   import Recode.Utils, only: [ends_with?: 2]
 
   alias Recode.Context
   alias Sourceror.Zipper
-
-  # TODO: add @moduledoc, @doc, @spec
 
   defstruct module: nil,
             aliases: [],
@@ -18,36 +84,77 @@ defmodule Recode.Context do
             definition: nil,
             assigns: %{}
 
+  @type zipper :: Zipper.zipper()
+
+  @type t :: [
+          module: module() | nil,
+          aliases: list(),
+          imports: list(),
+          usages: list(),
+          requirements: list(),
+          definition: term(),
+          assigns: map()
+        ]
+
+  @doc """
+  Returns the current module of a context.
+  """
+  @spec module(Context.t()) :: module() | nil
   def module(%Context{module: nil}), do: nil
 
   def module(%Context{module: {name, _meta}}), do: name
 
+  @doc """
+  Expands the module alias for the given `mfa`.
+  """
+  @spec expand_mfa(Context.t(), mfa()) :: {:ok, mfa()} | :error
   def expand_mfa(%Context{aliases: aliases}, {module, fun, arity}) do
     with {:ok, alias} <- find_alias(aliases, module) do
       {:ok, {alias, fun, arity}}
     end
   end
 
+  @doc """
+  Assigns the given `value` under `key` to the `context`.
+  """
+  @spec assign(Context.t(), atom(), term()) :: Context.t()
   def assign(%Context{assigns: assigns} = context, key, value) when is_atom(key) do
     %{context | assigns: Map.put(assigns, key, value)}
   end
 
-  def assigns(%Context{assigns: data} = context, assigns) do
-    %{context | assigns: Map.merge(data, assigns)}
+  @doc """
+  Merges the given `map` to the assigns of the `context`.
+  """
+  @spec assigns(Context.t(), map()) :: Context.t()
+  def assigns(%Context{assigns: assigns} = context, map) when is_map(map) do
+    %{context | assigns: Map.merge(assigns, map)}
   end
 
+  @doc """
+  Traverses the given `zipper` and applys `fun` on each node.
+
+  The `fun` gets the current `zipper` and `context` as arguments.
+  """
+  @spec traverse(zipper(), fun) :: zipper()
+        when fun: (zipper(), Context.t() -> {zipper(), Context.t()})
   def traverse(zipper, fun) when is_function(fun, 2) do
     zipper
     |> run_traverse(%Context{}, fun)
     |> elem(0)
   end
 
+  @doc """
+  Traverses the given `zipper` with an `acc` and applys `fun` on each node.
+  """
+  @spec traverse(zipper, acc, fun) :: {zipper, acc}
+        when acc: term(),
+             fun: (zipper(), Context.t() -> {zipper(), Context.t(), acc})
   def traverse(zipper, acc, fun) when is_function(fun, 3) do
     {zipper, {_context, acc}} = run_traverse(zipper, %Context{}, acc, fun)
     {zipper, acc}
   end
 
-  # helpers for traverse/3
+  # helpers for traverse/2
 
   defp run_traverse(zipper, context, fun) do
     Zipper.traverse_while(zipper, context, fn zipper, context ->
@@ -144,7 +251,7 @@ defmodule Recode.Context do
     {:skip, zipper, context}
   end
 
-  # helpers for traverse/4
+  # helpers for traverse/3
 
   defp run_traverse(zipper, context, acc, fun) do
     Zipper.traverse_while(zipper, {context, acc}, fn zipper, {context, acc} ->

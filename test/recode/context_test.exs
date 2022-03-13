@@ -6,6 +6,8 @@ defmodule Recode.ContextTest do
   alias Recode.Context
   alias Sourceror.Zipper
 
+  doctest Recode.Context
+
   describe "traverse/2" do
     test "traverses a simple module" do
       src = File.read!("test/fixtures/context/simple.ex")
