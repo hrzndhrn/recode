@@ -1,5 +1,5 @@
 defmodule Recode do
   @moduledoc """
-  TODO: @moduledoc
+  A linter with autocorrection and a refactoring tool.
   """
 end

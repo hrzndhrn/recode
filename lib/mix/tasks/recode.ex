@@ -1,8 +1,25 @@
 defmodule Mix.Tasks.Recode do
-  @shortdoc "TODO: add shortdoc"
+  @shortdoc "Runs the linter"
 
   @moduledoc """
-  TODO: add moduledoc
+  #{@shortdoc}.
+
+  Without the option `--config file` the config file `.recode.exs` is used. A
+  default `.recode.exs` can be generated with `mix recode.gen.config`.
+
+  ## Command line Option
+
+    * `--autocorrect`, `--no-autocorrect` - Activates/deactivates autocrrection.
+      Overwrites the corresponding value in the configuration.
+
+    * `--config` - specifies an alternative config file.
+
+    * `--dry`, `--no-dry` - Activates/deactivates the dry mode. No file is
+      overwritten in dry mode. Overwrites the corresponding value in the
+      configuration.
+
+    * `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
+      Overwrites the corresponding value in the configuration.
   """
 
   use Mix.Task

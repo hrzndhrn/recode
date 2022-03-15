@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Recode.Gen.ConfigTest do
 
   alias Mix.Tasks.Recode.Gen.Config
 
-  @config ".config.exs"
+  @config ".recode.exs"
 
   test "mix recode.gen.config" do
     refute File.exists?(@config)

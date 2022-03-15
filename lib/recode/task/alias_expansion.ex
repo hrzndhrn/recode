@@ -1,6 +1,15 @@
 defmodule Recode.Task.AliasExpansion do
   @moduledoc """
-  TODO: moduledoc
+  Multi aliases makes module uses harder to search for in large code bases.
+
+          # preferred
+          alias Module.Foo
+          alias Module.Bar
+
+          # not preferred
+          alias Module.{Foo, Bar}
+
+  This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
   use Recode.Task, correct: true

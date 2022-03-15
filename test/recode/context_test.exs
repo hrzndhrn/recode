@@ -33,6 +33,35 @@ defmodule Recode.ContextTest do
       assert output =~ ~r/^21:.definition:.{{:def,.:baz,.0},.*line:.6/m
     end
 
+    test "traverses modules and collects @moduledoc, @doc and @spec" do
+      src = File.read!("test/fixtures/context/doc_and_spec.ex")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output =~ ~r/^1:.moduledoc:.nil/m
+      assert output =~ ~r/^1:.doc:.nil/m
+      assert output =~ ~r/^1:.spec:.nil/m
+      assert output =~ ~r/^10:.moduledoc:.*Doc.for.module.simple/m
+      assert output =~ ~r/^40:.moduledoc:.nil/m
+      refute output =~ ~r/^40:.doc:.nil/m
+      refute output =~ ~r/^40:.spec:.nil/m
+      assert output =~ ~r/^50:.doc:.nil/m
+      assert output =~ ~r/^50:.spec:.nil/m
+    end
+
     test "traverse a nested module" do
       src = File.read!("test/fixtures/context/nested.ex")
 
@@ -142,6 +171,48 @@ defmodule Recode.ContextTest do
                     column: 3
                   ]}
              } = Enum.at(acc, 25)
+    end
+
+    test "traverses modules and collects @moduledoc, @doc and @spec" do
+      src = File.read!("test/fixtures/context/doc_and_spec.ex")
+
+      {result, acc} =
+        src
+        |> Sourceror.parse_string!()
+        |> Zipper.zip()
+        |> Context.traverse([], fn zipper, context, acc ->
+          context = inc(context)
+          {zipper, context, [context | acc]}
+        end)
+
+      assert result |> Zipper.node() |> Sourceror.to_string() == String.trim(src)
+
+      acc = Enum.reverse(acc)
+
+      at = 0
+      assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
+      assert acc |> Enum.at(at) |> Map.get(:doc) == nil
+      assert acc |> Enum.at(at) |> Map.get(:spec) == nil
+
+      at = 10
+      assert acc |> Enum.at(at) |> Map.get(:module) |> elem(0) == Traverse.Simple
+      assert acc |> Enum.at(at) |> Map.get(:moduledoc) != nil
+
+      at = 25
+      assert acc |> Enum.at(at) |> Map.get(:module) |> elem(0) == Traverse.Simpler
+      assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
+
+      at = 38
+      assert acc |> Enum.at(at) |> Map.get(:definition) |> elem(0) == {:def, :foo, 1}
+      assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
+      assert acc |> Enum.at(at) |> Map.get(:doc) != nil
+      assert acc |> Enum.at(at) |> Map.get(:spec) != nil
+
+      at = 48
+      assert acc |> Enum.at(at) |> Map.get(:definition) |> elem(0) == {:def, :baz, 0}
+      assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
+      assert acc |> Enum.at(at) |> Map.get(:doc) == nil
+      assert acc |> Enum.at(at) |> Map.get(:spec) == nil
     end
 
     test "collects use, import, etc..." do
@@ -340,6 +411,9 @@ defmodule Recode.ContextTest do
     IO.write("#{count}: aliases: #{inspect(context.aliases)}" <> "\n")
     IO.write("#{count}: requirements: #{inspect(context.requirements)}" <> "\n")
     IO.write("#{count}: imports: #{inspect(context.imports)}" <> "\n")
+    IO.write("#{count}: moduledoc: #{inspect(context.moduledoc)}" <> "\n")
+    IO.write("#{count}: doc: #{inspect(context.doc)}" <> "\n")
+    IO.write("#{count}: spec: #{inspect(context.spec)}" <> "\n")
     context
   end
 end

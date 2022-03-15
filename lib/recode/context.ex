@@ -82,24 +82,30 @@ defmodule Recode.Context do
             usages: [],
             requirements: [],
             definition: nil,
-            assigns: %{}
+            assigns: %{},
+            moduledoc: nil,
+            doc: nil,
+            spec: nil
 
-  @type zipper :: Zipper.zipper()
-
-  @type t :: [
-          module: module() | nil,
+  @type t :: %Context{
+          module: term() | nil,
           aliases: list(),
           imports: list(),
           usages: list(),
           requirements: list(),
           definition: term(),
-          assigns: map()
-        ]
+          assigns: map(),
+          moduledoc: Macro.t() | nil,
+          doc: Macro.t() | nil,
+          spec: Macro.t() | nil
+        }
+
+  @type zipper :: Zipper.zipper()
 
   @doc """
   Returns the current module of a context.
   """
-  @spec module(Context.t()) :: module() | nil
+  @spec module(t()) :: module() | nil
   def module(%Context{module: nil}), do: nil
 
   def module(%Context{module: {name, _meta}}), do: name
@@ -107,7 +113,7 @@ defmodule Recode.Context do
   @doc """
   Expands the module alias for the given `mfa`.
   """
-  @spec expand_mfa(Context.t(), mfa()) :: {:ok, mfa()} | :error
+  @spec expand_mfa(t(), mfa()) :: {:ok, mfa()} | :error
   def expand_mfa(%Context{aliases: aliases}, {module, fun, arity}) do
     with {:ok, alias} <- find_alias(aliases, module) do
       {:ok, {alias, fun, arity}}
@@ -117,7 +123,7 @@ defmodule Recode.Context do
   @doc """
   Assigns the given `value` under `key` to the `context`.
   """
-  @spec assign(Context.t(), atom(), term()) :: Context.t()
+  @spec assign(t(), atom(), term()) :: t()
   def assign(%Context{assigns: assigns} = context, key, value) when is_atom(key) do
     %{context | assigns: Map.put(assigns, key, value)}
   end
@@ -125,7 +131,7 @@ defmodule Recode.Context do
   @doc """
   Merges the given `map` to the assigns of the `context`.
   """
-  @spec assigns(Context.t(), map()) :: Context.t()
+  @spec assigns(t(), map()) :: t()
   def assigns(%Context{assigns: assigns} = context, map) when is_map(map) do
     %{context | assigns: Map.merge(assigns, map)}
   end
@@ -136,7 +142,7 @@ defmodule Recode.Context do
   The `fun` gets the current `zipper` and `context` as arguments.
   """
   @spec traverse(zipper(), fun) :: zipper()
-        when fun: (zipper(), Context.t() -> {zipper(), Context.t()})
+        when fun: (zipper(), t() -> {zipper(), t()})
   def traverse(zipper, fun) when is_function(fun, 2) do
     zipper
     |> run_traverse(%Context{}, fun)
@@ -146,9 +152,9 @@ defmodule Recode.Context do
   @doc """
   Traverses the given `zipper` with an `acc` and applys `fun` on each node.
   """
-  @spec traverse(zipper, acc, fun) :: {zipper, acc}
+  @spec traverse(zipper, acc, fun) :: {zipper(), acc}
         when acc: term(),
-             fun: (zipper(), Context.t() -> {zipper(), Context.t(), acc})
+             fun: (zipper(), t(), acc -> {zipper(), t(), acc})
   def traverse(zipper, acc, fun) when is_function(fun, 3) do
     {zipper, {_context, acc}} = run_traverse(zipper, %Context{}, acc, fun)
     {zipper, acc}
@@ -160,6 +166,11 @@ defmodule Recode.Context do
     Zipper.traverse_while(zipper, context, fn zipper, context ->
       do_traverse(zipper, context, fun)
     end)
+  end
+
+  defp do_traverse({{:@, _meta, _args} = attribute, _zipper_meta} = zipper, context, fun) do
+    context = traverse_helper(:attribute, attribute, context)
+    cont(zipper, context, fun)
   end
 
   defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, fun)
@@ -248,6 +259,7 @@ defmodule Recode.Context do
     {{ast, _}, %Context{assigns: assigns}} = run_traverse(sub_zipper, sub_context, fun)
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
+    context = %{context | doc: nil, spec: nil}
     {:skip, zipper, context}
   end
 
@@ -259,14 +271,20 @@ defmodule Recode.Context do
     end)
   end
 
-  defp do_traverse({{:alias, meta, args}, _} = zipper, context, acc, fun) when not is_nil(args) do
+  defp do_traverse({{:@, _meta, _args} = attribute, _zipper_meta} = zipper, context, acc, fun) do
+    context = traverse_helper(:attribute, attribute, context)
+    cont(zipper, context, acc, fun)
+  end
+
+  defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, acc, fun)
+       when not is_nil(args) do
     aliases = get_aliases(args, meta)
     context = add_aliases(context, aliases)
 
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:import, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
+  defp do_traverse({{:import, meta, [arg, opts]}, _zipper_meta} = zipper, context, acc, fun) do
     import = get_alias(arg)
     opts = eval(opts)
     context = add_import(context, {import, meta, opts})
@@ -352,7 +370,26 @@ defmodule Recode.Context do
 
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
+    context = %{context | doc: nil, spec: nil}
     {:skip, zipper, {context, acc}}
+  end
+
+  # helpers for traverse/2/3
+
+  defp traverse_helper(:attribute, {:@, _meta, [arg]} = attribute, context) do
+    case arg do
+      {:moduledoc, _meta, _args} ->
+        %{context | moduledoc: attribute}
+
+      {:doc, _meta, _args} ->
+        %{context | doc: attribute}
+
+      {:spec, _meta, _args} ->
+        %{context | spec: attribute}
+
+      _args ->
+        context
+    end
   end
 
   # other helpers

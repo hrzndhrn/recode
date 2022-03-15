@@ -28,7 +28,7 @@ defmodule Recode.Source do
 
   @type by :: module()
 
-  @type t :: [
+  @type t :: %Source{
           id: String.t(),
           path: Path.t(),
           code: String.t(),
@@ -36,7 +36,7 @@ defmodule Recode.Source do
           modules: [module()],
           versions: [{kind(), by(), String.t()}],
           issues: term()
-        ]
+        }
 
   @doc ~S'''
   Creates a new `%Source{}` from the given `path`.
@@ -55,7 +55,7 @@ defmodule Recode.Source do
       end
       """
   '''
-  @spec new!(Path.t()) :: Source.t()
+  @spec new!(Path.t()) :: t()
   def new!(path) do
     path |> File.read!() |> from_string(path)
   end
@@ -71,7 +71,7 @@ defmodule Recode.Source do
       iex> source.code
       "a + b"
   """
-  @spec from_string(String.t(), Path.t()) :: Source.t()
+  @spec from_string(String.t(), Path.t() | nil) :: t()
   def from_string(string, path \\ nil) do
     struct!(
       Source,
@@ -109,7 +109,7 @@ defmodule Recode.Source do
       iex> source.versions
       [{:code, :example, "a + b"}]
   """
-  @spec update(Source.t(), by(), [code: String.t()] | [path: Path.t()]) :: Source.t()
+  @spec update(t(), by(), [code: String.t() | Zipper.zipper()] | [path: Path.t()]) :: t()
   def update(%Source{} = source, by, [{:code, {ast, _meta}}]) do
     code = ast |> Sourceror.to_string() |> newline()
     update(source, by, code: code)
@@ -155,7 +155,7 @@ defmodule Recode.Source do
       iex> Source.updated?(source, :code)
       true
   """
-  @spec updated?(Source.t(), kind :: :code | :path | :any) :: boolean()
+  @spec updated?(t(), kind :: :code | :path | :any) :: boolean()
   def updated?(source, kind \\ :any)
 
   def updated?(%Source{versions: []}, _kind), do: false
@@ -182,13 +182,13 @@ defmodule Recode.Source do
       iex> Source.updates(source)
       2
   """
-  @spec updates(Source.t()) :: non_neg_integer()
+  @spec updates(t()) :: non_neg_integer()
   def updates(%Source{versions: versions}), do: length(versions)
 
   @doc """
   Returns the current path for the given `source`.
   """
-  @spec path(Source.t()) :: Path.t()
+  @spec path(t()) :: Path.t()
   def path(%Source{path: path}), do: path
 
   @doc """
@@ -205,7 +205,7 @@ defmodule Recode.Source do
       iex> Source.path(source, 1)
       "some/where/else/plus.exs"
   """
-  @spec path(Source.t(), non_neg_integer) :: Path.t()
+  @spec path(t(), non_neg_integer) :: Path.t()
   def path(%Source{path: path, versions: versions}, version) when version <= length(versions) do
     versions
     |> Enum.take(length(versions) - version)
@@ -218,7 +218,7 @@ defmodule Recode.Source do
   @doc """
   Returns the current modules for the given `source`.
   """
-  @spec modules(Source.t()) :: [module()]
+  @spec modules(t()) :: [module()]
   def modules(%Source{modules: modules}), do: modules
 
   @doc ~S'''
@@ -247,7 +247,7 @@ defmodule Recode.Source do
       iex> Source.modules(source, 0)
       [Bar]
   '''
-  @spec modules(Source.t(), non_neg_integer) :: [module()]
+  @spec modules(t(), non_neg_integer) :: [module()]
   def modules(%Source{} = source, version) do
     source |> code(version) |> get_modules()
   end
@@ -255,7 +255,7 @@ defmodule Recode.Source do
   @doc """
   Returns the current code for the given `source`.
   """
-  @spec code(Source.t()) :: String.t()
+  @spec code(t()) :: String.t()
   def code(%Source{code: code}), do: code
 
   @doc ~S'''
@@ -284,7 +284,7 @@ defmodule Recode.Source do
       iex> Source.code(source, 0) == bar
       true
   '''
-  @spec code(Source.t(), non_neg_integer) :: String.t()
+  @spec code(t(), non_neg_integer) :: String.t()
   def code(%Source{code: code, versions: versions}, version) when version <= length(versions) do
     versions
     |> Enum.take(length(versions) - version)
@@ -316,7 +316,7 @@ defmodule Recode.Source do
           ]
         ]}}
   """
-  @spec ast(Source.t()) :: {:ok, Macro.t()} | {:error, term()}
+  @spec ast(t()) :: {:ok, Macro.t()} | {:error, term()}
   def ast(%Source{code: code}) do
     Sourceror.parse_string(code)
   end
@@ -324,7 +324,7 @@ defmodule Recode.Source do
   @doc """
   Same as `ast/1` but raises on error.
   """
-  @spec ast!(Source.t()) :: Macro.t()
+  @spec ast!(t()) :: Macro.t()
   def ast!(%Source{code: code}) do
     Sourceror.parse_string!(code)
   end
@@ -332,7 +332,7 @@ defmodule Recode.Source do
   @doc """
   Returns a `Sourceror.Zipper` with the AST for the given `%Source`.
   """
-  @spec zipper(Source.t()) :: {:ok, Zipper.zipper()} | {:error, term()}
+  @spec zipper(t()) :: {:ok, Zipper.zipper()} | {:error, term()}
   def zipper(%Source{} = source) do
     with {:ok, ast} <- ast(source) do
       {:ok, Zipper.zip(ast)}
@@ -342,7 +342,7 @@ defmodule Recode.Source do
   @doc """
   Same as `zipper/1` but raises on error.
   """
-  @spec zipper!(Source.t()) :: Zipper.zipper()
+  @spec zipper!(t()) :: Zipper.zipper()
   def zipper!(%Source{} = source) do
     source |> ast!() |> Zipper.zip()
   end
@@ -376,7 +376,7 @@ defmodule Recode.Source do
          unreachable: []
        }}
   '''
-  @spec debug_info(Sourct.t(), module()) :: {:ok, term()} | {:error, term()}
+  @spec debug_info(t(), module()) :: {:ok, term()} | {:error, term()}
   def debug_info(%Source{modules: modules, code: code, path: path} = source, module) do
     case module in modules do
       true -> do_debug_info(module, code, path, updated?(source))
@@ -387,7 +387,7 @@ defmodule Recode.Source do
   @doc """
   Same as `debug_info/1` but raises on error.
   """
-  @spec debug_info!(Sourct.t(), module()) :: term()
+  @spec debug_info!(t(), module()) :: term()
   def debug_info!(%Source{} = source, module) do
     case debug_info(source, module) do
       {:ok, debug_info} ->

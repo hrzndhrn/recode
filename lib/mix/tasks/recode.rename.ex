@@ -1,15 +1,25 @@
 defmodule Mix.Tasks.Recode.Rename do
-  @shortdoc "TODO: @shortdoc"
+  @shortdoc "Renames the given function"
 
   @moduledoc """
-  TODO: @moduledoc
-  """
+  A mix task to rename functions.
 
-  # TODO
-  # mix call:
-  # mix rc.reanme Rename.Bar.baz bar
-  # opts:
-  # [from: {Rename.Bar, :baz, nil}, to: %{fun: :bar}]
+  ```shell
+  mix recode.rename Module.name[/arity] new_name
+  ```
+  This mix task overwrite the definition and all calls of the given function
+  with the `new_name`. If the `arity` is given to `Module.name` only functions
+  with the corresponding `arity` will be rewritten.
+
+  ## Examples
+  ```shell
+  mix recode.rename MyApp.hello say_hello
+  ```
+
+  ```shell
+  mix recode.rename MyApp.SomeMoudle.do_it/2 make
+  ```
+  """
 
   use Mix.Task
 
@@ -26,7 +36,7 @@ defmodule Mix.Tasks.Recode.Rename do
 
     config = config!(opts)
 
-    prepare(config)
+    :ok = prepare(config)
 
     Runner.run({Rename, args}, config)
   end
@@ -60,15 +70,18 @@ defmodule Mix.Tasks.Recode.Rename do
     elixirc_paths = Keyword.fetch!(config, :elixirc_paths)
     compile_path = Mix.Project.compile_path()
 
-    inputs
-    |> List.wrap()
-    |> Enum.flat_map(&Path.wildcard/1)
-    |> Enum.reject(fn input ->
-      String.ends_with?(input, ".exs") or
-        Enum.any?(elixirc_paths, fn path -> String.starts_with?(input, path) end) or
-        input in exclude_compilation
-    end)
-    |> Kernel.ParallelCompiler.compile_to_path(compile_path)
+    {:ok, _modules, _warnings} =
+      inputs
+      |> List.wrap()
+      |> Enum.flat_map(&Path.wildcard/1)
+      |> Enum.reject(fn input ->
+        String.ends_with?(input, ".exs") or
+          Enum.any?(elixirc_paths, fn path -> String.starts_with?(input, path) end) or
+          input in exclude_compilation
+      end)
+      |> Kernel.ParallelCompiler.compile_to_path(compile_path)
+
+    :ok
   end
 
   defp args!([from, to]) do

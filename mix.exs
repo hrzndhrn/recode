@@ -24,19 +24,29 @@ defmodule Recode.MixProject do
 
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :mix, :ex_unit],
       mod: {Recode.Application, []}
     ]
   end
 
   defp description do
-    "A codre refactoring tool and credo issue solver"
+    "A linter with autocorrection and a refactoring tool."
   end
 
   defp docs do
     [
       source_ref: "v#{@version}",
-      formatters: ["html"]
+      formatters: ["html"],
+      groups_for_modules: [
+        "Linter tasks": [
+          Recode.Task.AliasExpansion,
+          Recode.Task.PipeFunOne,
+          Recode.Task.SinglePipe
+        ],
+        "Refactoring tasks": [
+          Recode.Task.Rename
+        ]
+      ]
     ]
   end
 

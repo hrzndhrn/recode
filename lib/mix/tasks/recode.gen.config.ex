@@ -1,12 +1,23 @@
 defmodule Mix.Tasks.Recode.Gen.Config do
-  @shortdoc "Generate a new config for Recode"
-  @moduledoc @shortdoc
+  @shortdoc "Generates a new config for Recode"
+
+  @moduledoc """
+  #{@shortdoc}.
+
+  The default config:
+  ```elixir
+  #{File.read!("priv/config.exs")}
+  ```
+  """
 
   use Mix.Task
 
+  @config ".recode.exs"
+
   @doc false
   def run([]) do
-    source = :recode |> :code.priv_dir() |> Path.join("config.exs")
-    Mix.Generator.copy_file(source, ".config.exs")
+    Mix.Generator.copy_file(source(), @config)
   end
+
+  defp source, do: :recode |> :code.priv_dir() |> Path.join("config.exs")
 end

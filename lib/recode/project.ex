@@ -11,12 +11,12 @@ defmodule Recode.Project do
 
   @type id :: reference()
 
-  @type t :: [
+  @type t :: %Project{
           sources: %{id() => Source.t()},
           paths: %{Path.t() => id()},
           modules: %{module() => id()},
           inputs: [Path.t()]
-        ]
+        }
 
   @doc """
   Creates a `%Project{}` from the given `inputs`.
@@ -30,7 +30,7 @@ defmodule Recode.Project do
   iex> Project.new(["{config,lib,test}/**/*.{ex,exs}"])
   ```
   """
-  @spec new(Path.t() | [Path.t()]) :: Project.t()
+  @spec new(Path.t() | [Path.t()]) :: t()
   def new(inputs) do
     inputs = inputs |> List.wrap() |> Enum.flat_map(&Path.wildcard/1)
 
@@ -87,7 +87,7 @@ defmodule Recode.Project do
 
   The key could be a moudle, path or an id.
   """
-  @spec source(Porject.t(), key) :: {:ok, Source.t()} | :error
+  @spec source(t(), key) :: {:ok, Source.t()} | :error
         when key: id() | Path.t() | module()
   def source(%Project{sources: sources}, key) when is_reference(key) do
     Map.fetch(sources, key)
@@ -108,7 +108,7 @@ defmodule Recode.Project do
   @doc """
   Same as `source/2` but raises on error.
   """
-  @spec source!(Porject.t(), key) :: Source.t()
+  @spec source!(t(), key) :: Source.t()
         when key: id() | Path.t() | module()
   def source!(%Project{} = project, key) do
     case source(project, key) do
@@ -120,7 +120,7 @@ defmodule Recode.Project do
   @doc """
   Returns all sources sorted by path.
   """
-  @spec sources(Project.t()) :: [Source.t()]
+  @spec sources(t()) :: [Source.t()]
   def sources(%Project{paths: paths, sources: sources}) do
     paths
     |> Enum.sort()
@@ -135,7 +135,7 @@ defmodule Recode.Project do
   If the `source` is part of the project the `source` will be replaced,
   otherwise the `source` will be added.
   """
-  @spec update(Project.t(), Source.t()) :: Project.t()
+  @spec update(t(), Source.t()) :: t()
   def update(
         %Project{sources: sources, paths: paths, modules: modules} = project,
         %Source{} = source
@@ -178,11 +178,13 @@ defmodule Recode.Project do
   The `fun` must return `{:ok, source}` to update the `project` or `:error` to
   skip the update of the `source`.
   """
-  @spec map(Project.t(), opts, fun) :: Project.t()
-        when opts: term(),
+  @spec map(t(), opts, fun) :: t()
+        when opts:
+               term()
+               | nil,
              fun:
                (Source.t() -> {:ok, Source.t()} | :error)
-               | (Source.t(), opts -> {:ok, Source.t()} | :error)
+               | (Source.t(), term() -> {:ok, Source.t()} | :error)
   def map(%Project{sources: sources} = project, opts \\ nil, fun) do
     sources = sources |> Map.values() |> Enum.sort()
     map(project, sources, fun, opts)

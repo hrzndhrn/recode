@@ -1,6 +1,8 @@
 defmodule Recode.Task.Rename do
   @moduledoc """
-  TODO: @moduledoc
+  A refactoring task to rename functions.
+
+  For usage, see `mix recode.rename`.
   """
 
   use Recode.Task, refactor: true
@@ -15,6 +17,7 @@ defmodule Recode.Task.Rename do
   alias Recode.Task.Rename
   alias Sourceror.Zipper
 
+  @impl Recode.Task
   def run(project, opts) do
     Project.map(project, fn source ->
       zipper =

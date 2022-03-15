@@ -1,6 +1,15 @@
 defmodule Recode.Task.SinglePipe do
   @moduledoc """
-  Add parentheses to one-arity functions.
+  Pipes (`|>`) should only be used when piping data through multiple calls.
+
+      # preferred
+      some_string |> String.downcase() |> String.trim()
+      Enum.reverse(some_enum)
+
+      # not preferred
+      some_enum |> Enum.reverse()
+
+  This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
   use Recode.Task, correct: true

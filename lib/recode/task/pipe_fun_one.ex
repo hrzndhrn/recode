@@ -1,6 +1,14 @@
 defmodule Recode.Task.PipeFunOne do
   @moduledoc """
   Add parentheses to one-arity functions.
+
+      # preferred
+      some_string |> String.downcase() |> String.trim()
+
+      # not preferred
+      some_string |> String.downcase |> String.trim
+
+  This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
   use Recode.Task, correct: true

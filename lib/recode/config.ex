@@ -5,7 +5,9 @@ defmodule Recode.Config do
 
   @type config :: keyword()
 
-  @spec read(Path.t() | opts) :: config() when opts: keyword()
+  @config ".recode.exs"
+
+  @spec read(Path.t() | opts) :: {:ok, config()} | {:error, :not_found} when opts: keyword()
   def read(path) when is_binary(path) do
     case File.exists?(path) do
       true ->
@@ -19,7 +21,7 @@ defmodule Recode.Config do
 
   def read(opts) when is_list(opts) do
     opts
-    |> Keyword.get(:config, ".config.exs")
+    |> Keyword.get(:config, @config)
     |> read()
   end
 end
