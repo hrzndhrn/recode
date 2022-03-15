@@ -24,3 +24,7 @@ recode-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# dialyzer plt
+/test/support/plts/*.plt
+/test/support/plts/*.plt.hash
