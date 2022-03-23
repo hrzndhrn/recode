@@ -8,6 +8,9 @@ defmodule Recode.FormatterTest do
   alias Recode.Project
   alias Recode.Source
 
+  @config verbose: true
+  @opts []
+
   describe "formatter/3" do
     test "formats a project" do
       code = """
@@ -22,7 +25,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, [], []) == project
+          assert Formatter.format(project, @opts, @config) == project
         end)
 
       assert strip_esc_seq(output) == ""
@@ -44,11 +47,12 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, [], []) == project
+          assert Formatter.format(project, @opts, @config) == project
         end)
 
       assert strip_esc_seq(output) == """
-              File: no file \nUpdates: 1
+              File: no file
+             Updates: 1
              Changed by: test
              001|defmodule Foo do
              002|  def bar, do: :foo
@@ -76,11 +80,12 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, [], []) == project
+          assert Formatter.format(project, @opts, @config) == project
         end)
 
       assert strip_esc_seq(output) == """
-              File: no file \nUpdates: 2
+              File: no file
+             Updates: 2
              Changed by: test, test
 
              """
@@ -116,7 +121,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, [], []) == project
+          assert Formatter.format(project, @opts, @config) == project
         end)
 
       output = strip_esc_seq(output)
@@ -143,18 +148,25 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, [], []) == project
+          assert Formatter.format(project, @opts, @config) == project
         end)
 
       output = strip_esc_seq(output)
 
       assert output == """
-              File: no file \nIssue: foo 1:2 do not do this
-             Issue: bar 2:3 no no no
+              File: no file
+             [foo 1/2] do not do this
+             [bar 2/3] no no no
 
              """
     end
   end
 
-  defp strip_esc_seq(string), do: String.replace(string, ~r/\e[^m]+m/, "")
+  defp strip_esc_seq(string) do
+    string
+    |> String.replace(~r/\e[^m]+m/, "")
+    |> String.split("\n")
+    |> Enum.map(&String.trim_trailing/1)
+    |> Enum.join("\n")
+  end
 end
