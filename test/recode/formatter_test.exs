@@ -166,7 +166,6 @@ defmodule Recode.FormatterTest do
     string
     |> String.replace(~r/\e[^m]+m/, "")
     |> String.split("\n")
-    |> Enum.map(&String.trim_trailing/1)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", &String.trim_trailing/1)
   end
 end
