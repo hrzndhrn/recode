@@ -14,6 +14,7 @@ alias Recode.Task
   tasks: [
     {Task.SinglePipe, []},
     {Task.PipeFunOne, []},
-    {Task.AliasExpansion, []}
+    {Task.AliasExpansion, []},
+    {Task.TestFileExt, []}
   ]
 ]

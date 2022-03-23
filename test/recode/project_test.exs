@@ -108,4 +108,125 @@ defmodule Recode.ProjectTest do
       assert Map.values(project.sources) == [source]
     end
   end
+
+  describe "unreferenced/1" do
+    test "returns an emplty list" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          Source.from_string(":b", "b.exs"),
+          Source.from_string(":c", "c.exs")
+        ])
+
+      assert Project.unreferenced(project) == []
+    end
+
+    test "returns an empty list when exchanging files" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          ":b" |> Source.from_string("b.exs") |> Source.update(:test, path: "c.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "b.exs")
+        ])
+
+      assert Project.unreferenced(project) == []
+    end
+
+    test "returns path to unreferenced file" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          Source.from_string(":b", "b.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "d.exs")
+        ])
+
+      assert Project.unreferenced(project) == ["c.exs"]
+    end
+
+    test "returns unreferenced paths despite overwrite" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          Source.from_string(":b", "b.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "b.exs")
+        ])
+
+      assert Project.unreferenced(project) == ["c.exs"]
+    end
+
+    test "returns unreferenced paths despite conflict" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          ":b" |> Source.from_string("b.exs") |> Source.update(:test, path: "d.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "d.exs")
+        ])
+
+      assert Project.unreferenced(project) == ["b.exs", "c.exs"]
+    end
+  end
+
+  describe "conflicts/1" do
+    test "returns an emplty map" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          Source.from_string(":b", "b.exs"),
+          Source.from_string(":c", "c.exs")
+        ])
+
+      assert Project.conflicts(project) == %{}
+    end
+
+    test "returns an emplty map while exchanging files" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          ":b" |> Source.from_string("b.exs") |> Source.update(:test, path: "c.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "b.exs")
+        ])
+
+      assert Project.conflicts(project) == %{}
+    end
+
+    test "returns a conflict of 2 files" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          ":b" |> Source.from_string("b.exs") |> Source.update(:test, path: "d.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "d.exs")
+        ])
+
+      assert %{"d.exs" => sources} = Project.conflicts(project)
+      assert length(sources) == 2
+    end
+
+    test "returns a conflict of 3 files" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.exs"),
+          ":b" |> Source.from_string("b.exs") |> Source.update(:test, path: "d.exs"),
+          ":c" |> Source.from_string("c.exs") |> Source.update(:test, path: "d.exs"),
+          Source.from_string(":d", "d.exs")
+        ])
+
+      assert %{"d.exs" => sources} = Project.conflicts(project)
+      assert length(sources) == 3
+    end
+  end
+
+  describe "sources/1" do
+    test "returns all sources" do
+      project =
+        Project.from_sources([
+          Source.from_string(":c", "c.exs"),
+          Source.from_string(":a", "a.exs"),
+          Source.from_string(":b", "b.exs")
+        ])
+
+      assert project
+             |> Project.sources()
+             |> Enum.map(fn source -> source.path end) == ["a.exs", "b.exs", "c.exs"]
+    end
+  end
 end

@@ -3,13 +3,14 @@ defmodule Recode.Source do
   A representation of some source in a project.
 
   The `%Source{}` conatins the `code` of the file given by `path`. The moudle
-  contains `Source.update/3` to update the `path` and/or the `code`. he changes
-  are recorded in the `versions` list.
+  contains `Source.update/3` to update the `path` and/or the `code`. The changes
+  are recorded in the `updates` list.
 
   The struct also holds `issues` for the source.
   """
 
   alias Recode.Context
+  alias Recode.Issue
   alias Recode.Source
   alias Recode.SourceError
   alias Sourceror.Zipper
@@ -20,9 +21,15 @@ defmodule Recode.Source do
     :code,
     :hash,
     :modules,
-    versions: [],
+    updates: [],
     issues: []
   ]
+
+  @typedoc """
+  The `version` of a `%Source{}`. The version `1` indicates that the source has
+  no changes.
+  """
+  @type version :: pos_integer()
 
   @type kind :: :code | :path
 
@@ -30,11 +37,11 @@ defmodule Recode.Source do
 
   @type t :: %Source{
           id: String.t(),
-          path: Path.t(),
+          path: Path.t() | nil,
           code: String.t(),
           hash: String.t(),
           modules: [module()],
-          versions: [{kind(), by(), String.t()}],
+          updates: [{kind(), by(), String.t()}],
           issues: term()
         }
 
@@ -83,6 +90,30 @@ defmodule Recode.Source do
     )
   end
 
+  @doc """
+  Returns the `version` of the given `source`. The value `1` indicates that the
+  source has no changes.
+  """
+  @spec version(t()) :: version()
+  def version(%Source{updates: updates}), do: length(updates) + 1
+
+  @doc """
+  Adds the given `issues` to the `source`.
+  """
+  @spec add_issues(t(), [Issue.t()]) :: t()
+  def add_issues(%Source{issues: list} = source, issues) do
+    version = version(source)
+    issues = issues |> Enum.map(fn issue -> {version, issue} end) |> Enum.concat(list)
+
+    %Source{source | issues: issues}
+  end
+
+  @doc """
+  Adds the given `issue` to the `source`.
+  """
+  @spec add_issue(t(), Issue.t()) :: t()
+  def add_issue(%Source{} = source, %Issue{} = issue), do: add_issues(source, [issue])
+
   @doc ~S"""
   Updates the `code` or the `path` of a `source`.
 
@@ -93,12 +124,12 @@ defmodule Recode.Source do
       ...>   |> Source.from_string()
       ...>   |> Source.update(:example, path: "test/fixtures/new.exs")
       ...>   |> Source.update(:example, code: "a - b")
-      iex> source.versions
+      iex> source.updates
       [{:code, :example, "a + b"}, {:path, :example, nil}]
       iex> source.code
       "a - b\n"
 
-  If the new value equal to the current value, no versions will be added.
+  If the new value equal to the current value, no updates will be added.
 
       iex> source =
       ...>   "a + b"
@@ -106,7 +137,7 @@ defmodule Recode.Source do
       ...>   |> Source.update(:example, code: "a - b")
       ...>   |> Source.update(:example, code: "a - b")
       ...>   |> Source.update(:example, code: "a - b")
-      iex> source.versions
+      iex> source.updates
       [{:code, :example, "a + b"}]
   """
   @spec update(t(), by(), [code: String.t() | Zipper.zipper()] | [path: Path.t()]) :: t()
@@ -126,11 +157,11 @@ defmodule Recode.Source do
         source
 
       false ->
-        version = {key, by, legacy}
+        update = {key, by, legacy}
 
         source
         |> put(key, value)
-        |> update_versions(version)
+        |> update_updates(update)
         |> update_modules(key, value)
         |> update_hash()
     end
@@ -158,32 +189,61 @@ defmodule Recode.Source do
   @spec updated?(t(), kind :: :code | :path | :any) :: boolean()
   def updated?(source, kind \\ :any)
 
-  def updated?(%Source{versions: []}, _kind), do: false
+  def updated?(%Source{updates: []}, _kind), do: false
 
-  def updated?(%Source{versions: _versions}, :any), do: true
+  def updated?(%Source{updates: _updates}, :any), do: true
 
-  def updated?(%Source{versions: versions}, kind) when kind in [:code, :path] do
-    Enum.any?(versions, fn
+  def updated?(%Source{updates: updates}, kind) when kind in [:code, :path] do
+    Enum.any?(updates, fn
       {^kind, _by, _value} -> true
-      _version -> false
+      _update -> false
     end)
   end
 
   @doc """
-  Returns the count of updates.
+  Returns `true` if the `source` has issues for the given `version`.
+
+  The `version` argument also accepts `:actual` and `:all` to check whether the
+  `source` has problems for the actual version or if there are problems at all.
 
   ## Examples
 
+      iex> alias Recode.Issue
       iex> source =
       ...>   "a + b"
-      ...>   |> Source.from_string()
-      ...>   |> Source.update(:example, path: "test/fixtures/new.exs")
-      ...>   |> Source.update(:example, code: "a - b")
-      iex> Source.updates(source)
-      2
+      ...>   |> Source.from_string("some/where/plus.exs")
+      ...>   |> Source.add_issue(Issue.new(:test, "no comment", line: 1))
+      ...>   |> Source.update(:example, path: "some/where/else/plus.exs")
+      ...>   |> Source.add_issue(Issue.new(:test, "no comment", line: 1))
+      iex> Source.has_issues?(source)
+      true
+      iex> Source.has_issues?(source, 1)
+      true
+      iex> Source.has_issues?(source, :all)
+      true
+      iex> source = Source.update(source, :example, code: "a - b")
+      iex> Source.has_issues?(source)
+      false
+      iex> Source.has_issues?(source, 2)
+      true
+      iex> Source.has_issues?(source, :all)
+      true
   """
-  @spec updates(t()) :: non_neg_integer()
-  def updates(%Source{versions: versions}), do: length(versions)
+  @spec has_issues?(t(), version() | :actual | :all) :: boolean
+  def has_issues?(source, version \\ :actual)
+
+  def has_issues?(%Source{issues: issues}, :all), do: not_empty?(issues)
+
+  def has_issues?(%Source{} = source, :actual) do
+    has_issues?(source, version(source))
+  end
+
+  def has_issues?(%Source{issues: issues, updates: updates}, version)
+      when version >= 1 and version <= length(updates) + 1 do
+    issues
+    |> Enum.filter(fn {for_version, _issue} -> for_version == version end)
+    |> not_empty?()
+  end
 
   @doc """
   Returns the current path for the given `source`.
@@ -200,15 +260,16 @@ defmodule Recode.Source do
       ...>   "a + b"
       ...>   |> Source.from_string("some/where/plus.exs")
       ...>   |> Source.update(:example, path: "some/where/else/plus.exs")
-      ...> Source.path(source, 0)
+      ...> Source.path(source, 1)
       "some/where/plus.exs"
-      iex> Source.path(source, 1)
+      iex> Source.path(source, 2)
       "some/where/else/plus.exs"
   """
-  @spec path(t(), non_neg_integer) :: Path.t()
-  def path(%Source{path: path, versions: versions}, version) when version <= length(versions) do
-    versions
-    |> Enum.take(length(versions) - version)
+  @spec path(t(), version()) :: Path.t()
+  def path(%Source{path: path, updates: updates}, version)
+      when version >= 1 and version <= length(updates) + 1 do
+    updates
+    |> Enum.take(length(updates) - version + 1)
     |> Enum.reduce(path, fn
       {:path, _by, path}, _path -> path
       _version, path -> path
@@ -242,13 +303,14 @@ defmodule Recode.Source do
       iex> source = Source.update(source, :example, code: bar <> foo)
       iex> Source.modules(source)
       [Bar, Foo]
-      iex> Source.modules(source, 1)
+      iex> Source.modules(source, 2)
       [Bar, Foo]
-      iex> Source.modules(source, 0)
+      iex> Source.modules(source, 1)
       [Bar]
   '''
-  @spec modules(t(), non_neg_integer) :: [module()]
-  def modules(%Source{} = source, version) do
+  @spec modules(t(), version()) :: [module()]
+  def modules(%Source{updates: updates} = source, version)
+      when version >= 1 and version <= length(updates) + 1 do
     source |> code(version) |> get_modules()
   end
 
@@ -279,15 +341,16 @@ defmodule Recode.Source do
       iex> source = Source.update(source, :example, code: foo)
       iex> Source.code(source) == foo
       true
-      iex> Source.code(source, 1) == foo
+      iex> Source.code(source, 2) == foo
       true
-      iex> Source.code(source, 0) == bar
+      iex> Source.code(source, 1) == bar
       true
   '''
-  @spec code(t(), non_neg_integer) :: String.t()
-  def code(%Source{code: code, versions: versions}, version) when version <= length(versions) do
-    versions
-    |> Enum.take(length(versions) - version)
+  @spec code(t(), version()) :: String.t()
+  def code(%Source{code: code, updates: updates}, version)
+      when version >= 1 and version <= length(updates) + 1 do
+    updates
+    |> Enum.take(length(updates) - version + 1)
     |> Enum.reduce(code, fn
       {:code, _by, code}, _code -> code
       _version, code -> code
@@ -336,6 +399,29 @@ defmodule Recode.Source do
   def zipper(%Source{} = source) do
     with {:ok, ast} <- ast(source) do
       {:ok, Zipper.zip(ast)}
+    end
+  end
+
+  @doc """
+  Compares the `path` values of the given sources.
+
+  ## Examples
+
+      iex> a = Source.from_string(":foo", "a.exs")
+      iex> Source.compare(a, a)
+      :eq
+      iex> b = Source.from_string(":foo", "b.exs")
+      iex> Source.compare(a, b)
+      :lt
+      iex> Source.compare(b, a)
+      :gt
+  """
+  @spec compare(t(), t()) :: :lt | :eq | :gt
+  def compare(%Source{path: path1}, %Source{path: path2}) do
+    cond do
+      path1 < path2 -> :lt
+      path1 > path2 -> :gt
+      true -> :eq
     end
   end
 
@@ -441,13 +527,15 @@ defmodule Recode.Source do
 
   defp put(source, key, value), do: Map.put(source, key, value)
 
-  defp update_versions(%Source{versions: versions} = source, version) do
-    %{source | versions: [version | versions]}
+  defp update_updates(%Source{updates: updates} = source, update) do
+    %{source | updates: [update | updates]}
   end
 
   defp compile_module(code, path, module) do
     code |> Code.compile_string(path || "nofile") |> Keyword.fetch!(module)
   end
+
+  defp not_empty?(enum), do: not Enum.empty?(enum)
 
   defp newline(string), do: String.trim_trailing(string) <> "\n"
 end

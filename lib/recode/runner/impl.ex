@@ -24,7 +24,8 @@ defmodule Recode.Runner.Impl do
     |> format(config)
   end
 
-  defp run(project, module, opts, _config) do
+  defp run(project, module, opts, config) do
+    opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
     module.run(project, opts)
   end
 

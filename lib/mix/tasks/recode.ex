@@ -73,13 +73,28 @@ defmodule Mix.Tasks.Recode do
   end
 
   defp update(opts, :tasks) do
+    tasks =
+      opts
+      |> Keyword.fetch!(:tasks)
+      |> update_tasks(:correct_first)
+      |> update_tasks(:filter, opts)
+
+    Keyword.put(opts, :tasks, tasks)
+  end
+
+  defp update_tasks(tasks, :filter, opts) do
+    case opts[:autocorrect] do
+      false -> Enum.filter(tasks, fn {task, _opts} -> task.config(:check) end)
+      true -> tasks
+    end
+  end
+
+  defp update_tasks(tasks, :correct_first) do
     groups =
-      Enum.group_by(opts[:tasks], fn {task, _opts} ->
+      Enum.group_by(tasks, fn {task, _opts} ->
         task.config(:correct)
       end)
 
-    tasks = Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
-
-    Keyword.put(opts, :tasks, tasks)
+    Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
   end
 end

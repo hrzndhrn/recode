@@ -12,45 +12,73 @@ defmodule Recode.Task.AliasExpansion do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  use Recode.Task, correct: true
+  use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Project
   alias Recode.Source
   alias Recode.Task.AliasExpansion
   alias Sourceror.Zipper
 
-  def run(project, _opts) do
+  def run(project, opts) do
     Project.map(project, fn source ->
-      zipper =
+      {zipper, issues} =
         source
         |> Source.zipper!()
-        |> Zipper.traverse(&expand_alias/1)
+        |> Zipper.traverse([], fn zipper, issues ->
+          expand_alias(zipper, issues, opts[:autocorrect])
+        end)
 
-      source = Source.update(source, AliasExpansion, code: zipper)
+      source =
+        source
+        |> Source.update(AliasExpansion, code: zipper)
+        |> Source.add_issues(issues)
 
       {:ok, source}
     end)
   end
 
-  defp expand_alias({{:alias, _meta, _args}, _zipper_meta} = zipper) do
-    with {base, segments, alias_meta, call_meta} <- extract(zipper) do
-      segments
-      |> segments_to_alias(base)
-      |> put_leading_comments(alias_meta)
-      |> put_trailing_comments(call_meta)
-      |> insert(zipper)
-    end
+  defp expand_alias({{:alias, _meta, _args} = ast, _zipper_meta} = zipper, issues, true) do
+    zipper =
+      case extract(ast) do
+        {:ok, {base, segments, alias_meta, call_meta}} ->
+          segments
+          |> segments_to_alias(base)
+          |> put_leading_comments(alias_meta)
+          |> put_trailing_comments(call_meta)
+          |> insert(zipper)
+
+        :error ->
+          zipper
+      end
+
+    {zipper, issues}
   end
 
-  defp expand_alias(zipper), do: zipper
+  defp expand_alias({{:alias, meta, _args} = ast, _zipper_meta} = zipper, issues, false) do
+    issues =
+      case extract(ast) do
+        {:ok, _data} ->
+          message = "Avoid multi aliases."
+          issue = Issue.new(AliasExpansion, message, meta)
+          [issue | issues]
 
-  defp extract({tree, _meta} = zipper) do
+        :error ->
+          issues
+      end
+
+    {zipper, issues}
+  end
+
+  defp expand_alias(zipper, issues, _autocorrect), do: {zipper, issues}
+
+  defp extract(tree) do
     case tree do
       {:alias, alias_meta, [{{:., _meta, [base, :{}]}, call_meta, segments}]} ->
-        {base, segments, alias_meta, call_meta}
+        {:ok, {base, segments, alias_meta, call_meta}}
 
       _tree ->
-        zipper
+        :error
     end
   end
 

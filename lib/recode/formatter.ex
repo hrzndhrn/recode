@@ -3,6 +3,7 @@ defmodule Recode.Formatter do
   The default formatter and the formatter bebaviour.
   """
 
+  import IO.ANSI, only: [reverse: 0, reverse_off: 0]
   import Recode.IO
 
   alias Recode.Project
@@ -10,48 +11,161 @@ defmodule Recode.Formatter do
 
   @callback format(Project.t(), opts :: keyword(), config :: keyword()) :: :ok
 
-  def format(%Project{} = project, opts, _config) do
-    project
-    |> Project.sources()
-    |> Enum.each(fn source -> format(source, opts) end)
+  def format(%Project{} = project, opts, config) do
+    if config[:verbose] do
+      project
+      |> Project.sources()
+      |> Enum.each(fn source -> format(source, opts) end)
+    end
 
     project
   end
 
-  defp format(source, _opts) do
-    puts([
-      :file,
-      "File: #{source.path || "no file"}",
-      :info,
-      " Updates: #{Source.updates(source)}"
-    ])
+  defp format(source, opts) do
+    case Source.updated?(source) or Source.has_issues?(source, :all) do
+      true ->
+        []
+        |> format_info(source, opts)
+        |> format_path_update(source, opts)
+        |> format_code_update(source, opts)
+        |> format_issues(source, opts)
+        |> newline()
+        |> write()
 
-    if Source.updated?(source) do
-      changed_by(source)
-      diff(Source.code(source), Source.code(source, 0))
+      false ->
+        []
     end
   end
 
-  defp changed_by(%Source{versions: versions}) do
-    by =
-      versions
-      |> Enum.filter(fn {key, _by, _value} -> key == :code end)
-      |> Enum.map(fn {_key, by, _value} -> Macro.to_string(by) end)
+  defp newline(output), do: Enum.concat(output, ["\n"])
 
-    puts([:info, "Changed by: " <> Enum.join(by, ", ")])
+  defp format_info(output, source, _opts) do
+    output =
+      Enum.concat(output, [
+        :file,
+        reverse(),
+        " File: #{source.path || "no file"} ",
+        reverse_off(),
+        "\n"
+      ])
+
+    case Source.version(source) do
+      1 -> output
+      version -> Enum.concat(output, [:info, "Updates: #{version - 1}\n"])
+    end
   end
 
-  defp diff(code, code), do: :ok
+  defp format_path_update(output, %Source{} = source, _opts) do
+    case Source.updated?(source, :path) do
+      true ->
+        Enum.concat([
+          output,
+          changed_by(source),
+          ["Moved from: #{Source.path(source, 1)}"]
+        ])
+
+      false ->
+        output
+    end
+  end
+
+  defp format_code_update(output, %Source{} = source, _opts) do
+    case Source.updated?(source, :code) do
+      true ->
+        Enum.concat([
+          output,
+          changed_by(source),
+          diff(Source.code(source), Source.code(source, 1))
+        ])
+
+      false ->
+        output
+    end
+  end
+
+  defp format_issues(output, source, _opts) do
+    actual = Source.version(source)
+
+    issues =
+      source
+      |> Map.get(:issues)
+      |> Enum.sort(&sort_issues/2)
+      |> Enum.flat_map(fn {version, issue} ->
+        format_issue(issue, version, actual)
+      end)
+
+    Enum.concat(output, issues)
+  end
+
+  defp sort_issues({_version1, issue1}, {_version2, issue2}) do
+    line1 = Map.get(issue1, :line, 0)
+    line2 = Map.get(issue2, :line, 0)
+
+    cond do
+      line1 == line2 ->
+        column1 = Map.get(issue1, :line, 0)
+        column2 = Map.get(issue2, :line, 0)
+
+        column1 <= column2
+
+      line1 <= line2 ->
+        true
+
+      true ->
+        false
+    end
+  end
+
+  defp format_issue(issue, version, actual) do
+    warn =
+      case version != actual do
+        true ->
+          [:warn, "Version #{version}/#{actual} "]
+
+        false ->
+          []
+      end
+
+    message = [
+      :issue,
+      "[#{module(issue.reporter)} #{pos(issue)}] ",
+      :info,
+      "#{issue.message}\n"
+    ]
+
+    Enum.concat(warn, message)
+  end
+
+  defp pos(issue) do
+    line = Map.get(issue, :line) || "-"
+    column = Map.get(issue, :column) || "-"
+
+    "#{line}/#{column}"
+  end
+
+  defp module(alias), do: alias |> split() |> List.last()
+
+  defp split(module) when is_atom(module), do: module |> to_string() |> split()
+
+  defp split("Elixir." <> name), do: String.split(name, ".")
+
+  defp split(name) when is_binary(name), do: String.split(name, ".")
+
+  defp changed_by(%Source{updates: updates}) do
+    by = Enum.map(updates, fn {_key, by, _value} -> module(by) end)
+
+    [:info, ~s|Changed by: #{Enum.join(by, ", ")}\n|]
+  end
+
+  defp diff(code, code), do: []
 
   defp diff(new, old) do
-    # String.myers_difference(new, old)
     new = String.split(new, "\n")
     old = String.split(old, "\n")
 
     old
     |> List.myers_difference(new)
     |> diff_to_iodata()
-    |> puts()
   end
 
   defp diff_to_iodata(diff, line_num \\ 0, iodata \\ [])

@@ -24,7 +24,7 @@ defmodule Recode.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :mix, :ex_unit],
+      extra_applications: [:logger, :mix, :ex_unit, :crypto],
       mod: {Recode.Application, []}
     ]
   end
@@ -41,7 +41,8 @@ defmodule Recode.MixProject do
         "Linter tasks": [
           Recode.Task.AliasExpansion,
           Recode.Task.PipeFunOne,
-          Recode.Task.SinglePipe
+          Recode.Task.SinglePipe,
+          Recode.Task.Specs
         ],
         "Refactoring tasks": [
           Recode.Task.Rename

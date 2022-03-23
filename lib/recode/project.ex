@@ -121,12 +121,10 @@ defmodule Recode.Project do
   Returns all sources sorted by path.
   """
   @spec sources(t()) :: [Source.t()]
-  def sources(%Project{paths: paths, sources: sources}) do
-    paths
-    |> Enum.sort()
-    |> Enum.map(fn {_path, id} ->
-      Map.fetch!(sources, id)
-    end)
+  def sources(%Project{sources: sources}) do
+    sources
+    |> Map.values()
+    |> Enum.sort(Source)
   end
 
   @doc """
@@ -170,6 +168,66 @@ defmodule Recode.Project do
   end
 
   @doc """
+  Returns the unreferenced sources.
+  """
+  @spec unreferenced(t()) :: [Source.t()]
+  def unreferenced(%Project{sources: sources}) do
+    {actual, orig} =
+      sources
+      |> Map.values()
+      |> Enum.reduce({MapSet.new(), MapSet.new()}, fn source, {actual, orig} ->
+        case {Source.path(source), Source.path(source, 1)} do
+          {path, path} ->
+            {actual, orig}
+
+          {actual_path, orig_path} ->
+            {MapSet.put(actual, actual_path), MapSet.put(orig, orig_path)}
+        end
+      end)
+
+    orig
+    |> MapSet.difference(actual)
+    |> MapSet.to_list()
+    |> Enum.sort()
+  end
+
+  @doc """
+  Retruns conflicts between sources.
+
+  Sources with the same path have a conflict.
+  """
+  @spec conflicts(t()) :: %{Path.t() => [Source.t()]}
+  def conflicts(%Project{sources: sources}) do
+    sources
+    |> Map.values()
+    |> conflicts(%{}, %{})
+  end
+
+  defp conflicts([], _seen, conflicts), do: conflicts
+
+  defp conflicts([source | sources], seen, conflicts) do
+    path = Source.path(source)
+
+    case Map.fetch(conflicts, path) do
+      {:ok, list} ->
+        conflicts = Map.put(conflicts, path, [source | list])
+        conflicts(sources, seen, conflicts)
+
+      :error ->
+        case Map.fetch(seen, path) do
+          {:ok, item} ->
+            seen = Map.delete(seen, path)
+            conflicts = Map.put(conflicts, path, [source, item])
+            conflicts(sources, seen, conflicts)
+
+          :error ->
+            seen = Map.put(seen, path, source)
+            conflicts(sources, seen, conflicts)
+        end
+    end
+  end
+
+  @doc """
   Return a `%Project{}` where each `source` is the result of invoking `fun` on
   each `source` of the given `project`.
 
@@ -185,9 +243,8 @@ defmodule Recode.Project do
              fun:
                (Source.t() -> {:ok, Source.t()} | :error)
                | (Source.t(), term() -> {:ok, Source.t()} | :error)
-  def map(%Project{sources: sources} = project, opts \\ nil, fun) do
-    sources = sources |> Map.values() |> Enum.sort()
-    map(project, sources, fun, opts)
+  def map(%Project{} = project, opts \\ nil, fun) do
+    map(project, sources(project), fun, opts)
   end
 
   defp map(project, [], _fun, _opts), do: project

@@ -11,31 +11,51 @@ defmodule Recode.Task.PipeFunOne do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  use Recode.Task, correct: true
+  use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Project
   alias Recode.Source
   alias Recode.Task.PipeFunOne
   alias Sourceror.Zipper
 
-  def run(project, _opts) do
+  def run(project, opts) do
     Project.map(project, fn source ->
-      zipper =
+      {zipper, issues} =
         source
         |> Source.zipper!()
-        |> Zipper.traverse(&pipe_fun_one/1)
+        |> Zipper.traverse([], fn zipper, issues ->
+          pipe_fun_one(zipper, issues, opts[:autocorrect])
+        end)
 
-      source = Source.update(source, PipeFunOne, code: zipper)
+      source =
+        source
+        |> Source.update(PipeFunOne, code: zipper)
+        |> Source.add_issues(issues)
 
       {:ok, source}
     end)
   end
 
-  defp pipe_fun_one({{:|>, _meta, _tree}, _} = zipper) do
-    Zipper.update(zipper, &update/1)
+  defp pipe_fun_one({{:|>, _meta, _tree}, _} = zipper, issues, true) do
+    {Zipper.update(zipper, &update/1), issues}
   end
 
-  defp pipe_fun_one(zipper), do: zipper
+  defp pipe_fun_one({{:|>, meta, _tree} = ast, _} = zipper, issues, false) do
+    case issue?(ast) do
+      true ->
+        issue = Issue.new(PipeFunOne, "Use parentheses for one-arity functions in pipes.", meta)
+
+        {zipper, [issue | issues]}
+
+      false ->
+        {zipper, issues}
+    end
+  end
+
+  defp pipe_fun_one(zipper, issues, _autocorrect), do: {zipper, issues}
+
+  defp issue?({:|>, _meta1, [_a, {_name, _meta2, args}]}), do: args == nil
 
   defp update({:|>, meta, [a, b]}) do
     {:|>, meta, [a, update(b)]}

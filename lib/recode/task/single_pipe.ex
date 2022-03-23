@@ -12,35 +12,56 @@ defmodule Recode.Task.SinglePipe do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  use Recode.Task, correct: true
+  use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Project
   alias Recode.Source
   alias Recode.Task.SinglePipe
   alias Sourceror.Zipper
 
-  def run(project, _opts) do
+  def run(project, opts) do
     Project.map(project, fn source ->
-      zipper =
+      {zipper, issues} =
         source
         |> Source.zipper!()
-        |> Zipper.traverse(&single_pipe/1)
+        |> Zipper.traverse([], fn zipper, issues ->
+          single_pipe(zipper, issues, opts[:autocorrect])
+        end)
 
-      source = Source.update(source, SinglePipe, code: zipper)
+      source =
+        source
+        |> Source.update(SinglePipe, code: zipper)
+        |> Source.add_issues(issues)
 
       {:ok, source}
     end)
   end
 
-  defp single_pipe({{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper) do
-    skip(zipper)
+  defp single_pipe(
+         {{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper,
+         issues,
+         _autocorrect
+       ) do
+    {skip(zipper), issues}
   end
 
-  defp single_pipe({{:|>, _meta1, _ast}, _zipper_meta} = zipper) do
-    Zipper.update(zipper, &update/1)
+  defp single_pipe({{:|>, _meta, _ast}, _zipper_meta} = zipper, issues, true) do
+    {Zipper.update(zipper, &update/1), issues}
   end
 
-  defp single_pipe(zipper), do: zipper
+  defp single_pipe({{:|>, meta, _ast}, _zipper_meta} = zipper, issues, false) do
+    issue =
+      Issue.new(
+        SinglePipe,
+        "Use a function call when a pipeline is only one function long.",
+        meta
+      )
+
+    {zipper, [issue | issues]}
+  end
+
+  defp single_pipe(zipper, issues, _autocorrect), do: {zipper, issues}
 
   defp skip({{:|>, _meta1, _ast}, _zipper_meta} = zipper) do
     zipper |> Zipper.next() |> skip()

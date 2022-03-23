@@ -129,6 +129,59 @@ defmodule Recode.Context do
   end
 
   @doc """
+  Returns `true` if a `spec` is availbale.
+  """
+  @spec spec?(t()) :: boolean
+  def spec?(%Context{spec: spec}), do: not is_nil(spec)
+
+  @doc """
+  Returns true if `definition` satisfies the assumption.
+  """
+  @spec definition?(t(), :public | :visible) :: boolean()
+  def definition?(%Context{definition: definition}, :public)
+      when not is_nil(definition) do
+    {{kind, _name, _arity}, _meta} = definition
+    kind in [:def, :defmacro]
+  end
+
+  def definition?(%Context{definition: definition} = context, :visible)
+      when not is_nil(definition) do
+    with true <- definition?(context, :public) do
+      not (doc?(context, false) or moduledoc?(context, false))
+    end
+  end
+
+  @doc """
+  Returns `true` if `@doc` has the given `value`.
+
+  Usually used to check if `@doc` is set to false:
+  ```elixir
+  Context.moduledoc?(context, false)
+  ```
+  """
+  @spec doc?(t(), term()) :: boolean()
+  def doc?(%Context{doc: nil}, value), do: is_nil(value)
+
+  def doc?(%Context{doc: doc}, value) do
+    attribute_value(doc) == value
+  end
+
+  @doc """
+  Returns `true` if `@moduledoc` has the given `value`.
+
+  Usually used to check if `@moduldoc` is set to false:
+  ```elixir
+  Context.moduledoc?(context, false)
+  ```
+  """
+  @spec moduledoc?(t(), term()) :: boolean()
+  def moduledoc?(%Context{moduledoc: nil}, value), do: is_nil(value)
+
+  def moduledoc?(%Context{moduledoc: moduledoc}, value) do
+    attribute_value(moduledoc) == value
+  end
+
+  @doc """
   Merges the given `map` to the assigns of the `context`.
   """
   @spec assigns(t(), map()) :: t()
@@ -143,7 +196,7 @@ defmodule Recode.Context do
   """
   @spec traverse(zipper(), fun) :: zipper()
         when fun: (zipper(), t() -> {zipper(), t()})
-  def traverse(zipper, fun) when is_function(fun, 2) do
+  def traverse({_ast, _meta} = zipper, fun) when is_function(fun, 2) do
     zipper
     |> run_traverse(%Context{}, fun)
     |> elem(0)
@@ -152,10 +205,10 @@ defmodule Recode.Context do
   @doc """
   Traverses the given `zipper` with an `acc` and applys `fun` on each node.
   """
-  @spec traverse(zipper, acc, fun) :: {zipper(), acc}
+  @spec traverse(zipper(), acc, fun) :: {zipper(), acc}
         when acc: term(),
              fun: (zipper(), t(), acc -> {zipper(), t(), acc})
-  def traverse(zipper, acc, fun) when is_function(fun, 3) do
+  def traverse({_ast, _meta} = zipper, acc, fun) when is_function(fun, 3) do
     {zipper, {_context, acc}} = run_traverse(zipper, %Context{}, acc, fun)
     {zipper, acc}
   end
@@ -487,4 +540,11 @@ defmodule Recode.Context do
   defp module_concat(%Context{module: {module1, _meta}}, module2) do
     Module.concat(module1, module2)
   end
+
+  defp attribute_value(attribute) do
+    {:__block__, _meta, [value]} = attribute_block(attribute)
+    value
+  end
+
+  defp attribute_block({:@, _meta1, [{_name, _meta2, [block]}]}), do: block
 end

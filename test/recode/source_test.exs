@@ -46,7 +46,7 @@ defmodule Recode.SourceTest do
         path: path,
         code: changes,
         modules: [TheApp.Simple],
-        versions: [{:code, :test, code}]
+        updates: [{:code, :test, code}]
       })
     end
 
@@ -69,7 +69,7 @@ defmodule Recode.SourceTest do
         path: path,
         code: changes2,
         modules: [Application.Simple],
-        versions: [
+        updates: [
           {:code, :bar, changes1},
           {:code, :foo, code}
         ]
@@ -92,28 +92,11 @@ defmodule Recode.SourceTest do
         path: changes2,
         code: changes1,
         modules: [TheApp.Simple],
-        versions: [
+        updates: [
           {:path, :bar, path},
           {:code, :foo, code}
         ]
       })
-    end
-  end
-
-  describe "updates/1" do
-    test "returns the updates count for an unchanged source" do
-      source = Source.new!("test/fixtures/source/simple.ex")
-
-      assert Source.updates(source) == 0
-    end
-
-    test "returns the updates count for a changed source" do
-      source =
-        "test/fixtures/source/simple.ex"
-        |> Source.new!()
-        |> Source.update(:test, code: "adsf")
-
-      assert Source.updates(source) == 1
     end
   end
 
@@ -146,10 +129,10 @@ defmodule Recode.SourceTest do
         |> Source.update(:test, path: "b.ex")
         |> Source.update(:test, path: "c.ex")
 
-      assert Source.path(source, 0) == path
-      assert Source.path(source, 1) == "a.ex"
-      assert Source.path(source, 2) == "b.ex"
-      assert Source.path(source, 3) == "c.ex"
+      assert Source.path(source, 1) == path
+      assert Source.path(source, 2) == "a.ex"
+      assert Source.path(source, 3) == "b.ex"
+      assert Source.path(source, 4) == "c.ex"
     end
 
     test "returns the path for given version without path changes" do
@@ -161,9 +144,9 @@ defmodule Recode.SourceTest do
         |> Source.update(:test, code: "a.ex")
         |> Source.update(:test, code: "b.ex")
 
-      assert Source.path(source, 0) == path
       assert Source.path(source, 1) == path
       assert Source.path(source, 2) == path
+      assert Source.path(source, 3) == path
     end
   end
 
@@ -178,9 +161,9 @@ defmodule Recode.SourceTest do
         |> Source.update(:test, path: "a.ex")
         |> Source.update(:test, path: "b.ex")
 
-      assert Source.code(source, 0) == code
       assert Source.code(source, 1) == code
       assert Source.code(source, 2) == code
+      assert Source.code(source, 3) == code
     end
 
     test "returns the code for given version" do
@@ -192,9 +175,9 @@ defmodule Recode.SourceTest do
         |> Source.update(:test, code: "a + c")
         |> Source.update(:test, code: "a + d")
 
-      assert Source.code(source, 0) == code
-      assert Source.code(source, 1) == "a + c\n"
-      assert Source.code(source, 2) == "a + d\n"
+      assert Source.code(source, 1) == code
+      assert Source.code(source, 2) == "a + c\n"
+      assert Source.code(source, 3) == "a + d\n"
     end
   end
 
@@ -211,9 +194,9 @@ defmodule Recode.SourceTest do
         |> Source.update(:test, code: changes1)
         |> Source.update(:test, code: changes2)
 
-      assert Source.modules(source, 0) == [MyApp.Simple]
-      assert Source.modules(source, 1) == [TheApp.Simple]
-      assert Source.modules(source, 2) == [AnApp.Simple]
+      assert Source.modules(source, 1) == [MyApp.Simple]
+      assert Source.modules(source, 2) == [TheApp.Simple]
+      assert Source.modules(source, 3) == [AnApp.Simple]
     end
   end
 
@@ -267,7 +250,7 @@ defmodule Recode.SourceTest do
     assert source.path == expected.path
     assert source.code == expected.code
     assert source.modules == expected.modules
-    assert source.versions == Map.get(expected, :versions, [])
+    assert source.updates == Map.get(expected, :updates, [])
     assert source.issues == Map.get(expected, :issues, [])
   end
 end

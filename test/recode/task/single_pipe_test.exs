@@ -3,8 +3,12 @@ defmodule Recode.Task.SinglePipeTest do
 
   alias Recode.Task.SinglePipe
 
+  defp run(code, opts \\ [autocorrect: true]) do
+    code |> source() |> run_task({SinglePipe, opts})
+  end
+
   test "fixes single pipes" do
-    source = """
+    code = """
     def fixme(arg) do
       arg |> zoo()
       arg |> zoo(:tiger)
@@ -18,13 +22,13 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    [updated] = run_task_with_sources({SinglePipe, []}, [source])
+    source = run(code)
 
-    assert updated == expected
+    assert source.code == expected
   end
 
   test "keeps pipes" do
-    source = """
+    code = """
     def ok(arg) do
       arg
       |> bar()
@@ -32,13 +36,13 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    [updated] = run_task_with_sources({SinglePipe, []}, [source])
+    source = run(code)
 
-    assert updated == source
+    assert source.code == code
   end
 
   test "keeps pipes (length 3)" do
-    source = """
+    code = """
     def ok(arg) do
       arg
       |> bar()
@@ -47,37 +51,50 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    [updated] = run_task_with_sources({SinglePipe, []}, [source])
+    source = run(code)
 
-    assert updated == source
+    assert source.code == code
   end
 
   test "keeps pipes with tap" do
-    source = """
+    code = """
     def ok(arg) do
       arg
       |> bar()
-      |> tap(fn x -> IO.inspect(x) end)
+      |> tap(fn x -> IO.puts(x) end)
       |> baz(:baz)
     end
     """
 
-    [updated] = run_task_with_sources({SinglePipe, []}, [source])
+    source = run(code)
 
-    assert updated == source
+    assert source.code == code
   end
 
   test "keeps pipes with then" do
-    source = """
+    code = """
     def ok(arg) do
       arg
       |> bar()
-      |> then(fn x -> IO.inspect(x) end)
+      |> then(fn x -> Enum.reverse(x) end)
     end
     """
 
-    [updated] = run_task_with_sources({SinglePipe, []}, [source])
+    source = run(code)
 
-    assert updated == source
+    assert source.code == code
+  end
+
+  test "reports single pipes violation" do
+    code = """
+    def fixme(arg) do
+      arg |> zoo()
+      arg |> zoo(:tiger)
+    end
+    """
+
+    source = run(code, autocorrect: false)
+
+    assert_issues(source, SinglePipe, 2)
   end
 end

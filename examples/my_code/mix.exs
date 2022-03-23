@@ -21,7 +21,7 @@ defmodule MyCode.MixProject do
   defp aliases do
     [
       backup: ["run scripts/backup.exs"],
-      "backup.apply": ["run scripts/backup.exs apply"]
+      "backup.restore": ["run scripts/backup.exs restore"]
     ]
   end
 

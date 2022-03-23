@@ -4,6 +4,7 @@ defmodule Recode.FormatterTest do
   import ExUnit.CaptureIO
 
   alias Recode.Formatter
+  alias Recode.Issue
   alias Recode.Project
   alias Recode.Source
 
@@ -24,7 +25,7 @@ defmodule Recode.FormatterTest do
           assert Formatter.format(project, [], []) == project
         end)
 
-      assert strip_esc_seq(output) == "File: no file Updates: 0\n"
+      assert strip_esc_seq(output) == ""
     end
 
     test "formats a project with changed source" do
@@ -47,8 +48,8 @@ defmodule Recode.FormatterTest do
         end)
 
       assert strip_esc_seq(output) == """
-             File: no file Updates: 1
-             Changed by: :test
+              File: no file \nUpdates: 1
+             Changed by: test
              001|defmodule Foo do
              002|  def bar, do: :foo
              002|  def foo, do: :foo
@@ -79,8 +80,9 @@ defmodule Recode.FormatterTest do
         end)
 
       assert strip_esc_seq(output) == """
-             File: no file Updates: 2
-             Changed by: :test, :test
+              File: no file \nUpdates: 2
+             Changed by: test, test
+
              """
     end
 
@@ -120,6 +122,37 @@ defmodule Recode.FormatterTest do
       output = strip_esc_seq(output)
 
       assert output =~ "...|"
+    end
+
+    test "formats a project with issues" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source =
+        code
+        |> Source.from_string()
+        |> Source.add_issues([
+          Issue.new(:foo, "do not do this", line: 1, column: 2),
+          Issue.new(:bar, "no no no", line: 2, column: 3)
+        ])
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          assert Formatter.format(project, [], []) == project
+        end)
+
+      output = strip_esc_seq(output)
+
+      assert output == """
+              File: no file \nIssue: foo 1:2 do not do this
+             Issue: bar 2:3 no no no
+
+             """
     end
   end
 

@@ -3,19 +3,44 @@ defmodule Recode.IO do
   This module provides IO functions and contains the color schema for `Recode`.
   """
 
+  @type color ::
+          :del
+          | :equal
+          | :file
+          | :info
+          | :ins
+          | :issue
+          | :line_num
+          | :warn
+
   @colors %{
+    del: :red,
+    equal: :color244,
     file: :green,
     info: :color251,
+    ins: :green,
+    issue: :cyan,
     line_num: :color244,
-    equal: :color244,
-    del: :red,
-    ins: :green
+    warn: :orange
   }
 
+  @doc """
+  Similar `to write/1`, but adds a newline at the end.
+  """
   def puts(chardata) do
     chardata
     |> Enum.map(&colors/1)
     |> Bunt.puts()
+  end
+
+  @doc """
+  Formats a chardata-like argument by converting named ANSI sequences into
+  actual ANSI codes and writes it to `:stdio`.
+  """
+  def write(chardata) do
+    chardata
+    |> Enum.map(&colors/1)
+    |> Bunt.write()
   end
 
   defp colors(data) when is_atom(data), do: Map.get(@colors, data, data)

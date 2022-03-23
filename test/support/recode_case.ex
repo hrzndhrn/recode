@@ -19,22 +19,48 @@ defmodule RecodeCase do
     context
   end
 
-  def run_task({task, opts}, config) do
-    Runner.run({task, opts}, config)
+  def assert_issue(%Source{} = source, reporter) do
+    assert_issues(source, reporter, 1)
   end
 
-  def run_task_with_sources({task, opts}, sources) do
-    sources = Enum.map(sources, &Source.from_string/1)
+  def assert_issues(%Source{issues: issues}, reporter, amount) do
+    assert length(issues) == amount,
+           "Expected #{amount} issue(s), got: #{inspect(issues, pretty: true)}"
 
-    project =
-      sources
-      |> Project.from_sources()
-      |> task.run(opts)
+    assert Enum.any?(issues, fn {_version, issue} -> issue.reporter == reporter end),
+           """
+           Expected that each issue was reported by #{inspect(reporter)}, \
+           got: #{inspect(issues, pretty: true)}\
+           """
+  end
 
-    Enum.map(sources, fn %{id: id} ->
-      project
-      |> Project.source!(id)
-      |> Source.code()
-    end)
+  def assert_no_issues(%Source{issues: issues}) do
+    assert issues == [], "Expected no issues, got #{inspect(issues, pretty: true)}"
+  end
+
+  def source(string, path \\ nil) do
+    Source.from_string(string, path)
+  end
+
+  def project(sources) do
+    sources
+    |> List.wrap()
+    |> Enum.map(&Source.from_string/1)
+    |> Project.from_sources()
+  end
+
+  def run_task(%Project{} = project, {task, opts}) do
+    task.run(project, opts)
+  end
+
+  def run_task(%Source{} = source, {task, opts}) do
+    [source]
+    |> Project.from_sources()
+    |> task.run(opts)
+    |> Project.source!(source.id)
+  end
+
+  def run_task({task, opts}, config) do
+    Runner.run({task, opts}, config)
   end
 end
