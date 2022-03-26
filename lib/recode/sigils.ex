@@ -12,4 +12,3 @@ defmodule Recode.Sigils do
     {ast, {:_zipper_meta, [if_undefined: :apply], Elixir}}
   end
 end
-

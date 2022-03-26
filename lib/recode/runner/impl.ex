@@ -48,10 +48,10 @@ defmodule Recode.Runner.Impl do
   end
 
   defp tasks(config) do
-      config
-      |> Keyword.fetch!(:tasks)
-      |> tasks(:correct_first)
-      |> tasks(:filter, config)
+    config
+    |> Keyword.fetch!(:tasks)
+    |> tasks(:correct_first)
+    |> tasks(:filter, config)
   end
 
   defp tasks(tasks, :filter, config) do
