@@ -6,6 +6,13 @@ defmodule Recode.Runner.Impl do
   alias Recode.Project
 
   @impl true
+  def run(config) do
+    config
+    |> tasks()
+    |> run(config)
+  end
+
+  @impl true
   def run(tasks, config) when is_list(tasks) do
     project = project(config)
 
@@ -38,5 +45,28 @@ defmodule Recode.Runner.Impl do
 
   defp project(config) do
     config |> Keyword.fetch!(:inputs) |> List.wrap() |> Project.new()
+  end
+
+  defp tasks(config) do
+      config
+      |> Keyword.fetch!(:tasks)
+      |> tasks(:correct_first)
+      |> tasks(:filter, config)
+  end
+
+  defp tasks(tasks, :filter, config) do
+    case config[:autocorrect] do
+      false -> Enum.filter(tasks, fn {task, _opts} -> task.config(:check) end)
+      true -> tasks
+    end
+  end
+
+  defp tasks(tasks, :correct_first) do
+    groups =
+      Enum.group_by(tasks, fn {task, _opts} ->
+        task.config(:correct)
+      end)
+
+    Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
   end
 end

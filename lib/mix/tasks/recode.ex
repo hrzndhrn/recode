@@ -33,18 +33,13 @@ defmodule Mix.Tasks.Recode do
   @impl Mix.Task
   def run(opts) do
     opts = opts!(opts)
-    config = config!(opts)
 
-    config =
-      config
-      |> Keyword.merge(opts)
-      |> update(:verbose)
-      |> update(:locals_without_parens)
-      |> update(:tasks)
-
-    {tasks, config} = Keyword.pop!(config, :tasks)
-
-    Runner.run(tasks, config)
+    opts
+    |> config!()
+    |> Keyword.merge(opts)
+    |> update(:verbose)
+    |> update(:locals_without_parens)
+    |> Runner.run()
   end
 
   defp opts!(opts) do
@@ -70,32 +65,5 @@ defmodule Mix.Tasks.Recode do
 
   defp update(opts, :locals_without_parens) do
     Keyword.put(opts, :locals_without_parens, DotFormatter.locals_without_parens())
-  end
-
-  defp update(opts, :tasks) do
-    tasks =
-      opts
-      |> Keyword.fetch!(:tasks)
-      |> update_tasks(:correct_first)
-      |> update_tasks(:filter, opts)
-
-    Keyword.put(opts, :tasks, tasks)
-  end
-
-  @deprecated "asdf"
-  defp update_tasks(tasks, :filter, opts) do
-    case opts[:autocorrect] do
-      false -> Enum.filter(tasks, fn {task, _opts} -> task.config(:check) end)
-      true -> tasks
-    end
-  end
-
-  defp update_tasks(tasks, :correct_first) do
-    groups =
-      Enum.group_by(tasks, fn {task, _opts} ->
-        task.config(:correct)
-      end)
-
-    Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
   end
 end

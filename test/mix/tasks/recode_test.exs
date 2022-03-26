@@ -9,8 +9,7 @@ defmodule Mix.Tasks.RecodeTest do
   setup :verify_on_exit!
 
   test "mix recode --config priv/config.exs" do
-    expect(RunnerMock, :run, fn tasks, config ->
-      assert is_list(tasks)
+    expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
     end)
 
@@ -18,8 +17,7 @@ defmodule Mix.Tasks.RecodeTest do
   end
 
   test "mix recode --config priv/config.exs --dry" do
-    expect(RunnerMock, :run, fn tasks, config ->
-      assert is_list(tasks)
+    expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:verbose] == true
     end)

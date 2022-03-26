@@ -1,10 +1,3 @@
-defmodule Recode.Sigils do
-  defmacro sigil_z({:<<>>, _, [string]}, []) do
-    ast = Code.string_to_quoted!(string)
-    {ast, {:_zipper_meta, [if_undefined: :apply], Elixir}}
-  end
-end
-
 defmodule Recode.Task do
   @moduledoc """
   The behaviour for a `recode` task.
