@@ -12,50 +12,54 @@ defmodule Recode.Formatter do
   @callback format(Project.t(), opts :: keyword(), config :: keyword()) :: :ok
 
   def format(%Project{} = project, opts, config) do
-    if config[:verbose] do
-      project
-      |> Project.sources()
-      |> Enum.each(fn source -> format(source, opts) end)
-    end
+    verbose = Keyword.fetch!(config, :verbose)
+
+    project
+    |> Project.sources()
+    |> Enum.each(fn source -> do_format(source, opts, verbose) end)
 
     project
   end
 
-  defp format(source, opts) do
-    case Source.updated?(source) or Source.has_issues?(source, :all) do
-      true ->
-        []
-        |> format_info(source, opts)
-        |> format_path_update(source, opts)
-        |> format_code_update(source, opts)
-        |> format_issues(source, opts)
-        |> newline()
-        |> write()
+  defp do_format(source, opts, verbose) do
+    issues? = Source.has_issues?(source, :all)
+    updated? = Source.updated?(source) and verbose
 
-      false ->
-        []
-    end
+    []
+    |> format_file(source, opts, issues? or updated?)
+    |> format_updates(source, opts, updated?)
+    |> format_path_update(source, opts, updated?)
+    |> format_code_update(source, opts, updated?)
+    |> format_issues(source, opts, issues?)
+    |> newline(issues? or updated?)
+    |> write()
   end
 
-  defp newline(output), do: Enum.concat(output, ["\n"])
+  defp newline(output, false), do: output
 
-  defp format_info(output, source, _opts) do
-    output =
-      Enum.concat(output, [
-        :file,
-        reverse(),
-        " File: #{source.path || "no file"} ",
-        reverse_off(),
-        "\n"
-      ])
+  defp newline(output, true), do: Enum.concat(output, ["\n"])
 
-    case Source.version(source) do
-      1 -> output
-      version -> Enum.concat(output, [:info, "Updates: #{version - 1}\n"])
-    end
+  defp format_updates(output, _source, _opts, false), do: output
+
+  defp format_updates(output, source, _opts, true) do
+    Enum.concat(output, [:info, "Updates: #{Source.version(source) - 1}\n"])
   end
 
-  defp format_path_update(output, %Source{} = source, _opts) do
+  defp format_file(output, _source, _opts, false), do: output
+
+  defp format_file(output, source, _opts, true) do
+    Enum.concat(output, [
+      :file,
+      reverse(),
+      " File: #{source.path || "no file"} ",
+      reverse_off(),
+      "\n"
+    ])
+  end
+
+  defp format_path_update(output, _source, _opts, false), do: output
+
+  defp format_path_update(output, source, _opts, true) do
     case Source.updated?(source, :path) do
       true ->
         Enum.concat([
@@ -69,7 +73,9 @@ defmodule Recode.Formatter do
     end
   end
 
-  defp format_code_update(output, %Source{} = source, _opts) do
+  defp format_code_update(output, _source, _opts, false), do: output
+
+  defp format_code_update(output, source, _opts, true) do
     case Source.updated?(source, :code) do
       true ->
         Enum.concat([
@@ -83,7 +89,9 @@ defmodule Recode.Formatter do
     end
   end
 
-  defp format_issues(output, source, _opts) do
+  defp format_issues(output, _source, _opts, false), do: output
+
+  defp format_issues(output, source, _opts, true) do
     actual = Source.version(source)
 
     issues =

@@ -12,9 +12,10 @@ alias Recode.Task
   inputs: ["{config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
-    {Task.SinglePipe, []},
-    {Task.PipeFunOne, []},
     {Task.AliasExpansion, []},
+    {Task.PipeFunOne, []},
+    {Task.SinglePipe, []},
+    {Task.Specs, []},
     {Task.TestFileExt, []}
   ]
 ]

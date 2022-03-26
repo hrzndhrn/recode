@@ -34,7 +34,7 @@ defmodule Recode.Task.Rename do
     end)
   end
 
-  defp rename({{fun, _meta, [call, _expr]}, _zipper_meta} = zipper, context, opts)
+  defp rename(~z/{fun, _meta, [call, _expr]}/ = zipper, context, opts)
        when fun in [
               :def,
               :defp,
@@ -52,7 +52,7 @@ defmodule Recode.Task.Rename do
     end
   end
 
-  defp rename({{fun, _meta, _args}, _zipper_meta} = zipper, context, _opts)
+  defp rename(~z/{fun, _meta, _args}/ = zipper, context, _opts)
        when fun in [
               :alias,
               :defmodule,
@@ -63,7 +63,7 @@ defmodule Recode.Task.Rename do
     {zipper, context}
   end
 
-  defp rename({{fun, _meta, _args} = ast, _zipper_meta} = zipper, context, opts)
+  defp rename(~z/{fun, _meta, _args} = ast/ = zipper, context, opts)
        when is_atom(fun) do
     case rename?(:call, ast, context, opts) do
       false ->
@@ -77,8 +77,8 @@ defmodule Recode.Task.Rename do
   end
 
   defp rename(
-         {{{:., _meta1, [{:__aliases__, _meta2, _args2}, _fun]}, _meta3, _args3} = ast,
-          _zipper_meta} = zipper,
+         ~z/{{:., _meta1, [{:__aliases__, _meta2, _args2}, _fun]}, _meta3, _args3} = ast/ =
+           zipper,
          context,
          opts
        ) do

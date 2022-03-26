@@ -6,25 +6,25 @@ defmodule Recode.Runner.Impl do
   alias Recode.Project
 
   @impl true
-  def run({module, opts}, config) do
-    project = config |> Keyword.fetch!(:inputs) |> List.wrap() |> Project.new()
-
-    project
-    |> run(module, opts, config)
-    |> format(config)
-  end
-
-  def run(tasks, config) do
-    project = config |> Keyword.fetch!(:inputs) |> List.wrap() |> Project.new()
+  def run(tasks, config) when is_list(tasks) do
+    project = project(config)
 
     tasks
-    |> Enum.reduce(project, fn {module, opts}, project ->
-      run(project, module, opts, config)
-    end)
+    |> run_tasks(project, config)
     |> format(config)
   end
 
-  defp run(project, module, opts, config) do
+  def run({module, opts}, config) do
+    run([{module, opts}], config)
+  end
+
+  defp run_tasks(tasks, project, config) do
+    Enum.reduce(tasks, project, fn {module, opts}, project ->
+      run_task(project, module, opts, config)
+    end)
+  end
+
+  defp run_task(%Project{} = project, module, opts, config) do
     opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
     module.run(project, opts)
   end
@@ -34,5 +34,9 @@ defmodule Recode.Runner.Impl do
       {:ok, {formatter, opts}} -> formatter.format(project, opts, config)
       :error -> project
     end
+  end
+
+  defp project(config) do
+    config |> Keyword.fetch!(:inputs) |> List.wrap() |> Project.new()
   end
 end

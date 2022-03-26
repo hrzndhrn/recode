@@ -82,6 +82,7 @@ defmodule Mix.Tasks.Recode do
     Keyword.put(opts, :tasks, tasks)
   end
 
+  @deprecated "asdf"
   defp update_tasks(tasks, :filter, opts) do
     case opts[:autocorrect] do
       false -> Enum.filter(tasks, fn {task, _opts} -> task.config(:check) end)

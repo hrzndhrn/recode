@@ -37,11 +37,11 @@ defmodule Recode.Task.PipeFunOne do
     end)
   end
 
-  defp pipe_fun_one({{:|>, _meta, _tree}, _} = zipper, issues, true) do
+  defp pipe_fun_one(~z/{:|>, _meta, _tree}/ = zipper, issues, true) do
     {Zipper.update(zipper, &update/1), issues}
   end
 
-  defp pipe_fun_one({{:|>, meta, _tree} = ast, _} = zipper, issues, false) do
+  defp pipe_fun_one(~z/{:|>, meta, _tree} = ast/ = zipper, issues, false) do
     case issue?(ast) do
       true ->
         issue = Issue.new(PipeFunOne, "Use parentheses for one-arity functions in pipes.", meta)
