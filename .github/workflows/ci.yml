@@ -12,19 +12,12 @@ jobs:
     strategy:
       matrix:
         elixir:
-          - '1.11.4'
           - '1.12.3'
           - '1.13.3'
         otp:
-          - '21.3'
           - '22.3'
           - '23.3'
-          - '24.2'
-        exclude:
-          - elixir: '1.12.3'
-            otp: '21.3'
-          - elixir: '1.13.3'
-            otp: '21.3'
+          - '24.3'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -55,16 +48,16 @@ jobs:
       - name: Compile project
         run: MIX_ENV=test mix compile --warnings-as-errors
       - name: Check code format
-        if: ${{ contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.2') }}
+        if: ${{ contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.3') }}
         run: MIX_ENV=test mix format --check-formatted
       - name: Lint code
-        if: ${{ contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.2') }}
+        if: ${{ contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.3') }}
         run: MIX_ENV=test mix credo --strict
       - name: Run tests
         run: MIX_ENV=test mix test
-        if: ${{ !(contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.2')) }}
+        if: ${{ !(contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.3')) }}
       - name: Run tests with coverage
         run: MIX_ENV=test mix coveralls.github
-        if: ${{ contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.2') }}
+        if: ${{ contains(matrix.elixir, '1.13.3') && contains(matrix.otp, '24.3') }}
       - name: Static code analysis
         run: mix dialyzer
