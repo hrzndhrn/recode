@@ -227,7 +227,7 @@ defmodule Recode.Formatter do
     code_lines(lines, line_num, kind, [line | iodata])
   end
 
-  defp line_num(:skip), do: [:line_num, "... |\n"]
+  defp line_num(:skip), do: [:line_num, "...   |\n"]
 
   defp line_num(num, kind) do
     kind =
