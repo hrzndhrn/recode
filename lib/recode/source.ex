@@ -10,6 +10,7 @@ defmodule Recode.Source do
   """
 
   alias Recode.Context
+  alias Recode.DotFormatter
   alias Recode.Issue
   alias Recode.Source
   alias Recode.SourceError
@@ -142,7 +143,8 @@ defmodule Recode.Source do
   """
   @spec update(t(), by(), [code: String.t() | Zipper.zipper()] | [path: Path.t()]) :: t()
   def update(%Source{} = source, by, [{:code, {ast, _meta}}]) do
-    code = ast |> Sourceror.to_string() |> newline()
+    IO.inspect(DotFormatter.opts())
+    code = ast |> Sourceror.to_string(DotFormatter.opts()) |> newline()
     update(source, by, code: code)
   end
 

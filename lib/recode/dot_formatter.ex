@@ -3,14 +3,27 @@ defmodule Recode.DotFormatter do
   This module provides the information from `.formatter.exs`.
   """
 
+  @presistent_term_key {:recode, :dot_formatter}
+
   @doc """
   Returns the options from the `.formatter.exs`.
   """
   @spec opts :: keyword()
   def opts do
-    ".formatter.exs"
-    |> eval_file_with_keyword_list()
-    |> eval_deps_opts()
+    with nil <- get_opts() do
+      ".formatter.exs"
+      |> eval_file_with_keyword_list()
+      |> eval_deps_opts()
+      |> tap(&put_opts/1)
+    end
+  end
+
+  defp get_opts do
+    :persistent_term.get(@presistent_term_key, nil)
+  end
+
+  defp put_opts(opts) do
+    :persistent_term.put(@presistent_term_key, opts)
   end
 
   @doc """
