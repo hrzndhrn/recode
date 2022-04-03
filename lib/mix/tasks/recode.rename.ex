@@ -19,6 +19,17 @@ defmodule Mix.Tasks.Recode.Rename do
   ```shell
   mix recode.rename MyApp.SomeMoudle.do_it/2 make
   ```
+
+  ## Options
+
+    * `--config` - specifies an alternative config file.
+
+    * `--dry`, `--no-dry` - Activates/deactivates the dry mode. No file is
+      overwritten in dry mode. Overwrites the corresponding value in the
+      configuration.
+
+    * `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
+      Overwrites the corresponding value in the configuration.
   """
 
   use Mix.Task
@@ -27,21 +38,25 @@ defmodule Mix.Tasks.Recode.Rename do
   alias Recode.Runner
   alias Recode.Task.Rename
 
-  @opts strict: [config: :string]
+  @opts strict: [config: :string, dry: :boolean, verbose: :boolean]
 
   @impl Mix.Task
   def run(opts) do
     {opts, args} = OptionParser.parse!(opts, @opts)
     args = args!(args)
 
-    config = config!(opts)
+    # opts = update(opts, :verbose)
 
-    # TODO: add --dry and --verbose to config/OptionParser
-    config = Keyword.put(config, :verbose, true)
+    # config =
+    #   opts
+    #   |> update(:verbose)
+    #   |> config!()
 
-    # TODO: add opts for formatter to suppress `Update` and `Changed by`.
+    config = opts
+    |> config!()
+    |> Keyword.merge(opts)
+    |> update(:verbose)
 
-    Mix.Task.run("compile")
 
     :ok = prepare(config)
 
@@ -56,6 +71,8 @@ defmodule Mix.Tasks.Recode.Rename do
   end
 
   defp prepare(opts) do
+    Mix.Task.run("compile")
+
     inputs = opts[:inputs]
 
     exclude_compilation =
@@ -145,4 +162,11 @@ defmodule Mix.Tasks.Recode.Rename do
   defp to_arity(%{arity: [arity]}), do: {:ok, String.to_integer(arity)}
 
   defp to_arity(_parts), do: {:ok, nil}
+
+  defp update(opts, :verbose) do
+    case opts[:dry] do
+      true -> Keyword.put(opts, :verbose, true)
+      false -> opts
+    end
+  end
 end

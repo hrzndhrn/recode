@@ -143,7 +143,6 @@ defmodule Recode.Source do
   """
   @spec update(t(), by(), [code: String.t() | Zipper.zipper()] | [path: Path.t()]) :: t()
   def update(%Source{} = source, by, [{:code, {ast, _meta}}]) do
-    IO.inspect(DotFormatter.opts())
     code = ast |> Sourceror.to_string(DotFormatter.opts()) |> newline()
     update(source, by, code: code)
   end
