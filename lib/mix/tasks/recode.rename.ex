@@ -36,6 +36,13 @@ defmodule Mix.Tasks.Recode.Rename do
 
     config = config!(opts)
 
+    # TODO: add --dry and --verbose to config/OptionParser
+    config = Keyword.put(config, :verbose, true)
+
+    # TODO: add opts for formatter to suppress `Update` and `Changed by`.
+
+    Mix.Task.run("compile")
+
     :ok = prepare(config)
 
     Runner.run({Rename, args}, config)
@@ -62,7 +69,7 @@ defmodule Mix.Tasks.Recode.Rename do
           []
       end
 
-    ExUnit.start()
+    ExUnit.start(autorun: false)
 
     Code.put_compiler_option(:ignore_module_conflict, true)
 

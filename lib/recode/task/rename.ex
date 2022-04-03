@@ -12,26 +12,21 @@ defmodule Recode.Task.Rename do
   alias Recode.AST
   alias Recode.Context
   alias Recode.DebugInfo
-  alias Recode.Project
   alias Recode.Source
   alias Recode.Task.Rename
   alias Sourceror.Zipper
 
   @impl Recode.Task
-  def run(project, opts) do
-    Project.map(project, fn source ->
-      zipper =
-        source
-        |> Source.zipper!()
-        |> Context.traverse(fn zipper, context ->
-          opts = Keyword.put(opts, :source, source)
-          rename(zipper, context, opts)
-        end)
+  def run(source, opts) do
+    zipper =
+      source
+      |> Source.zipper!()
+      |> Context.traverse(fn zipper, context ->
+        opts = Keyword.put(opts, :source, source)
+        rename(zipper, context, opts)
+      end)
 
-      source = Source.update(source, Rename, code: zipper)
-
-      {:ok, source}
-    end)
+    Source.update(source, Rename, code: zipper)
   end
 
   defp rename(~z/{fun, _meta, [call, _expr]}/ = zipper, context, opts)

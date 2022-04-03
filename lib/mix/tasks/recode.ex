@@ -4,6 +4,12 @@ defmodule Mix.Tasks.Recode do
   @moduledoc """
   #{@shortdoc}.
 
+  ```shell
+  > mix recode [options] [wildcard]
+  ```
+
+  Without a `wildcard` argument the `inputs` value from the config is used.
+
   Without the option `--config file` the config file `.recode.exs` is used. A
   default `.recode.exs` can be generated with `mix recode.gen.config`.
 
@@ -40,11 +46,19 @@ defmodule Mix.Tasks.Recode do
     |> update(:verbose)
     |> update(:locals_without_parens)
     |> Runner.run()
+    |> output()
   end
+
+  defp output(%{inputs: []}) do
+    Mix.raise("No sources found")
+  end
+
+  defp output(_project), do: :ok
 
   defp opts!(opts) do
     case OptionParser.parse!(opts, @opts) do
       {opts, []} -> opts
+      {opts, [inputs]} -> Keyword.put(opts, :inputs, inputs)
       {_opts, args} -> Mix.raise("#{inspect(args)} : Unknown")
     end
   end

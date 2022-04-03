@@ -2,12 +2,13 @@ defmodule Recode.Task do
   @moduledoc """
   The behaviour for a `recode` task.
   """
-  alias Recode.Project
+
+  alias Recode.Source
 
   @doc """
-  Applies a task with the given `project` and `opts`.
+  Applies a task with the given `source` and `opts`.
   """
-  @callback run(project :: Project.t(), opts :: Keyword.t()) :: Project.t()
+  @callback run(source :: Source.t(), opts :: Keyword.t()) :: Source.t()
 
   @doc """
   Returns the configuration for the given `key`.

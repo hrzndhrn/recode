@@ -93,7 +93,120 @@ defmodule Recode.AST do
     {{:., meta, [{:__aliases__, meta1, module}, name]}, meta2, args}
   end
 
+  @doc """
+  Returns a `mfa`-tuple for the given `.`-call.
+  """
+  @spec mfa({{:., keyword(), list()}, Macro.metadata(), Macro.t()}) ::
+          {module(), atom(), non_neg_integer()}
   def mfa({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, args}) do
     {Module.concat(aliases), fun, length(args)}
+  end
+
+  @doc """
+  Puts the given value `newlines` under the key `nevlines` in
+  `meta[:end_of_expression]`.
+  """
+  @spec put_newlines({term(), Macro.metadata(), Macro.t()}, integer()) ::
+          {term(), keyword(), list()}
+  def put_newlines({name, meta, args}, newlines) do
+    meta =
+      Keyword.update(meta, :end_of_expression, [newlines: newlines], fn end_of_expression ->
+        Keyword.put(end_of_expression, :newlines, newlines)
+      end)
+
+    {name, meta, args}
+  end
+
+  @doc """
+  Returns the `newlines` value from `meta[:end_of_expression]`, or `nil`.
+  """
+  @spec get_newlines(Macro.t()) :: integer()
+  def get_newlines({_name, meta, _args}) do
+    case Keyword.fetch(meta, :end_of_expression) do
+      {:ok, end_of_expression} -> Keyword.get(end_of_expression, :newlines)
+      :error -> nil
+    end
+  end
+
+  # {alias :: module(), multi :: [module()], as :: nil | module()}
+  @doc """
+  Returns the infos from an AST representing an `alias` expression.
+
+  The function returns 3-tuple containing the alias, the multi part and the
+  `:as`.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   alias Foo.Bar
+      ...> end
+      iex> alias_info(ast)
+      {Foo.Bar, [], nil}
+
+      iex> ast = quote do
+      ...>   alias Foo.{Bar, Baz}
+      ...> end
+      iex> alias_info(ast)
+      {Foo, [Bar, Baz], nil}
+
+      iex> ast = quote do
+      ...>   alias Foo, as: Baz
+      ...> end
+      iex> alias_info(ast)
+      {Foo, [], Baz}
+  """
+  def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}]}) do
+    module = Module.concat(aliases)
+    {module, [], nil}
+  end
+
+  def alias_info({:alias, _meta, [{{:., _meta2, [aliases, _opts]}, _meta3, multi}]}) do
+    module = aliases_concat(aliases)
+    multi = Enum.map(multi, &aliases_concat/1)
+
+    {module, multi, nil}
+  end
+
+  def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}, [{_block, as}]]}) do
+    module = Module.concat(aliases)
+    as = aliases_concat(as)
+    {module, [], as}
+  end
+
+  @doc """
+  Concatinates the aliases of an `:__aliases__` tuple.
+
+  ## Examples
+
+      iex> aliases_concat({:__aliases__, [], [:Alpha, :Bravo]})
+      Alpha.Bravo
+  """
+  @spec aliases_concat({:__aliases__, Macro.metadata(), [atom()]}) :: module()
+  def aliases_concat({:__aliases__, _meta, aliases}) do
+    Module.concat(aliases)
+  end
+
+  @doc """
+  Converts AST representing a name to a string.
+
+  This function suppresses the prfix `"Elixir."`.
+
+  ## Examples
+
+      iex> name([Recode, AST])
+      "Recode.AST"
+
+      iex> name(Recode.AST)
+      "Recode.AST"
+  """
+  @spec name(atom() | [atom()]) :: String.t()
+  def name(aliases) when is_list(aliases) do
+    Enum.map_join(aliases, ".", &name/1)
+  end
+
+  def name(atom) when is_atom(atom) do
+    with "Elixir." <> name <- to_string(atom) do
+      name
+    end
   end
 end

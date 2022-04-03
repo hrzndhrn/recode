@@ -14,27 +14,21 @@ defmodule Recode.Task.PipeFunOne do
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue
-  alias Recode.Project
   alias Recode.Source
   alias Recode.Task.PipeFunOne
   alias Sourceror.Zipper
 
-  def run(project, opts) do
-    Project.map(project, fn source ->
-      {zipper, issues} =
-        source
-        |> Source.zipper!()
-        |> Zipper.traverse([], fn zipper, issues ->
-          pipe_fun_one(zipper, issues, opts[:autocorrect])
-        end)
+  def run(source, opts) do
+    {zipper, issues} =
+      source
+      |> Source.zipper!()
+      |> Zipper.traverse([], fn zipper, issues ->
+        pipe_fun_one(zipper, issues, opts[:autocorrect])
+      end)
 
-      source =
-        source
-        |> Source.update(PipeFunOne, code: zipper)
-        |> Source.add_issues(issues)
-
-      {:ok, source}
-    end)
+    source
+    |> Source.update(PipeFunOne, code: zipper)
+    |> Source.add_issues(issues)
   end
 
   defp pipe_fun_one(~z/{:|>, _meta, _tree}/ = zipper, issues, true) do

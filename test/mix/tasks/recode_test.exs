@@ -30,6 +30,14 @@ defmodule Mix.Tasks.RecodeTest do
   end
 
   test "mix recode raises exception for unknown arg" do
-    assert_raise Mix.Error, ~s|["foo"] : Unknown|, fn -> Recode.run(["foo"]) end
+    assert_raise Mix.Error, ~s|["inputs", "foo"] : Unknown|, fn ->
+      Recode.run(["--config", "priv/config.exs", "inputs", "foo"])
+    end
+  end
+
+  test "mix recode raises exception for missing inputs" do
+    assert_raise Mix.Error, "No sources found", fn ->
+      Recode.run(["--config", "priv/config.exs", "inputs"])
+    end
   end
 end

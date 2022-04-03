@@ -44,10 +44,7 @@ defmodule Recode.ProjectTest do
 
       project = Project.new(inputs)
 
-      mapped =
-        Project.map(project, fn source ->
-          {:ok, source}
-        end)
+      mapped = Project.map(project, fn source -> source end)
 
       assert project == mapped
     end
@@ -59,26 +56,12 @@ defmodule Recode.ProjectTest do
 
       mapped =
         Project.map(project, fn source ->
-          source = Source.update(source, :test, path: "new/path/simple.ex")
-          {:ok, source}
+          Source.update(source, :test, path: "new/path/simple.ex")
         end)
 
       assert project.inputs == mapped.inputs
       assert project.modules == mapped.modules
       assert project != mapped
-    end
-
-    test "ignores errors (for now)" do
-      inputs = ["test/fixtures/source/simple.ex"]
-
-      project = Project.new(inputs)
-
-      mapped =
-        Project.map(project, fn _source ->
-          :error
-        end)
-
-      assert project == mapped
     end
   end
 
@@ -91,7 +74,7 @@ defmodule Recode.ProjectTest do
       mapped =
         Project.map(project, :opts, fn source, opts ->
           assert opts == :opts
-          {:ok, source}
+          source
         end)
 
       assert project == mapped

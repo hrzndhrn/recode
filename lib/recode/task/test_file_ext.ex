@@ -9,16 +9,11 @@ defmodule Recode.Task.TestFileExt do
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue
-  alias Recode.Project
   alias Recode.Source
   alias Recode.Task.TestFileExt
 
-  def run(project, opts) do
-    Project.map(project, fn source ->
-      source = test_file_ext(source, opts[:autocorrect])
-
-      {:ok, source}
-    end)
+  def run(source, opts) do
+    test_file_ext(source, opts[:autocorrect])
   end
 
   defp test_file_ext(%Source{path: path} = source, autocrecct) do

@@ -3,7 +3,6 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
-  alias Recode.Project
   alias Recode.Runner
   alias Recode.Source
 
@@ -42,22 +41,8 @@ defmodule RecodeCase do
     Source.from_string(string, path)
   end
 
-  def project(sources) do
-    sources
-    |> List.wrap()
-    |> Enum.map(&Source.from_string/1)
-    |> Project.from_sources()
-  end
-
-  def run_task(%Project{} = project, {task, opts}) do
-    task.run(project, opts)
-  end
-
   def run_task(%Source{} = source, {task, opts}) do
-    [source]
-    |> Project.from_sources()
-    |> task.run(opts)
-    |> Project.source!(source.id)
+    task.run(source, opts)
   end
 
   def run_task({task, opts}, config) do

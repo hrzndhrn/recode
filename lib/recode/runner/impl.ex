@@ -17,7 +17,7 @@ defmodule Recode.Runner.Impl do
     project = project(config)
 
     tasks
-    |> run_tasks(project, config)
+    |> run_tasks(project)
     |> format(config)
   end
 
@@ -25,15 +25,14 @@ defmodule Recode.Runner.Impl do
     run([{module, opts}], config)
   end
 
-  defp run_tasks(tasks, project, config) do
+  defp run_tasks(tasks, project) do
     Enum.reduce(tasks, project, fn {module, opts}, project ->
-      run_task(project, module, opts, config)
+      run_task(project, module, opts)
     end)
   end
 
-  defp run_task(%Project{} = project, module, opts, config) do
-    opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
-    module.run(project, opts)
+  defp run_task(%Project{} = project, module, opts) do
+    Project.map(project, fn source -> module.run(source, opts) end)
   end
 
   defp format(project, config) do
@@ -52,6 +51,7 @@ defmodule Recode.Runner.Impl do
     |> Keyword.fetch!(:tasks)
     |> tasks(:correct_first)
     |> tasks(:filter, config)
+    |> update_opts(config)
   end
 
   defp tasks(tasks, :filter, config) do
@@ -68,5 +68,12 @@ defmodule Recode.Runner.Impl do
       end)
 
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
+  end
+
+  defp update_opts(tasks, config) do
+    Enum.map(tasks, fn {task, opts} ->
+      opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
+      {task, opts}
+    end)
   end
 end

@@ -8,7 +8,7 @@ defmodule Recode.Sigils do
   """
   @spec sigil_z(tuple(), list()) :: Macro.t()
   defmacro sigil_z({:<<>>, _, [string]}, []) do
-    ast = Code.string_to_quoted!(string)
+    ast = Code.string_to_quoted!(string, file: __CALLER__.file, line: __CALLER__.line)
     {ast, {:_zipper_meta, [if_undefined: :apply], Elixir}}
   end
 end

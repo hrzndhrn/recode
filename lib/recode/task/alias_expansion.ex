@@ -15,27 +15,21 @@ defmodule Recode.Task.AliasExpansion do
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue
-  alias Recode.Project
   alias Recode.Source
   alias Recode.Task.AliasExpansion
   alias Sourceror.Zipper
 
-  def run(project, opts) do
-    Project.map(project, fn source ->
-      {zipper, issues} =
-        source
-        |> Source.zipper!()
-        |> Zipper.traverse([], fn zipper, issues ->
-          expand_alias(zipper, issues, opts[:autocorrect])
-        end)
+  def run(source, opts) do
+    {zipper, issues} =
+      source
+      |> Source.zipper!()
+      |> Zipper.traverse([], fn zipper, issues ->
+        expand_alias(zipper, issues, opts[:autocorrect])
+      end)
 
-      source =
-        source
-        |> Source.update(AliasExpansion, code: zipper)
-        |> Source.add_issues(issues)
-
-      {:ok, source}
-    end)
+    source
+    |> Source.update(AliasExpansion, code: zipper)
+    |> Source.add_issues(issues)
   end
 
   defp expand_alias(~z/{:alias, _meta, _args} = ast/ = zipper, issues, true) do

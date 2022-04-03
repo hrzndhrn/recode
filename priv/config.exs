@@ -13,6 +13,7 @@ alias Recode.Task
   formatter: {Recode.Formatter, []},
   tasks: [
     {Task.AliasExpansion, []},
+    {Task.AliasOrder, []},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
     {Task.Specs, []},

@@ -11,19 +11,14 @@ defmodule Recode.Task.Specs do
 
   alias Recode.Context
   alias Recode.Issue
-  alias Recode.Project
   alias Recode.Source
   alias Recode.Task.Specs
 
-  def run(project, opts) do
+  def run(source, opts) do
     include = Keyword.get(opts, :only, :all)
+    issues = check_specs(source, include)
 
-    Project.map(project, fn source ->
-      issues = check_specs(source, include)
-      source = Source.add_issues(source, issues)
-
-      {:ok, source}
-    end)
+    Source.add_issues(source, issues)
   end
 
   defp check_specs(source, include) do

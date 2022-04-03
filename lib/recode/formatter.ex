@@ -223,13 +223,20 @@ defmodule Recode.Formatter do
 
   defp code_lines([line | lines], line_num, kind, iodata) do
     line_num = line_num + 1
-    line = [:line_num, "#{line_num(line_num)}", kind, "#{line}\n"]
+    line = [:line_num, "#{line_num(line_num, kind)}", kind, "#{line}\n"]
     code_lines(lines, line_num, kind, [line | iodata])
   end
 
-  defp line_num(:skip), do: [:line_num, "...|\n"]
+  defp line_num(:skip), do: [:line_num, "... |\n"]
 
-  defp line_num(num) do
-    String.pad_leading("#{num}|", 4, "0")
+  defp line_num(num, kind) do
+    kind =
+      case kind do
+        :del -> " - "
+        :ins -> " + "
+        _else -> "   "
+      end
+
+    String.pad_leading("#{num}#{kind}|", 7, "0")
   end
 end

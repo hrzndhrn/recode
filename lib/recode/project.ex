@@ -241,8 +241,8 @@ defmodule Recode.Project do
                term()
                | nil,
              fun:
-               (Source.t() -> {:ok, Source.t()} | :error)
-               | (Source.t(), term() -> {:ok, Source.t()} | :error)
+               (Source.t() -> Source.t())
+               | (Source.t(), term() -> Source.t())
   def map(%Project{} = project, opts \\ nil, fun) do
     map(project, sources(project), fun, opts)
   end
@@ -250,14 +250,10 @@ defmodule Recode.Project do
   defp map(project, [], _fun, _opts), do: project
 
   defp map(project, [source | sources], fun, opts) do
-    case map_apply(source, fun, opts) do
-      :error ->
-        map(project, sources, fun, opts)
+    source = map_apply(source, fun, opts)
+    project = update(project, source)
 
-      {:ok, source} ->
-        project = update(project, source)
-        map(project, sources, fun, opts)
-    end
+    map(project, sources, fun, opts)
   end
 
   defp map_apply(source, fun, nil), do: fun.(source)
