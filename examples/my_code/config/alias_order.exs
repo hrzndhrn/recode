@@ -12,11 +12,11 @@ alias Recode.Task
   inputs: ["{config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
-    {Task.AliasExpansion, []},
-    {Task.AliasOrder, []},
-    {Task.PipeFunOne, []},
-    {Task.SinglePipe, []},
-    {Task.Specs, [only: :visible]},
-    {Task.TestFileExt, []}
+    # {Task.AliasExpansion, []},
+    {Task.AliasOrder, []}
+    # {Task.PipeFunOne, []},
+    # {Task.SinglePipe, []},
+    # {Task.Specs, [only: :visible]},
+    # {Task.TestFileExt, []}
   ]
 ]

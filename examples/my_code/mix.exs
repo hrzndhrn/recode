@@ -27,7 +27,9 @@ defmodule MyCode.MixProject do
 
   defp deps do
     [
-      {:recode, path: "../.."}
+      {:recode, path: "../.."},
+      # dev/test
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
 end

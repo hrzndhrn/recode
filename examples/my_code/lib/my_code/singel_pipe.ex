@@ -1,4 +1,6 @@
-defmodule MyCode.Autocorrect.SinglePipe do
+defmodule MyCode.SinglePipe do
+  @moduledoc false
+
   def double(x), do: x + x
 
   def single_pipe(x) do
