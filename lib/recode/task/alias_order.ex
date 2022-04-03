@@ -51,7 +51,7 @@ defmodule Recode.Task.AliasOrder do
     Source.add_issues(source, issues)
   end
 
-  defp alias_groups(~z/{:alias, _meta, _args} = ast/ = zipper, [group | groups]) do
+  defp alias_groups({{:alias, _meta, _args} = ast, _zipper_meta} = zipper, [group | groups]) do
     group = [ast | group]
 
     case AST.get_newlines(ast) do
@@ -126,7 +126,7 @@ defmodule Recode.Task.AliasOrder do
     end)
   end
 
-  defp alias_order(~z/{:alias, _meta, _args} = ast/ = zipper, acc) do
+  defp alias_order({{:alias, _meta, _args} = ast, _zipper_meta} = zipper, acc) do
     acc = [ast | acc]
 
     case AST.get_newlines(ast) do

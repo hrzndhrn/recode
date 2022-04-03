@@ -36,7 +36,7 @@ defmodule Recode.Task.AliasExpansion do
     end
   end
 
-  defp expand_alias(~z/{:alias, _meta, _args} = ast/ = zipper, issues, true) do
+  defp expand_alias({{:alias, _meta, _args} = ast, _zipper_meta} = zipper, issues, true) do
     zipper =
       case extract(ast) do
         {:ok, {base, segments, alias_meta, call_meta}} ->
@@ -53,7 +53,7 @@ defmodule Recode.Task.AliasExpansion do
     {zipper, issues}
   end
 
-  defp expand_alias(~z/{:alias, meta, _args} = ast/ = zipper, issues, false) do
+  defp expand_alias({{:alias, meta, _args} = ast, _zipper_meta} = zipper, issues, false) do
     issues =
       case extract(ast) do
         {:ok, _data} ->

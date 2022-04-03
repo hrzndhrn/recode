@@ -17,8 +17,6 @@ defmodule Recode.Task do
 
   defmacro __using__(opts) do
     quote do
-      import Recode.Sigils
-
       @behaviour Recode.Task
 
       @opts Map.merge(

@@ -37,18 +37,18 @@ defmodule Recode.Task.SinglePipe do
   end
 
   defp single_pipe(
-         ~z/{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}/ = zipper,
+         {{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper,
          issues,
          _autocorrect
        ) do
     {skip(zipper), issues}
   end
 
-  defp single_pipe(~z/{:|>, _meta, _ast}/ = zipper, issues, true) do
+  defp single_pipe({{:|>, _meta, _ast}, _zipper_meta} = zipper, issues, true) do
     {Zipper.update(zipper, &update/1), issues}
   end
 
-  defp single_pipe(~z/{:|>, meta, _ast}/ = zipper, issues, false) do
+  defp single_pipe({{:|>, meta, _ast}, _zipper_meta} = zipper, issues, false) do
     issue =
       Issue.new(
         SinglePipe,
@@ -61,7 +61,7 @@ defmodule Recode.Task.SinglePipe do
 
   defp single_pipe(zipper, issues, _autocorrect), do: {zipper, issues}
 
-  defp skip(~z/{:|>, _meta, _ast}/ = zipper) do
+  defp skip({{:|>, _meta, _ast}, _zipper_meta} = zipper) do
     zipper |> Zipper.next() |> skip()
   end
 
