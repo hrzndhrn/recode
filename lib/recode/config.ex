@@ -3,6 +3,8 @@ defmodule Recode.Config do
   This moudle reads the `Recode` configuration.
   """
 
+  alias Recode.Task.Format
+
   @type config :: keyword()
 
   @config ".recode.exs"
@@ -11,7 +13,7 @@ defmodule Recode.Config do
   def read(path) when is_binary(path) do
     case File.exists?(path) do
       true ->
-        config = path |> Code.eval_file() |> elem(0)
+        config = path |> Code.eval_file() |> elem(0) |> default(:tasks)
         {:ok, config}
 
       false ->
@@ -23,5 +25,9 @@ defmodule Recode.Config do
     opts
     |> Keyword.get(:config, @config)
     |> read()
+  end
+
+  def default(config, :tasks) do
+    Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
   end
 end

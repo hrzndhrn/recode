@@ -26,9 +26,10 @@ defmodule Recode.Task.PipeFunOne do
         pipe_fun_one(zipper, issues, opts[:autocorrect])
       end)
 
-    source
-    |> Source.update(PipeFunOne, code: zipper)
-    |> Source.add_issues(issues)
+    case opts[:autocorrect] do
+      true -> Source.update(source, PipeFunOne, code: zipper)
+      false -> Source.add_issues(source, issues)
+    end
   end
 
   defp pipe_fun_one(~z/{:|>, _meta, _tree}/ = zipper, issues, true) do

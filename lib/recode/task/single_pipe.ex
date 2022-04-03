@@ -27,9 +27,13 @@ defmodule Recode.Task.SinglePipe do
         single_pipe(zipper, issues, opts[:autocorrect])
       end)
 
-    source
-    |> Source.update(SinglePipe, code: zipper)
-    |> Source.add_issues(issues)
+    case opts[:autocorrect] do
+      true ->
+        Source.update(source, AliasExpansion, code: zipper)
+
+      false ->
+        Source.add_issues(source, issues)
+    end
   end
 
   defp single_pipe(

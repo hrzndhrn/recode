@@ -52,11 +52,11 @@ defmodule Mix.Tasks.Recode.Rename do
     #   |> update(:verbose)
     #   |> config!()
 
-    config = opts
-    |> config!()
-    |> Keyword.merge(opts)
-    |> update(:verbose)
-
+    config =
+      opts
+      |> config!()
+      |> Keyword.merge(opts)
+      |> update(:verbose)
 
     :ok = prepare(config)
 

@@ -27,9 +27,13 @@ defmodule Recode.Task.AliasExpansion do
         expand_alias(zipper, issues, opts[:autocorrect])
       end)
 
-    source
-    |> Source.update(AliasExpansion, code: zipper)
-    |> Source.add_issues(issues)
+    case opts[:autocorrect] do
+      true ->
+        Source.update(source, AliasExpansion, code: zipper)
+
+      false ->
+        Source.add_issues(source, issues)
+    end
   end
 
   defp expand_alias(~z/{:alias, _meta, _args} = ast/ = zipper, issues, true) do
