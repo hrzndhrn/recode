@@ -73,6 +73,7 @@ defmodule Recode.MixProject do
       {:beam_file, "~> 0.3"},
       {:bunt, "~> 0.2.0"},
       {:sourceror, "~> 0.10"},
+      # {:sourceror, path: "../../forks/sourceror"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},

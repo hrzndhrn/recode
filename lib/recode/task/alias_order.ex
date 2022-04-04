@@ -205,17 +205,12 @@ defmodule Recode.Task.AliasOrder do
 
   defp sort_multi(ast), do: ast
 
-  # NOTE: Will be obsolete when the PR is accepted in the sourceror repo.
-  #       The PR will add Zipper.find/3
   defp rewind(zipper, ast) do
-    case Zipper.node(zipper) == ast do
-      true -> zipper
-      false -> zipper |> Zipper.prev() |> rewind(ast)
-    end
+    Zipper.find(zipper, :prev, fn item -> item == ast end)
   end
 
   # NOTE: Will be obsolete when the PR is accepted in the sourceror repo.
-  #       The PR will add Zipper.skip/2
+  #       The PR will fix Zipper.skip/2
   defp skip(zipper) do
     with nil <- Zipper.right(zipper) do
       Zipper.next(zipper)

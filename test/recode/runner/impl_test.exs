@@ -1,6 +1,8 @@
 defmodule Recode.Runner.ImplTest do
   use ExUnit.Case
 
+  import ExUnit.CaptureIO
+
   alias Recode.Project
   alias Recode.Runner.Impl, as: Runner
   alias Recode.Task.SinglePipe
@@ -20,23 +22,31 @@ defmodule Recode.Runner.ImplTest do
     test "runs tasks from config", %{config: config} do
       config = Keyword.merge(config, dry: true, tasks: [{SinglePipe, []}])
 
-      assert %Project{} = Runner.run(config)
+      capture_io(fn ->
+        assert %Project{} = Runner.run(config)
+      end)
     end
 
     test "runs tasks from config (autocorrect: false)", %{config: config} do
       config = Keyword.merge(config, dry: true, autocorrect: false, tasks: [{SinglePipe, []}])
 
-      assert %Project{} = Runner.run(config)
+      capture_io(fn ->
+        assert %Project{} = Runner.run(config)
+      end)
     end
   end
 
   describe "run/2" do
     test "runs one task", %{config: config} do
-      assert %Project{} = Runner.run({SinglePipe, []}, config)
+      capture_io(fn ->
+        assert %Project{} = Runner.run({SinglePipe, []}, config)
+      end)
     end
 
     test "runs two tasks", %{config: config} do
-      assert %Project{} = Runner.run([{SinglePipe, []}, {SinglePipe, []}], config)
+      capture_io(fn ->
+        assert %Project{} = Runner.run([{SinglePipe, []}, {SinglePipe, []}], config)
+      end)
     end
   end
 end

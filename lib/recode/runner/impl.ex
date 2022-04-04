@@ -14,11 +14,14 @@ defmodule Recode.Runner.Impl do
 
   @impl true
   def run(tasks, config) when is_list(tasks) do
-    project = project(config)
+    project =
+      config
+      |> project()
+      |> format(:project, config)
 
     tasks
     |> run_tasks(project)
-    |> format(config)
+    |> format(:results, config)
   end
 
   def run({module, opts}, config) do
@@ -35,9 +38,9 @@ defmodule Recode.Runner.Impl do
     Project.map(project, fn source -> module.run(source, opts) end)
   end
 
-  defp format(project, config) do
+  defp format(project, label, config) do
     case Keyword.fetch(config, :formatter) do
-      {:ok, {formatter, opts}} -> formatter.format(project, opts, config)
+      {:ok, {formatter, opts}} -> formatter.format(label, project, opts, config)
       :error -> project
     end
   end

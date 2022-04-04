@@ -7,7 +7,7 @@ defmodule Recode.Project do
   alias Recode.ProjectError
   alias Recode.Source
 
-  defstruct [:sources, :paths, :modules, :inputs]
+  defstruct sources: %{}, paths: %{}, modules: %{}, inputs: []
 
   @type id :: reference()
 
@@ -225,6 +225,31 @@ defmodule Recode.Project do
             conflicts(sources, seen, conflicts)
         end
     end
+  end
+
+  @doc """
+  Returns `true` if any source has one or more issues.
+  """
+  @spec issues?(t()) :: boolean()
+  def issues?(%Project{sources: sources}) do
+    sources
+    |> Map.values()
+    |> Enum.any?(fn %Source{issues: issues} -> not Enum.empty?(issues) end)
+  end
+
+  @doc """
+  Counts the items of the given `type` in the `project`.
+  """
+  @spec count(t(), type :: :sources | :scripts | :modules) :: non_neg_integer()
+  def count(%Project{sources: sources}, :sources), do: map_size(sources)
+
+  def count(%Project{modules: modules}, :modules), do: map_size(modules)
+
+  def count(%Project{paths: paths}, :scripts) do
+    paths
+    |> Map.keys()
+    |> Enum.filter(fn path -> String.ends_with?(path, ".exs") end)
+    |> Enum.count()
   end
 
   @doc """

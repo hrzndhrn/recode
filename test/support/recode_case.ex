@@ -3,6 +3,7 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
+  alias Recode.Project
   alias Recode.Runner
   alias Recode.Source
 
@@ -39,6 +40,10 @@ defmodule RecodeCase do
 
   def source(string, path \\ nil) do
     Source.from_string(string, path)
+  end
+
+  def project(%Source{} = source) do
+    Project.from_sources([source])
   end
 
   def run_task(%Source{} = source, {task, opts}) do

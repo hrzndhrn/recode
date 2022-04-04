@@ -25,7 +25,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, @opts, @config) == project
+          assert Formatter.format(:results, project, @opts, @config) == project
         end)
 
       assert strip_esc_seq(output) == ""
@@ -47,7 +47,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, @opts, @config) == project
+          assert Formatter.format(:results, project, @opts, @config) == project
         end)
 
       assert strip_esc_seq(output) == """
@@ -80,7 +80,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, @opts, @config) == project
+          assert Formatter.format(:results, project, @opts, @config) == project
         end)
 
       assert strip_esc_seq(output) == """
@@ -121,7 +121,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, @opts, @config) == project
+          assert Formatter.format(:results, project, @opts, @config) == project
         end)
 
       output = strip_esc_seq(output)
@@ -148,7 +148,7 @@ defmodule Recode.FormatterTest do
 
       output =
         capture_io(fn ->
-          assert Formatter.format(project, @opts, @config) == project
+          assert Formatter.format(:results, project, @opts, @config) == project
         end)
 
       output = strip_esc_seq(output)

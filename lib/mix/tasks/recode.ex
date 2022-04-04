@@ -32,11 +32,13 @@ defmodule Mix.Tasks.Recode do
 
   alias Recode.Config
   alias Recode.DotFormatter
+  alias Recode.Project
   alias Recode.Runner
 
   @opts strict: [autocorrect: :boolean, dry: :boolean, verbose: :boolean, config: :string]
 
   @impl Mix.Task
+  @spec run(list()) :: no_return()
   def run(opts) do
     opts = opts!(opts)
 
@@ -49,11 +51,17 @@ defmodule Mix.Tasks.Recode do
     |> output()
   end
 
+  @spec output(map()) :: no_return()
   defp output(%{inputs: []}) do
     Mix.raise("No sources found")
   end
 
-  defp output(_project), do: :ok
+  defp output(%Project{} = project) do
+    case Project.issues?(project) do
+      true -> exit({:shutdown, 1})
+      false -> exit(:normal)
+    end
+  end
 
   defp opts!(opts) do
     case OptionParser.parse!(opts, @opts) do

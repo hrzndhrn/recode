@@ -190,4 +190,21 @@ defmodule Recode.Task.AliasOrderTest do
 
     assert_no_issues(source)
   end
+
+  test "reports no issues for crazy groups" do
+    code = """
+    defmodule MyModule do
+      alias Delta
+      alias Yankee.{Alpha, Bravo}
+      alias Zulu.{Echo, Foxtrot}
+      use Foo
+      alias Kilo
+      alias Lima
+    end
+    """
+
+    source = run(code, autocorrect: false)
+
+    assert_no_issues(source)
+  end
 end

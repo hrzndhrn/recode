@@ -11,7 +11,7 @@ defmodule Recode.Formatter do
 
   @callback format(Project.t(), opts :: keyword(), config :: keyword()) :: :ok
 
-  def format(%Project{} = project, opts, config) do
+  def format(:results, %Project{} = project, opts, config) do
     verbose = Keyword.fetch!(config, :verbose)
 
     project
@@ -19,6 +19,28 @@ defmodule Recode.Formatter do
     |> Enum.each(fn source -> do_format(source, opts, verbose) end)
 
     project
+  end
+
+  def format(:project, %Project{} = project, _opts, _config) do
+    case counts(project) do
+      {0, 0, 0} ->
+        :ok
+
+      {sources, scripts, modules} ->
+        [:info, "Found #{sources} files, including #{scripts} scripts.  Modules: #{modules}"]
+        |> newline()
+        |> write()
+    end
+
+    project
+  end
+
+  defp counts(project) do
+    {
+      Project.count(project, :sources),
+      Project.count(project, :scripts),
+      Project.count(project, :modules)
+    }
   end
 
   defp do_format(source, opts, verbose) do
@@ -35,9 +57,11 @@ defmodule Recode.Formatter do
     |> write()
   end
 
+  defp newline(output), do: Enum.concat(output, ["\n"])
+
   defp newline(output, false), do: output
 
-  defp newline(output, true), do: Enum.concat(output, ["\n"])
+  defp newline(output, true), do: newline(output)
 
   defp format_updates(output, _source, _opts, false), do: output
 
