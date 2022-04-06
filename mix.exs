@@ -40,9 +40,12 @@ defmodule Recode.MixProject do
       groups_for_modules: [
         "Linter tasks": [
           Recode.Task.AliasExpansion,
+          Recode.Task.AliasOrder,
+          Recode.Task.Format,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
-          Recode.Task.Specs
+          Recode.Task.Specs,
+          Recode.Task.TestFileExt
         ],
         "Refactoring tasks": [
           Recode.Task.Rename
@@ -72,7 +75,7 @@ defmodule Recode.MixProject do
     [
       {:beam_file, "~> 0.3"},
       {:bunt, "~> 0.2.0"},
-      {:sourceror, "~> 0.10"},
+      {:sourceror, "~> 0.11"},
       # {:sourceror, path: "../../forks/sourceror"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},

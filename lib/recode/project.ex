@@ -230,7 +230,7 @@ defmodule Recode.Project do
   @doc """
   Returns `true` if any source has one or more issues.
   """
-  @spec issues?(t()) :: boolean()
+  @spec issues?(t) :: boolean
   def issues?(%Project{sources: sources}) do
     sources
     |> Map.values()
@@ -240,7 +240,7 @@ defmodule Recode.Project do
   @doc """
   Counts the items of the given `type` in the `project`.
   """
-  @spec count(t(), type :: :sources | :scripts | :modules) :: non_neg_integer()
+  @spec count(t, type :: :sources | :scripts | :modules) :: non_neg_integer
   def count(%Project{sources: sources}, :sources), do: map_size(sources)
 
   def count(%Project{modules: modules}, :modules), do: map_size(modules)
@@ -284,4 +284,48 @@ defmodule Recode.Project do
   defp map_apply(source, fun, nil), do: fun.(source)
 
   defp map_apply(source, fun, opts), do: fun.(source, opts)
+
+  @doc """
+  TODO: @doc, @spec
+  """
+  def write(project, exclude \\ [exclude: :none])
+
+  def write(%Project{} = project, exclude: :conflicts) do
+    write(project, exclude: conflicts(project))
+  end
+
+  def write(%Project{} = project, exclude: :none) do
+    write(project, exclude: [])
+  end
+
+  def write(%Project{} = project, exclude: exclude) do
+    case do_write(project, exclude) do
+      [] -> :ok
+      errors -> {:error, errors}
+    end
+  end
+
+  defp do_write(%Project{sources: sources}, exclude) do
+    sources
+    |> Map.values()
+    |> Enum.reduce([], fn source, errors ->
+      case write?(source, exclude) do
+        true -> do_write(source, errors)
+        false -> errors
+      end
+    end)
+  end
+
+  defp do_write(%Source{} = source, errors) do
+    path = Source.path(source)
+    code = Source.code(source)
+
+    IO.inspect({path, code}, label: :write)
+
+    errors
+  end
+
+  defp write?(source, exclude) do
+    Source.updated?(source) and source not in exclude and source.path not in exclude
+  end
 end

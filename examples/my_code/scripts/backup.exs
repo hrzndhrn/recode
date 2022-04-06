@@ -29,7 +29,7 @@ defmodule Backup do
 
   defp backup(files) do
     data = :erlang.term_to_binary(files, compressed: 9)
-    Generator.create_file(@backup, data)
+    Generator.create_file(@backup, data, force: true)
   end
 end
 

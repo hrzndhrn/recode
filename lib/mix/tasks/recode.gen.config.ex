@@ -2,7 +2,8 @@ defmodule Mix.Tasks.Recode.Gen.Config do
   @shortdoc "Generates a new config for Recode"
 
   @moduledoc """
-  #{@shortdoc}.
+  #{@shortdoc}. Writes the file `.recode.exs` in the root directory of the mix
+  project.
 
   The default config:
   ```elixir
