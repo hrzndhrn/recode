@@ -16,6 +16,9 @@ defmodule Backup do
   def run(["restore"]) do
     Shell.IO.info("restoring form backup #{@backup}")
 
+    File.rm_rf!("lib")
+    File.rm_rf!("test")
+
     files = @backup |> File.read!() |> :erlang.binary_to_term()
 
     Enum.each(files, fn {path, data} ->
