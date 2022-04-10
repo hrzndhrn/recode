@@ -1,9 +1,11 @@
 defmodule Recode.ProjectTest do
-  use ExUnit.Case
+  use RecodeCase
 
   alias Recode.Project
   alias Recode.ProjectError
   alias Recode.Source
+
+  doctest Recode.Project
 
   describe "new/1" do
     test "creates a project from one file" do
@@ -198,6 +200,20 @@ defmodule Recode.ProjectTest do
     end
   end
 
+  describe "counts/2" do
+    test "counts by the given type" do
+      project =
+        Project.from_sources([
+          Source.from_string(":a", "a.ex"),
+          Source.from_string(":b", "b.exs")
+        ])
+
+      assert Project.count(project, :sources) == 2
+      assert Project.count(project, :modules) == 0
+      assert Project.count(project, :scripts) == 1
+    end
+  end
+
   describe "sources/1" do
     test "returns all sources" do
       project =
@@ -210,6 +226,118 @@ defmodule Recode.ProjectTest do
       assert project
              |> Project.sources()
              |> Enum.map(fn source -> source.path end) == ["a.exs", "b.exs", "c.exs"]
+    end
+  end
+
+  describe "save/2" do
+    @describetag :tmp_dir
+
+    test "writes sources to disk", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "test.ex")
+
+      project =
+        Project.from_sources([
+          ":foo" |> Source.from_string(path) |> Source.update(Test, code: ":test")
+        ])
+
+      assert Project.save(project) == :ok
+      assert File.read(path) == {:ok, ":test\n"}
+    end
+
+    test "creates dir", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "new_dir/test.ex")
+
+      project =
+        Project.from_sources([
+          ":foo\n" |> Source.from_string() |> Source.update(Test, path: path)
+        ])
+
+      assert Project.save(project) == :ok
+      assert File.read(path) == {:ok, ":foo\n"}
+    end
+
+    test "removes old file", %{tmp_dir: tmp_dir} do
+      foo = Path.join(tmp_dir, "foo.ex")
+      bar = Path.join(tmp_dir, "bar.ex")
+      File.write!(foo, ":bar")
+
+      project =
+        Project.from_sources([
+          foo |> Source.new!() |> Source.update(:test, path: bar)
+        ])
+
+      assert Project.save(project) == :ok
+      refute File.exists?(foo)
+      assert File.read(bar) == {:ok, ":bar"}
+    end
+
+    test "excludes files", %{tmp_dir: tmp_dir} do
+      foo = Path.join(tmp_dir, "foo.ex")
+      bar = Path.join(tmp_dir, "bar.ex")
+      File.write!(foo, ":foo")
+
+      project =
+        Project.from_sources([
+          foo |> Source.new!() |> Source.update(:test, path: bar)
+        ])
+
+      assert Project.save(project, [bar]) == :ok
+      assert File.exists?(foo)
+    end
+
+    test "deletes files", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "foo.ex")
+      File.write!(path, ":bar")
+
+      project =
+        Project.from_sources([
+          path |> Source.new!() |> Source.del()
+        ])
+
+      assert Project.save(project, ["bar.ex"]) == :ok
+      refute File.exists?("foo.ex")
+    end
+
+    test "returns {:error, :conflicts}", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "foo.ex")
+      File.write!(path, ":bar")
+
+      project =
+        Project.from_sources([
+          path |> Source.new!() |> Source.update(:test, code: ":new"),
+          path |> Source.new!() |> Source.update(:test, code: ":new")
+        ])
+
+      assert Project.save(project) == {:error, :conflicts}
+      assert Project.save(project, [path]) == :ok
+    end
+
+    test "returns {:error, errors}", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "foo.ex")
+      File.write!(path, ":bar")
+      System.cmd("chmod", ["-w", path])
+
+      project =
+        Project.from_sources([
+          path |> Source.new!() |> Source.update(:test, code: ":new")
+        ])
+
+      assert Project.save(project) == {:error, [{path, :eacces}]}
+    end
+
+    test "ignores sources without path" do
+      project = Project.from_sources([Source.from_string(":a")])
+
+      assert Project.save(project) == :ok
+    end
+
+    test "does nothing without updates", %{tmp_dir: tmp_dir} do
+      path = Path.join(tmp_dir, "foo.ex")
+      File.write!(path, ":bar")
+
+      project = Project.from_sources([Source.new!(path)])
+
+      assert Project.save(project) == :ok
     end
   end
 end

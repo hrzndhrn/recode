@@ -31,6 +31,20 @@ defmodule Recode.SourceTest do
     end
   end
 
+  describe "del/2" do
+    test "sets path to nil" do
+      source = ":a" |> Source.from_string("foo.ex") |> Source.del()
+
+      assert source.path == nil
+    end
+
+    test "returns orig source" do
+      source = Source.from_string(":a")
+
+      assert Source.del(source) == source
+    end
+  end
+
   describe "update/1" do
     test "updates the code" do
       path = "test/fixtures/source/simple.ex"

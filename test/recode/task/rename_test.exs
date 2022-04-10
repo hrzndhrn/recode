@@ -14,7 +14,7 @@ defmodule Recode.Task.RenameTest do
 
   defp test_rename(file, opts) do
     path = Path.join([@path, "lib", file])
-    config = [inputs: [path]]
+    config = [inputs: [path], dry: true]
 
     lib =
       {Task.Rename, opts}

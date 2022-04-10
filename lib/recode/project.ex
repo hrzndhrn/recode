@@ -25,10 +25,7 @@ defmodule Recode.Project do
 
   ## Examples
 
-  ```elixir
-  iex> alias Recode.Project
-  iex> Project.new(["{config,lib,test}/**/*.{ex,exs}"])
-  ```
+      iex> alias Recode.Project
   """
   @spec new(Path.t() | [Path.t()]) :: t()
   def new(inputs) do
@@ -45,33 +42,6 @@ defmodule Recode.Project do
 
   @doc ~S"""
   Creates a `%Project{}` from the given sources.
-
-  ## Examples
-
-  ```elixir
-  iex> alias Recode.{Project, Source}
-  iex> source = Source.new!("test/fixtures/source/simple.ex")
-  iex> Project.from_sources([source])
-  %Recode.Project{
-    inputs: nil,
-    modules: %{MyApp.Simple => #Reference<0.3098614428.1513357316.103022>},
-    paths: %{
-      "test/fixtures/source/simple.ex" => #Reference<0.3098614428.1513357316.103022>
-    },
-    sources: %{
-      #Reference<0.3098614428.1513357316.103022> => %Recode.Source{
-        code: "defmodule MyApp.Simple do\n  def foo(x) do\n    x * 2\n  end\nend\n",
-        hash: <<18, 138, 84, 91, 124, 40, 73, 73, 112, 63, 208, 184, 131, 192,
-          123, 102>>,
-        id: #Reference<0.3098614428.1513357316.103022>,
-        issues: [],
-        modules: [MyApp.Simple],
-        path: "test/fixtures/source/simple.ex",
-        versions: []
-      }
-    }
-  }
-  ```
   """
   def from_sources(sources) do
     {sources, paths, modules} =
@@ -82,11 +52,43 @@ defmodule Recode.Project do
     struct!(Project, sources: sources, paths: paths, modules: modules, inputs: nil)
   end
 
-  @doc """
+  @doc ~S'''
   Returns a `%Source{}` for the given key.
 
-  The key could be a moudle, path or an id.
-  """
+  The key could be a moudle, path or an id. For type module and path keys, the
+  most recent file is returned.
+
+  ## Examples
+
+      iex> source = Source.from_string(
+      ...>    """
+      ...>    defmodule MyApp.Mod do
+      ...>    end
+      ...>    """,
+      ...>    "my_app/mode.ex"
+      ...> )
+      iex> project = Project.from_sources([source])
+      iex> Project.source(project, "my_app/mode.ex")
+      {:ok, source}
+      iex> Project.source(project, source.id)
+      {:ok, source}
+      iex> Project.source(project, MyApp.Mod)
+      {:ok, source}
+      iex> Project.source(project, MyApp.Foo)
+      :error
+
+
+      iex> source = Source.from_string(":a", "a.ex")
+      iex> project = Project.from_sources(
+      ...>   [source, Source.from_string(":b", "b.ex")]
+      ...> )
+      iex> update = Source.update(source, :test, path: "b.ex")
+      iex> project = Project.update(project, update)
+      iex> Project.source(project, "a.ex")
+      {:ok, update}
+      iex> Project.source(project, "b.ex")
+      {:ok, update}
+  '''
   @spec source(t(), key) :: {:ok, Source.t()} | :error
         when key: id() | Path.t() | module()
   def source(%Project{sources: sources}, key) when is_reference(key) do
@@ -169,6 +171,9 @@ defmodule Recode.Project do
 
   @doc """
   Returns the unreferenced sources.
+
+  Unreferenced source are sources whose original path is no longer part of the
+  project.
   """
   @spec unreferenced(t()) :: [Source.t()]
   def unreferenced(%Project{sources: sources}) do
@@ -286,46 +291,56 @@ defmodule Recode.Project do
   defp map_apply(source, fun, opts), do: fun.(source, opts)
 
   @doc """
-  TODO: @doc, @spec
+  Saves all sources in the `project` to disk.
+
+  This function call `Recode.Source.save/1` on all sources in the `project`.
+
+  The optional second argument accepts a list of paths for files to be excluded.
   """
-  def write(project, exclude \\ [exclude: :none])
+  @spec save(t(), [Path.t()]) ::
+          :ok | {:error, :conflicts | {Path.t(), File.posix()}}
+  def save(%Project{sources: sources} = project, exclude \\ []) do
+    with :ok <- conflict_free(project, exclude) do
+      result =
+        sources
+        |> Map.values()
+        |> Enum.reduce([], fn source, errors ->
+          save(source, exclude, errors)
+        end)
 
-  def write(%Project{} = project, exclude: :conflicts) do
-    write(project, exclude: conflicts(project))
-  end
-
-  def write(%Project{} = project, exclude: :none) do
-    write(project, exclude: [])
-  end
-
-  def write(%Project{} = project, exclude: exclude) do
-    case do_write(project, exclude) do
-      [] -> :ok
-      errors -> {:error, errors}
+      case result do
+        [] -> :ok
+        errors -> {:error, errors}
+      end
     end
   end
 
-  defp do_write(%Project{sources: sources}, exclude) do
-    sources
-    |> Map.values()
-    |> Enum.reduce([], fn source, errors ->
-      case write?(source, exclude) do
-        true -> do_write(source, errors)
-        false -> errors
-      end
-    end)
+  defp save(source, exclude, errors) do
+    case write?(source, exclude) do
+      false ->
+        errors
+
+      true ->
+        case Source.save(source) do
+          :ok -> errors
+          {:error, :nofile} -> errors
+          {:error, reason} -> [{source.path, reason} | errors]
+        end
+    end
   end
 
-  defp do_write(%Source{} = source, errors) do
-    path = Source.path(source)
-    code = Source.code(source)
+  defp conflict_free(project, exclude) do
+    conflicts =
+      project
+      |> conflicts()
+      |> Map.keys()
+      |> Enum.reject(fn conflict -> conflict in exclude end)
 
-    IO.inspect({path, code}, label: :write)
-
-    errors
+    case conflicts do
+      [] -> :ok
+      _list -> {:error, :conflicts}
+    end
   end
 
-  defp write?(source, exclude) do
-    Source.updated?(source) and source not in exclude and source.path not in exclude
-  end
+  defp write?(%Source{path: path}, exclude), do: path not in exclude
 end

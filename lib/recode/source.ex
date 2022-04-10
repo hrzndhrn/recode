@@ -36,8 +36,10 @@ defmodule Recode.Source do
 
   @type by :: module()
 
+  @type id :: String.t()
+
   @type t :: %Source{
-          id: String.t(),
+          id: id(),
           path: Path.t() | nil,
           code: String.t(),
           hash: String.t(),
@@ -89,6 +91,91 @@ defmodule Recode.Source do
       hash: hash(path, string),
       modules: get_modules(string)
     )
+  end
+
+  @doc """
+  Marks the given `source` as deleted.
+
+  This function set the `path` of the `given` source to `nil`.
+  """
+  @spec del(t(), nil | module()) :: t()
+  def del(source, by \\ nil)
+
+  def del(%Source{path: nil} = source, _by), do: source
+
+  def del(%Source{path: legacy} = source, by) do
+    source
+    |> put(:path, nil)
+    |> update_updates({:path, by, legacy})
+    |> update_hash()
+  end
+
+  @doc ~S"""
+  Saves the source to disk.
+
+  If the source `:path` was updated then the old file will be deleted. The
+  original file will also deleted when the `source` was marked as deleted with
+  `del/1`.
+
+  Missing directories are created.
+
+  ## Examples
+
+      iex> ":test" |> Source.from_string() |> Source.save()
+      {:error, :nofile}
+
+      iex> path = "tmp/foo.ex"
+      iex> File.write(path, ":foo")
+      iex> source = path |> Source.new!() |> Source.update(:test, code: ":bar")
+      iex> Source.save(source)
+      :ok
+      iex> File.read(path)
+      {:ok, ":bar\n"}
+      iex> source |> Source.del() |> Source.save()
+      iex> File.exists?(path)
+      false
+
+      iex> source = Source.from_string(":bar")
+      iex> Source.save(source)
+      {:error, :nofile}
+      iex> source |> Source.update(:test, path: "tmp/bar.ex") |> Source.save()
+      :ok
+
+      iex> path = "tmp/ping.ex"
+      iex> File.write(path, ":ping")
+      iex> source = path |> Source.new!()
+      iex> new_path = "tmp/pong.ex"
+      iex> source |> Source.update(:test, path: new_path) |> Source.save()
+      :ok
+      iex> File.exists?(path)
+      false
+      iex> File.read(new_path)
+      {:ok, ":ping"}
+  """
+  @spec save(t()) :: :ok | {:error, :nofile | File.posix()}
+  def save(%Source{path: nil, updates: []}), do: {:error, :nofile}
+
+  def save(%Source{updates: []}), do: :ok
+
+  def save(%Source{path: nil} = source), do: rm(source)
+
+  def save(%Source{path: path, code: code} = source) do
+    with :ok <- mkdir_p(path),
+         :ok <- File.write(path, code) do
+      rm(source)
+    end
+  end
+
+  defp mkdir_p(path) do
+    path |> Path.dirname() |> File.mkdir_p()
+  end
+
+  defp rm(source) do
+    case {Source.updated?(source, :path), Source.path(source, 1)} do
+      {false, _path} -> :ok
+      {true, nil} -> :ok
+      {true, path} -> File.rm(path)
+    end
   end
 
   @doc """
@@ -249,7 +336,7 @@ defmodule Recode.Source do
   @doc """
   Returns the current path for the given `source`.
   """
-  @spec path(t()) :: Path.t()
+  @spec path(t()) :: Path.t() | nil
   def path(%Source{path: path}), do: path
 
   @doc """
@@ -266,7 +353,7 @@ defmodule Recode.Source do
       iex> Source.path(source, 2)
       "some/where/else/plus.exs"
   """
-  @spec path(t(), version()) :: Path.t()
+  @spec path(t(), version()) :: Path.t() | nil
   def path(%Source{path: path, updates: updates}, version)
       when version >= 1 and version <= length(updates) + 1 do
     updates

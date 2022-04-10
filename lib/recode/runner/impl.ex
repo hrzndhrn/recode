@@ -22,7 +22,7 @@ defmodule Recode.Runner.Impl do
     tasks
     |> run_tasks(project)
     |> format(:results, config)
-    |> write(config)
+    |> tap(fn project -> write(project, config) end)
   end
 
   def run({module, opts}, config) do
@@ -89,21 +89,18 @@ defmodule Recode.Runner.Impl do
 
   defp write(project, config) do
     case Keyword.fetch!(config, :dry) do
-      true ->
-        project
-
-      false ->
-        write(project)
+      true -> project
+      false -> write(project)
     end
   end
 
   defp write(project) do
-    with {:error, errors} <- Project.write(project, exclude: :conflicts) do
+    exclude = project |> Project.conflicts() |> Map.keys()
+
+    with {:error, errors} <- Project.save(project, exclude) do
       Enum.each(errors, fn {file, reason} ->
         Mix.Shell.IO.error("Writing file #{file} fails, reason: #{inspect(reason)}")
       end)
     end
-
-    project
   end
 end
