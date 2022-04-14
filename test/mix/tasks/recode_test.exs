@@ -4,8 +4,8 @@ defmodule Mix.Tasks.RecodeTest do
   import(ExUnit.CaptureIO)
   import Mox
 
-  alias Elixir.Recode.RunnerMock
   alias Mix.Tasks
+  alias Recode.RunnerMock
 
   setup :verify_on_exit!
 

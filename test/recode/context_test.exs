@@ -54,12 +54,21 @@ defmodule Recode.ContextTest do
       assert output =~ ~r/^1:.moduledoc:.nil/m
       assert output =~ ~r/^1:.doc:.nil/m
       assert output =~ ~r/^1:.spec:.nil/m
+
       assert output =~ ~r/^10:.moduledoc:.*Doc.for.module.simple/m
+
       assert output =~ ~r/^40:.moduledoc:.nil/m
       refute output =~ ~r/^40:.doc:.nil/m
       refute output =~ ~r/^40:.spec:.nil/m
-      assert output =~ ~r/^50:.doc:.nil/m
-      assert output =~ ~r/^50:.spec:.nil/m
+
+      refute output =~ ~r/^51:.doc:.nil/m
+      refute output =~ ~r/^51:.spec:.nil/m
+
+      refute output =~ ~r/^63:.doc:.nil/m
+      refute output =~ ~r/^63:.spec:.nil/m
+
+      assert output =~ ~r/^64:.doc:.nil/m
+      assert output =~ ~r/^64:.spec:.nil/m
     end
 
     test "traverse a nested module" do
@@ -202,13 +211,18 @@ defmodule Recode.ContextTest do
       assert acc |> Enum.at(at) |> Map.get(:module) |> elem(0) == Traverse.Simpler
       assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
 
-      at = 38
+      at = 52
       assert acc |> Enum.at(at) |> Map.get(:definition) |> elem(0) == {:def, :foo, 1}
       assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
       assert acc |> Enum.at(at) |> Map.get(:doc) != nil
       assert acc |> Enum.at(at) |> Map.get(:spec) != nil
 
-      at = 48
+      at = 62
+      assert acc |> Enum.at(at) |> Map.get(:definition) |> elem(0) == {:def, :foo, 1}
+      assert acc |> Enum.at(at) |> Map.get(:doc) != nil
+      assert acc |> Enum.at(at) |> Map.get(:spec) != nil
+
+      at = 64
       assert acc |> Enum.at(at) |> Map.get(:definition) |> elem(0) == {:def, :baz, 0}
       assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
       assert acc |> Enum.at(at) |> Map.get(:doc) == nil
@@ -405,6 +419,7 @@ defmodule Recode.ContextTest do
 
   defp write(context) do
     %{count: count} = context.assigns
+    IO.write("=== #{count} ===\n")
     IO.write("#{count}: module: #{inspect(context.module)}" <> "\n")
     IO.write("#{count}: definition: #{inspect(context.definition)}" <> "\n")
     IO.write("#{count}: usages: #{inspect(context.usages)}" <> "\n")

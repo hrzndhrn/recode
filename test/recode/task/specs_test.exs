@@ -125,6 +125,8 @@ defmodule Recode.Task.SpecsTest do
       end
 
       @spec foo(integer()) :: boolean()
+      def foo(nil), do: nil
+
       def foo(y) do
         bar(y)
       end

@@ -11,7 +11,9 @@ defmodule Traverse.Simpler do
 
   @ignore "me"
 
-  @spec foo(integer()) :: integer()
+  @spec foo(integer() | nil) :: integer() | nil
+  def foo(nil), do: nil
+
   def foo(x) do
     x * 2
   end

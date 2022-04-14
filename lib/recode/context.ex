@@ -96,8 +96,8 @@ defmodule Recode.Context do
           definition: term(),
           assigns: map(),
           moduledoc: Macro.t() | nil,
-          doc: Macro.t() | nil,
-          spec: Macro.t() | nil
+          doc: {term() | nil, Macro.t()} | nil,
+          spec: {term() | nil, Macro.t()} | nil
         }
 
   @type zipper :: Zipper.zipper()
@@ -162,7 +162,7 @@ defmodule Recode.Context do
   @spec doc?(t(), term()) :: boolean()
   def doc?(%Context{doc: nil}, value), do: is_nil(value)
 
-  def doc?(%Context{doc: doc}, value) do
+  def doc?(%Context{doc: {_to, doc}}, value) do
     attribute_value(doc) == value
   end
 
@@ -298,6 +298,7 @@ defmodule Recode.Context do
 
       false ->
         definition = get_definition(definition, args)
+        context = update_doc_and_spec(context, definition)
         do_traverse_sub(zipper, context, fun, definition: {definition, meta})
     end
   end
@@ -312,7 +313,6 @@ defmodule Recode.Context do
     {{ast, _}, %Context{assigns: assigns}} = run_traverse(sub_zipper, sub_context, fun)
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
-    context = %{context | doc: nil, spec: nil}
     {:skip, zipper, context}
   end
 
@@ -406,6 +406,7 @@ defmodule Recode.Context do
 
       false ->
         definition = get_definition(definition, args)
+        context = update_doc_and_spec(context, definition)
         do_traverse_sub(zipper, context, acc, fun, definition: {definition, meta})
     end
   end
@@ -423,7 +424,6 @@ defmodule Recode.Context do
 
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
-    context = %{context | doc: nil, spec: nil}
     {:skip, zipper, {context, acc}}
   end
 
@@ -435,14 +435,34 @@ defmodule Recode.Context do
         %{context | moduledoc: attribute}
 
       {:doc, _meta, _args} ->
-        %{context | doc: attribute}
+        %{context | doc: {nil, attribute}}
 
       {:spec, _meta, _args} ->
-        %{context | spec: attribute}
+        %{context | spec: {nil, attribute}}
 
       _args ->
         context
     end
+  end
+
+  defp update_doc_and_spec(context, definition) do
+    doc =
+      case context.doc do
+        nil -> nil
+        {nil, doc} -> {definition, doc}
+        {^definition, doc} -> {definition, doc}
+        _doc -> nil
+      end
+
+    spec =
+      case context.spec do
+        nil -> nil
+        {nil, spec} -> {definition, spec}
+        {^definition, spec} -> {definition, spec}
+        _spec -> nil
+      end
+
+    %{context | doc: doc, spec: spec}
   end
 
   # other helpers
