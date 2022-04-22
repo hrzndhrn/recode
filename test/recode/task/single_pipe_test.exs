@@ -27,6 +27,26 @@ defmodule Recode.Task.SinglePipeTest do
     assert source.code == expected
   end
 
+  test "expands single pipes" do
+    code = """
+    def fixme(arg) do
+      foo(arg) |> bar()
+      foo(arg, :animal) |> zoo(:tiger)
+    end
+    """
+
+    expected = """
+    def fixme(arg) do
+      arg |> foo() |> bar()
+      arg |> foo(:animal) |> zoo(:tiger)
+    end
+    """
+
+    source = run(code)
+
+    assert source.code == expected
+  end
+
   test "keeps pipes" do
     code = """
     def ok(arg) do

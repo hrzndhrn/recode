@@ -21,7 +21,7 @@ defmodule Recode.Task.PipeFunOne do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.zipper!()
+      |> Source.zipper()
       |> Zipper.traverse([], fn zipper, issues ->
         pipe_fun_one(zipper, issues, opts[:autocorrect])
       end)

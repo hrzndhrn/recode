@@ -20,7 +20,7 @@ defmodule Recode.Task.Rename do
   def run(source, opts) do
     zipper =
       source
-      |> Source.zipper!()
+      |> Source.zipper()
       |> Context.traverse(fn zipper, context ->
         opts = Keyword.put(opts, :source, source)
         rename(zipper, context, opts)
@@ -58,6 +58,25 @@ defmodule Recode.Task.Rename do
     {zipper, context}
   end
 
+  defp rename(
+         {{:@, _meta1, [{:spec, _meta2, [arg]}]}, _zipper_meta} = zipper,
+         context,
+         opts
+       ) do
+    case rename?(:spec, arg, context, opts[:from]) do
+      true ->
+        zipper = update_spec(zipper, opts[:to])
+        {zipper, context}
+
+      false ->
+        {zipper, context}
+    end
+  end
+
+  defp rename({{:@, _meta1, _args}, _zipper_meta} = zipper, context, _opts) do
+    {zipper, context}
+  end
+
   defp rename({{fun, _meta, _args} = ast, _zipper_meta} = zipper, context, opts)
        when is_atom(fun) do
     case rename?(:call, ast, context, opts) do
@@ -91,6 +110,21 @@ defmodule Recode.Task.Rename do
   defp rename(zipper, context, _opts) do
     {zipper, context}
   end
+
+  defp rename?(
+         :spec,
+         {:"::", _meta1, [{fun, _meta2, args}, _result]},
+         %Context{module: {module, _meta3}},
+         {module, fun, arity}
+       ) do
+    arity?(args, arity)
+  end
+
+  defp rename?(:spec, {:when, _meta, [spec, _when]}, context, from) do
+    rename?(:spec, spec, context, from)
+  end
+
+  defp rename?(:spec, _ast, _context, _from), do: false
 
   defp rename?(
          :definition,
@@ -177,6 +211,11 @@ defmodule Recode.Task.Rename do
 
   defp update_definition({ast, _meta} = zipper, %{fun: name}) do
     ast = AST.update_definition(ast, name: name)
+    Zipper.replace(zipper, ast)
+  end
+
+  defp update_spec({ast, _meta} = zipper, %{fun: name}) do
+    ast = AST.update_spec(ast, name: name)
     Zipper.replace(zipper, ast)
   end
 

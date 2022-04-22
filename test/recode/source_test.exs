@@ -249,13 +249,6 @@ defmodule Recode.SourceTest do
     end
   end
 
-  describe "zipper/1" do
-    test "returns a zipper" do
-      source = Source.new!("test/fixtures/source/simple.ex")
-      assert {:ok, _zipper} = Source.zipper(source)
-    end
-  end
-
   defp hash(path, code), do: :crypto.hash(:md5, path <> code)
 
   defp assert_source(%Source{} = source, expected) do

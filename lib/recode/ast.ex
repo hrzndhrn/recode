@@ -6,6 +6,8 @@ defmodule Recode.AST do
   @doc """
   Updates the AST representing a definition.
 
+  The keyword list `updates` can have the keys `name`, `meta` and `args`.
+
   ## Examples
 
       iex> ast = quote do
@@ -51,7 +53,97 @@ defmodule Recode.AST do
   end
 
   @doc """
+  Updates a spec.
+
+  The keyword list `updates` can have the keys `name`, `meta`, `args` and
+  `return`.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   @spec foo(integer()) :: integer()
+      ...> end
+      {:@, [context: Recode.ASTTest, import: Kernel],
+       [
+         {:spec, [context: Recode.ASTTest],
+          [{:"::", [], [{:foo, [], [{:integer, [], []}]}, {:integer, [], []}]}]}
+       ]}
+      iex> update_spec(ast, meta: [], name: :bar, return: {:term, [], []})
+      {:@, [],
+       [
+         {:spec, [context: Recode.ASTTest],
+          [{:"::", [], [{:bar, [], [{:integer, [], []}]}, {:term, [], []}]}]}
+       ]}
+  """
+  @spec update_spec(Macro.t(), updates :: keyword()) :: Macro.t()
+  def update_spec(
+        {:@, meta,
+         [
+           {:spec, meta_spec,
+            [
+              {:"::", meta_op, [{name, meta_name, args}, return]}
+            ]}
+         ]},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+    return = Keyword.get(updates, :return, return)
+
+    {:@, meta,
+     [
+       {:spec, meta_spec,
+        [
+          {:"::", meta_op, [{name, meta_name, args}, return]}
+        ]}
+     ]}
+  end
+
+  def update_spec(
+        {:@, meta,
+         [
+           {:spec, meta_spec,
+            [
+              {:when, meta_when,
+               [
+                 {:"::", meta_op,
+                  [
+                    {name, meta_name, args},
+                    return
+                  ]},
+                 when_block
+               ]}
+            ]}
+         ]},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+    return = Keyword.get(updates, :return, return)
+
+    {:@, meta,
+     [
+       {:spec, meta_spec,
+        [
+          {:when, meta_when,
+           [
+             {:"::", meta_op,
+              [
+                {name, meta_name, args},
+                return
+              ]},
+             when_block
+           ]}
+        ]}
+     ]}
+  end
+
+  @doc """
   Update a function call.
+
+  The keyword list `updates` can have the keys `name`, `meta` and `args`.
 
   ## Examples
 

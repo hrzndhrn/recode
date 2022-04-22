@@ -20,6 +20,7 @@ defmodule Recode.Source do
     :id,
     :path,
     :code,
+    :ast,
     :hash,
     :modules,
     updates: [],
@@ -42,6 +43,7 @@ defmodule Recode.Source do
           id: id(),
           path: Path.t() | nil,
           code: String.t(),
+          ast: Macro.t(),
           hash: String.t(),
           modules: [module()],
           updates: [{kind(), by(), String.t()}],
@@ -88,6 +90,7 @@ defmodule Recode.Source do
       id: make_ref(),
       path: path,
       code: string,
+      ast: Sourceror.parse_string!(string),
       hash: hash(path, string),
       modules: get_modules(string)
     )
@@ -229,6 +232,8 @@ defmodule Recode.Source do
       [{:code, :example, "a + b"}]
   """
   @spec update(t(), by(), [code: String.t() | Zipper.zipper()] | [path: Path.t()]) :: t()
+  def update(%Source{ast: ast} = source, _by, [{:code, {ast, _meta}}]), do: source
+
   def update(%Source{} = source, by, [{:code, {ast, _meta}}]) do
     code = ast |> Sourceror.to_string(DotFormatter.opts()) |> newline()
     update(source, by, code: code)
@@ -455,8 +460,7 @@ defmodule Recode.Source do
   ## Examples
 
       iex> "def foo, do: :foo" |> Source.from_string() |> Source.ast()
-      {:ok,
-       {:def, [trailing_comments: [], leading_comments: [], line: 1, column: 1],
+      {:def, [trailing_comments: [], leading_comments: [], line: 1, column: 1],
         [
           {:foo, [trailing_comments: [], leading_comments: [], line: 1, column: 5], nil},
           [
@@ -465,30 +469,17 @@ defmodule Recode.Source do
               [:do]},
              {:__block__, [trailing_comments: [], leading_comments: [], line: 1, column: 14], [:foo]}}
           ]
-        ]}}
+        ]
+      }
   """
   @spec ast(t()) :: {:ok, Macro.t()} | {:error, term()}
-  def ast(%Source{code: code}) do
-    Sourceror.parse_string(code)
-  end
-
-  @doc """
-  Same as `ast/1` but raises on error.
-  """
-  @spec ast!(t()) :: Macro.t()
-  def ast!(%Source{code: code}) do
-    Sourceror.parse_string!(code)
-  end
+  def ast(%Source{ast: ast}), do: ast
 
   @doc """
   Returns a `Sourceror.Zipper` with the AST for the given `%Source`.
   """
   @spec zipper(t()) :: {:ok, Zipper.zipper()} | {:error, term()}
-  def zipper(%Source{} = source) do
-    with {:ok, ast} <- ast(source) do
-      {:ok, Zipper.zip(ast)}
-    end
-  end
+  def zipper(%Source{ast: ast}), do: Zipper.zip(ast)
 
   @doc """
   Compares the `path` values of the given sources.
@@ -511,14 +502,6 @@ defmodule Recode.Source do
       path1 > path2 -> :gt
       true -> :eq
     end
-  end
-
-  @doc """
-  Same as `zipper/1` but raises on error.
-  """
-  @spec zipper!(t()) :: Zipper.zipper()
-  def zipper!(%Source{} = source) do
-    source |> ast!() |> Zipper.zip()
   end
 
   @doc ~S'''
@@ -610,7 +593,10 @@ defmodule Recode.Source do
 
   defp put(source, :code, value) do
     code = newline(value)
-    Map.put(source, :code, code)
+
+    source
+    |> Map.put(:code, code)
+    |> Map.put(:ast, Sourceror.parse_string!(code))
   end
 
   defp put(source, key, value), do: Map.put(source, key, value)

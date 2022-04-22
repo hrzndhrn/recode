@@ -22,14 +22,14 @@ defmodule Recode.Task.SinglePipe do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.zipper!()
+      |> Source.zipper()
       |> Zipper.traverse([], fn zipper, issues ->
         single_pipe(zipper, issues, opts[:autocorrect])
       end)
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, AliasExpansion, code: zipper)
+        Source.update(source, SinglePipe, code: zipper)
 
       false ->
         Source.add_issues(source, issues)
@@ -45,7 +45,9 @@ defmodule Recode.Task.SinglePipe do
   end
 
   defp single_pipe({{:|>, _meta, _ast}, _zipper_meta} = zipper, issues, true) do
-    {Zipper.update(zipper, &update/1), issues}
+    zipper = zipper |> Zipper.update(&update/1) |> skip()
+
+    {zipper, issues}
   end
 
   defp single_pipe({{:|>, meta, _ast}, _zipper_meta} = zipper, issues, false) do
@@ -67,7 +69,19 @@ defmodule Recode.Task.SinglePipe do
 
   defp skip(zipper), do: zipper
 
-  defp update({:|>, _meta, [arg, {fun, meta, args}]}) do
+  defp update({:|>, _meta1, [{_name, _meta2, nil} = arg, {fun, meta, args}]}) do
     {fun, meta, [arg | args]}
+  end
+
+  defp update({:|>, _meta1, [{_name, _meta2, []} = arg, {fun, meta, args}]}) do
+    {fun, meta, [arg | args]}
+  end
+
+  defp update({:|>, meta, [{fun1, meta1, [arg1 | args1]}, {fun2, meta2, args2}]}) do
+    {:|>, meta,
+     [
+       {:|>, [], [arg1, {fun1, meta1, args1}]},
+       {fun2, meta2, args2}
+     ]}
   end
 end

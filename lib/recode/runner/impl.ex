@@ -36,7 +36,14 @@ defmodule Recode.Runner.Impl do
   end
 
   defp run_task(%Project{} = project, module, opts) do
-    Project.map(project, fn source -> module.run(source, opts) end)
+    Project.map(project, fn source ->
+      exclude = Keyword.get(opts, :exclude, [])
+
+      case source.path in exclude do
+        true -> source
+        false -> module.run(source, opts)
+      end
+    end)
   end
 
   defp format(project, label, config) do
@@ -59,6 +66,8 @@ defmodule Recode.Runner.Impl do
   defp tasks(config) do
     config
     |> Keyword.fetch!(:tasks)
+    |> tasks(:skip)
+    |> tasks(:exclude)
     |> tasks(:correct_first)
     |> tasks(:filter, config)
     |> update_opts(config)
@@ -71,6 +80,22 @@ defmodule Recode.Runner.Impl do
     end
   end
 
+  defp tasks(tasks, :exclude) do
+    Enum.map(tasks, fn {task, config} ->
+      config =
+        case Keyword.has_key?(config, :exclude) do
+          false -> config
+          true -> expand_exclude(config)
+        end
+
+      {task, config}
+    end)
+  end
+
+  defp tasks(tasks, :skip) do
+    Enum.reject(tasks, fn {_task, config} -> config == :skip end)
+  end
+
   defp tasks(tasks, :correct_first) do
     groups =
       Enum.group_by(tasks, fn {task, _opts} ->
@@ -78,6 +103,12 @@ defmodule Recode.Runner.Impl do
       end)
 
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
+  end
+
+  defp expand_exclude(config) do
+    Keyword.update!(config, :exclude, fn exclude ->
+      exclude |> List.wrap() |> Enum.flat_map(&Path.wildcard/1)
+    end)
   end
 
   defp update_opts(tasks, config) do

@@ -22,7 +22,7 @@ defmodule Recode.Context do
       ...> end
       ...> """
       ...> |> Source.from_string()
-      ...> |> Source.zipper!()
+      ...> |> Source.zipper()
       ...> |> Context.traverse(nil, fn
       ...>   zipper, context, nil ->
       ...>     case context.definition do
@@ -85,7 +85,8 @@ defmodule Recode.Context do
             assigns: %{},
             moduledoc: nil,
             doc: nil,
-            spec: nil
+            spec: nil,
+            impl: nil
 
   @type t :: %Context{
           module: term() | nil,
@@ -97,7 +98,8 @@ defmodule Recode.Context do
           assigns: map(),
           moduledoc: Macro.t() | nil,
           doc: {term() | nil, Macro.t()} | nil,
-          spec: {term() | nil, Macro.t()} | nil
+          spec: {term() | nil, Macro.t()} | nil,
+          impl: {term() | nil, Macro.t()} | nil
         }
 
   @type zipper :: Zipper.zipper()
@@ -133,6 +135,12 @@ defmodule Recode.Context do
   """
   @spec spec?(t()) :: boolean
   def spec?(%Context{spec: spec}), do: not is_nil(spec)
+
+  @doc """
+  Returns `true` if an `impl` is availbale.
+  """
+  @spec impl?(t()) :: boolean
+  def impl?(%Context{impl: impl}), do: not is_nil(impl)
 
   @doc """
   Returns true if `definition` satisfies the assumption.
@@ -290,6 +298,10 @@ defmodule Recode.Context do
     end
   end
 
+  defp do_traverse({{:defimpl, _meta, _args}, _} = zipper, context, _fun) do
+    {:skip, zipper, context}
+  end
+
   defp do_traverse({{definition, meta, args}, _} = zipper, context, fun)
        when definition in [:def, :defp, :defmacro, :defmacrop] and not is_nil(args) do
     case definition(context, :meta) == meta do
@@ -298,7 +310,7 @@ defmodule Recode.Context do
 
       false ->
         definition = get_definition(definition, args)
-        context = update_doc_and_spec(context, definition)
+        context = update_attributes(context, definition)
         do_traverse_sub(zipper, context, fun, definition: {definition, meta})
     end
   end
@@ -398,6 +410,10 @@ defmodule Recode.Context do
     end
   end
 
+  defp do_traverse({{:defimpl, _meta, _args}, _} = zipper, context, acc, _fun) do
+    {:skip, zipper, {context, acc}}
+  end
+
   defp do_traverse({{definition, meta, args}, _zipper_meta} = zipper, context, acc, fun)
        when definition in [:def, :defp, :defmacro, :defmacrop] and length(args) == 2 do
     case definition(context, :meta) == meta do
@@ -406,7 +422,7 @@ defmodule Recode.Context do
 
       false ->
         definition = get_definition(definition, args)
-        context = update_doc_and_spec(context, definition)
+        context = update_attributes(context, definition)
         do_traverse_sub(zipper, context, acc, fun, definition: {definition, meta})
     end
   end
@@ -440,29 +456,27 @@ defmodule Recode.Context do
       {:spec, _meta, _args} ->
         %{context | spec: {nil, attribute}}
 
+      {:impl, _meta, _args} ->
+        %{context | impl: {nil, attribute}}
+
       _args ->
         context
     end
   end
 
-  defp update_doc_and_spec(context, definition) do
-    doc =
-      case context.doc do
-        nil -> nil
-        {nil, doc} -> {definition, doc}
-        {^definition, doc} -> {definition, doc}
-        _doc -> nil
-      end
+  defp update_attributes(context, definition) do
+    context
+    |> update_attribute(definition, :doc)
+    |> update_attribute(definition, :spec)
+    |> update_attribute(definition, :impl)
+  end
 
-    spec =
-      case context.spec do
-        nil -> nil
-        {nil, spec} -> {definition, spec}
-        {^definition, spec} -> {definition, spec}
-        _spec -> nil
-      end
-
-    %{context | doc: doc, spec: spec}
+  defp update_attribute(context, definition, key) do
+    Map.update!(context, key, fn
+      {nil, value} -> {definition, value}
+      {^definition, value} -> {definition, value}
+      _spec -> nil
+    end)
   end
 
   # other helpers
@@ -487,8 +501,10 @@ defmodule Recode.Context do
     {kind, name, length(args)}
   end
 
-  defp get_alias({:__aliases__, _meta, name}) do
+  defp get_alias({:__aliases__, _meta, name}) when is_list(name) do
     Module.concat(name)
+  rescue
+    _error -> :unknown
   end
 
   defp get_aliases([{{:., _, [alias, :{}]}, _, aliases}], meta) do

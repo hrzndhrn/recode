@@ -22,7 +22,7 @@ defmodule Recode.Task.AliasExpansion do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.zipper!()
+      |> Source.zipper()
       |> Zipper.traverse([], fn zipper, issues ->
         expand_alias(zipper, issues, opts[:autocorrect])
       end)

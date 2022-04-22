@@ -23,7 +23,7 @@ defmodule Recode.Task.Specs do
 
   defp check_specs(source, include) do
     source
-    |> Source.zipper!()
+    |> Source.zipper()
     |> Context.traverse({[], nil}, fn zipper, context, acc ->
       check_specs(zipper, context, acc, include)
     end)
@@ -51,7 +51,9 @@ defmodule Recode.Task.Specs do
   end
 
   defp check_spec(only, context, issues) do
-    case Context.definition?(context, only) and not Context.spec?(context) do
+    case Context.definition?(context, only) and
+           not Context.spec?(context) and
+           not Context.impl?(context) do
       true -> [issue(context) | issues]
       false -> issues
     end
