@@ -16,7 +16,7 @@ alias Recode.Task
     {Task.AliasOrder, []},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
-    {Task.Specs, []},
+    {Task.Specs, [only: :visible, exclude: "test/**/*.{ex,exs}"]},
     {Task.TestFileExt, []}
   ]
 ]

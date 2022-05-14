@@ -115,9 +115,23 @@ defmodule Recode.ContextTest do
         end)
 
       assert output =~ ~r/^158: aliases:.*Donald.Duck/m
+      assert output =~ ~r/^158: aliases:.*Foo.Bar/m
+      assert output =~ ~r/^158: aliases:.*Foo.Baz/m
       assert output =~ ~r/^158: requirements:.*Logger/m
       assert output =~ ~r/^158: usages:.*Traverse.Obelix/m
-      assert output =~ ~r/^158: imports:.*Traverse.Pluto/m
+
+      assert output =~ """
+             158: imports: [\
+             {Traverse.Pluto, [trailing_comments: [], leading_comments: [], \
+             end_of_expression: [newlines: 1, line: 22, column: 24], line: 22, column: 3], nil}, \
+             {Traverse.Mouse, [trailing_comments: [], leading_comments: [], \
+             end_of_expression: [newlines: 1, line: 23, column: 42], line: 23, column: 3], \
+             [only: [micky: 1]]}, \
+             {Traverse.Gladstone, [trailing_comments: [], leading_comments: [], \
+             end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}, \
+             {Traverse.Gander, [trailing_comments: [], leading_comments: [], \
+             end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}]
+             """
     end
   end
 
@@ -293,35 +307,45 @@ defmodule Recode.ContextTest do
                  [
                    trailing_comments: [],
                    leading_comments: [],
-                   do: [line: 34, column: 13],
-                   end: [line: 36, column: 3],
-                   line: 34,
+                   do: [line: 35, column: 13],
+                   end: [line: 37, column: 3],
+                   line: 35,
                    column: 3
                  ]
                },
                imports: [
-                 {
-                   Traverse.Pluto,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 1, line: 22, column: 24],
-                     line: 22,
-                     column: 3
-                   ],
-                   nil
-                 },
-                 {
-                   Traverse.Mouse,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 2, line: 23, column: 42],
-                     line: 23,
-                     column: 3
-                   ],
-                   [only: [micky: 1]]
-                 }
+                 {Traverse.Pluto,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 1, line: 22, column: 24],
+                    line: 22,
+                    column: 3
+                  ], nil},
+                 {Traverse.Mouse,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 1, line: 23, column: 42],
+                    line: 23,
+                    column: 3
+                  ], [only: [micky: 1]]},
+                 {Traverse.Gladstone,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 2, line: 24, column: 38],
+                    line: 24,
+                    column: 3
+                  ], nil},
+                 {Traverse.Gander,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 2, line: 24, column: 38],
+                    line: 24,
+                    column: 3
+                  ], nil}
                ],
                module: {
                  Traverse.Foo,
@@ -329,7 +353,7 @@ defmodule Recode.ContextTest do
                    trailing_comments: [],
                    leading_comments: [],
                    do: [line: 15, column: 24],
-                   end: [line: 37, column: 1],
+                   end: [line: 38, column: 1],
                    line: 15,
                    column: 1
                  ]
@@ -340,8 +364,8 @@ defmodule Recode.ContextTest do
                    [
                      trailing_comments: [],
                      leading_comments: [],
-                     end_of_expression: [newlines: 1, line: 25, column: 17],
-                     line: 25,
+                     end_of_expression: [newlines: 1, line: 26, column: 17],
+                     line: 26,
                      column: 3
                    ],
                    nil
@@ -350,8 +374,8 @@ defmodule Recode.ContextTest do
                   [
                     trailing_comments: [],
                     leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 26, column: 37],
-                    line: 26,
+                    end_of_expression: [newlines: 2, line: 27, column: 37],
+                    line: 27,
                     column: 3
                   ], [as: Animal]}
                ],

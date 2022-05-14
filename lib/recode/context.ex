@@ -250,9 +250,9 @@ defmodule Recode.Context do
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:import, meta, [arg]}, _} = zipper, context, fun) do
-    import = get_alias(arg)
-    context = add_import(context, {import, meta, nil})
+  defp do_traverse({{:import, meta, args}, _} = zipper, context, fun) do
+    imports = get_aliases(args, meta)
+    context = add_imports(context, imports)
 
     cont(zipper, context, fun)
   end
@@ -349,6 +349,14 @@ defmodule Recode.Context do
     cont(zipper, context, acc, fun)
   end
 
+  # defp do_traverse({{:import, meta, args}, _zipper_meta} = zipper, context, acc, fun) do
+  #   imports = get_aliases(args, meta)
+  #   context = add_imports(context, imports)
+
+  #   cont(zipper, context, acc, fun)
+  # end
+
+  # TODO
   defp do_traverse({{:import, meta, [arg, opts]}, _zipper_meta} = zipper, context, acc, fun) do
     import = get_alias(arg)
     opts = eval(opts)
@@ -357,9 +365,9 @@ defmodule Recode.Context do
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:import, meta, [arg]}, _} = zipper, context, acc, fun) do
-    import = get_alias(arg)
-    context = add_import(context, {import, meta, nil})
+  defp do_traverse({{:import, meta, args}, _} = zipper, context, acc, fun) do
+    imports = get_aliases(args, meta)
+    context = add_imports(context, imports)
 
     cont(zipper, context, acc, fun)
   end
@@ -507,6 +515,10 @@ defmodule Recode.Context do
     _error -> :unknown
   end
 
+  defp get_alias({:unquote, _meta, _args} = expr) do
+    expr
+  end
+
   defp get_aliases([{{:., _, [alias, :{}]}, _, aliases}], meta) do
     base = get_alias(alias)
 
@@ -557,6 +569,10 @@ defmodule Recode.Context do
 
   defp add_import(%Context{imports: imports} = context, import) do
     %Context{context | imports: imports ++ [import]}
+  end
+
+  defp add_imports(%Context{imports: imports} = context, list) do
+    %Context{context | imports: imports ++ list}
   end
 
   defp add_use(%Context{usages: usages} = context, use) do

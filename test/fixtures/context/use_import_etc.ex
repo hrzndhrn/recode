@@ -21,6 +21,7 @@ defmodule Traverse.Foo do
 
   import Traverse.Pluto
   import Traverse.Mouse, only: [micky: 1]
+  import Traverse.{Gladstone, Gander}
 
   require Logger
   require Traverse.Pluto, as: Animal

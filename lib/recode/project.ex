@@ -7,6 +7,8 @@ defmodule Recode.Project do
   alias Recode.ProjectError
   alias Recode.Source
 
+  require Logger
+
   defstruct sources: %{}, paths: %{}, modules: %{}, inputs: []
 
   @type id :: reference()
@@ -284,6 +286,11 @@ defmodule Recode.Project do
     project = update(project, source)
 
     map(project, sources, fun, opts)
+  rescue
+    error ->
+      # TODO: Save the exception in `source` an log/output later.
+      Logger.error(Exception.format(:error, error, __STACKTRACE__))
+      map(project, sources, fun, opts)
   end
 
   defp map_apply(source, fun, nil), do: fun.(source)
