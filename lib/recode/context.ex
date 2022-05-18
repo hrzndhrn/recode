@@ -9,7 +9,7 @@ defmodule Recode.Context do
 
       iex> alias Recode.{Source, Context}
       ...> """
-      ...> defmoudle MyApp.Foo do
+      ...> defmodule MyApp.Foo do
       ...>   def foo, do: :foo
       ...> end
       ...>
@@ -236,14 +236,14 @@ defmodule Recode.Context do
 
   defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, fun)
        when not is_nil(args) do
-    aliases = get_aliases(args, meta)
+    aliases = get_aliases(args, meta, context)
     context = add_aliases(context, aliases)
 
     cont(zipper, context, fun)
   end
 
   defp do_traverse({{:import, meta, [arg, opts]}, _} = zipper, context, fun) do
-    import = get_alias(arg)
+    import = get_alias(arg, context)
     opts = eval(opts)
     context = add_import(context, {import, meta, opts})
 
@@ -251,14 +251,14 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:import, meta, args}, _} = zipper, context, fun) do
-    imports = get_aliases(args, meta)
+    imports = get_aliases(args, meta, context)
     context = add_imports(context, imports)
 
     cont(zipper, context, fun)
   end
 
   defp do_traverse({{:use, meta, [arg, opts]}, _} = zipper, context, fun) do
-    use = get_alias(arg)
+    use = get_alias(arg, context)
     opts = eval(opts)
     context = add_use(context, {use, meta, opts})
 
@@ -266,14 +266,14 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:use, meta, [arg]}, _} = zipper, context, fun) do
-    use = get_alias(arg)
+    use = get_alias(arg, context)
     context = add_use(context, {use, meta, nil})
 
     cont(zipper, context, fun)
   end
 
   defp do_traverse({{:require, meta, [arg, opts]}, _} = zipper, context, fun) do
-    require = get_alias(arg)
+    require = get_alias(arg, context)
     opts = eval(opts)
     context = add_require(context, {require, meta, opts})
 
@@ -281,7 +281,7 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:require, meta, [arg]}, _} = zipper, context, fun) do
-    require = get_alias(arg)
+    require = get_alias(arg, context)
     context = add_require(context, {require, meta, nil})
 
     cont(zipper, context, fun)
@@ -343,7 +343,7 @@ defmodule Recode.Context do
 
   defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, acc, fun)
        when not is_nil(args) do
-    aliases = get_aliases(args, meta)
+    aliases = get_aliases(args, meta, context)
     context = add_aliases(context, aliases)
 
     cont(zipper, context, acc, fun)
@@ -358,7 +358,7 @@ defmodule Recode.Context do
 
   # TODO
   defp do_traverse({{:import, meta, [arg, opts]}, _zipper_meta} = zipper, context, acc, fun) do
-    import = get_alias(arg)
+    import = get_alias(arg, context)
     opts = eval(opts)
     context = add_import(context, {import, meta, opts})
 
@@ -366,14 +366,14 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:import, meta, args}, _} = zipper, context, acc, fun) do
-    imports = get_aliases(args, meta)
+    imports = get_aliases(args, meta, context)
     context = add_imports(context, imports)
 
     cont(zipper, context, acc, fun)
   end
 
   defp do_traverse({{:use, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
-    use = get_alias(arg)
+    use = get_alias(arg, context)
     opts = eval(opts)
     context = add_use(context, {use, meta, opts})
 
@@ -381,14 +381,14 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:use, meta, [arg]}, _} = zipper, context, acc, fun) do
-    use = get_alias(arg)
+    use = get_alias(arg, context)
     context = add_use(context, {use, meta, nil})
 
     cont(zipper, context, acc, fun)
   end
 
   defp do_traverse({{:require, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
-    require = get_alias(arg)
+    require = get_alias(arg, context)
     opts = eval(opts)
     context = add_require(context, {require, meta, opts})
 
@@ -396,7 +396,7 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:require, meta, [arg]}, _} = zipper, context, acc, fun) do
-    require = get_alias(arg)
+    require = get_alias(arg, context)
     context = add_require(context, {require, meta, nil})
 
     cont(zipper, context, acc, fun)
@@ -453,6 +453,7 @@ defmodule Recode.Context do
 
   # helpers for traverse/2/3
 
+  # TODO: rename function
   defp traverse_helper(:attribute, {:@, _meta, [arg]} = attribute, context) do
     case arg do
       {:moduledoc, _meta, _args} ->
@@ -490,7 +491,14 @@ defmodule Recode.Context do
   # other helpers
 
   defp eval(ast) do
-    ast |> Code.eval_quoted() |> elem(0)
+    # TODO: - compiler_options should be set global
+    #       - errors schould be saved in %Context{}
+    Code.put_compiler_option(:no_warn_undefined, true)
+    result = ast |> Code.eval_quoted() |> elem(0)
+    Code.put_compiler_option(:no_warn_undefined, false)
+    result
+  rescue
+    error -> error
   end
 
   defp get_definition(kind, [{:when, _meta1, [{name, _meta2, args}, _expr]}, _block]) do
@@ -509,27 +517,31 @@ defmodule Recode.Context do
     {kind, name, length(args)}
   end
 
-  defp get_alias({:__aliases__, _meta, name}) when is_list(name) do
+  defp get_alias({:__aliases__, _meta, name}, _context) when is_list(name) do
     Module.concat(name)
   rescue
     _error -> :unknown
   end
 
-  defp get_alias({:unquote, _meta, _args} = expr) do
+  defp get_alias({:unquote, _meta, _args} = expr, _context) do
     expr
   end
 
-  defp get_aliases([{{:., _, [alias, :{}]}, _, aliases}], meta) do
-    base = get_alias(alias)
+  defp get_alias({:__MODULE__, _meta1, _args}, %Context{} = context) do
+    module(context)
+  end
+
+  defp get_aliases([{{:., _, [alias, :{}]}, _, aliases}], meta, %Context{} = context) do
+    base = get_alias(alias, context)
 
     Enum.map(aliases, fn alias ->
-      {Module.concat(base, get_alias(alias)), meta, nil}
+      {Module.concat(base, get_alias(alias, context)), meta, nil}
     end)
   end
 
-  defp get_aliases([arg], meta), do: [{get_alias(arg), meta, nil}]
+  defp get_aliases([arg], meta, context), do: [{get_alias(arg, context), meta, nil}]
 
-  defp get_aliases([arg, opts], meta), do: [{get_alias(arg), meta, eval(opts)}]
+  defp get_aliases([arg, opts], meta, context), do: [{get_alias(arg, context), meta, eval(opts)}]
 
   defp cont(zipper, context, fun) do
     {zipper, context} = fun.(zipper, context)

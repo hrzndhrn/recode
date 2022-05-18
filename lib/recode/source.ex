@@ -85,14 +85,16 @@ defmodule Recode.Source do
   """
   @spec from_string(String.t(), Path.t() | nil) :: t()
   def from_string(string, path \\ nil) do
+    ast = Sourceror.parse_string!(string)
+
     struct!(
       Source,
       id: make_ref(),
       path: path,
       code: string,
-      ast: Sourceror.parse_string!(string),
+      ast: ast,
       hash: hash(path, string),
-      modules: get_modules(string)
+      modules: get_modules(ast)
     )
   end
 
@@ -562,9 +564,14 @@ defmodule Recode.Source do
     end
   end
 
-  defp get_modules(code) do
+  defp get_modules(code) when is_binary(code) do
     code
     |> Sourceror.parse_string!()
+    |> get_modules()
+  end
+
+  defp get_modules(code) do
+    code
     |> Zipper.zip()
     |> Context.traverse(MapSet.new(), fn zipper, context, acc ->
       acc =
