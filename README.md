@@ -33,7 +33,7 @@ Documentation can be found at https://hexdocs.pm/recode.
 
 ## Usage
 
-To start with `recode` we need a config file.
+To start with Foo a configuration file is needed.
 ```shell
 $ mix recode.gen.config
 ```
@@ -68,3 +68,4 @@ alias Recode.Task
 ### `mix recode.rename`
 
 ## Differences to Credo
+
