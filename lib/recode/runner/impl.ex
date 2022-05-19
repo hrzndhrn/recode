@@ -21,6 +21,7 @@ defmodule Recode.Runner.Impl do
 
     tasks
     |> run_tasks(project, config)
+    |> format(:tasks_ready, config)
     |> format(:results, config)
     |> tap(fn project -> write(project, config) end)
   end

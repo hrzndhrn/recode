@@ -28,7 +28,7 @@ defmodule Recode.FormatterTest do
           Formatter.format(:results, {project, @config}, @opts)
         end)
 
-      assert strip_esc_seq(output) == "\n"
+      assert strip_esc_seq(output) == ""
     end
 
     test "formats a project with changed source" do
@@ -51,7 +51,6 @@ defmodule Recode.FormatterTest do
         end)
 
       assert strip_esc_seq(output) == """
-
               File: no file
              Updates: 1
              Changed by: test
@@ -85,7 +84,6 @@ defmodule Recode.FormatterTest do
         end)
 
       assert strip_esc_seq(output) == """
-
               File: no file
              Updates: 2
              Changed by: test, test
@@ -156,7 +154,6 @@ defmodule Recode.FormatterTest do
       output = strip_esc_seq(output)
 
       assert output == """
-
               File: no file
              [foo 1/2] do not do this
              [bar 2/3] no no no

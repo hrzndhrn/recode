@@ -10,7 +10,7 @@ defmodule Recode.Formatter do
   alias Recode.Source
 
   @callback format(
-              type :: :project | :results,
+              type :: :project | :results | :tasks_ready,
               {Project.t(), config :: keyword()},
               opts :: keyword()
             ) :: any()
@@ -25,11 +25,16 @@ defmodule Recode.Formatter do
   def format(:results, {%Project{} = project, config}, opts) do
     verbose = Keyword.fetch!(config, :verbose)
 
-    write(newline())
-
     project
     |> Project.sources()
     |> Enum.each(fn source -> do_format(source, opts, verbose) end)
+  end
+
+  def format(:tasks_ready, {%Project{} = project, _config}, _opts) do
+    case Project.sources(project) do
+      [] -> :ok
+      [_ | _] -> IO.write("\n")
+    end
   end
 
   def format(:project, {%Project{} = project, _config}, _opts) do
@@ -69,8 +74,6 @@ defmodule Recode.Formatter do
     |> newline(issues? or updated?)
     |> write()
   end
-
-  defp newline, do: ["\n"]
 
   defp newline(output), do: Enum.concat(output, ["\n"])
 

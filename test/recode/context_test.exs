@@ -126,11 +126,18 @@ defmodule Recode.ContextTest do
              end_of_expression: [newlines: 1, line: 22, column: 24], line: 22, column: 3], nil}, \
              {Traverse.Mouse, [trailing_comments: [], leading_comments: [], \
              end_of_expression: [newlines: 1, line: 23, column: 42], line: 23, column: 3], \
-             [only: [micky: 1]]}, \
+             [{{:__block__, [trailing_comments: [], leading_comments: [], \
+             format: :keyword, line: 23, column: 26], [:only]}, \
+             {:__block__, [trailing_comments: [], leading_comments: [], \
+             closing: [line: 23, column: 41], line: 23, column: 32], \
+             [[{{:__block__, [trailing_comments: [], leading_comments: [], \
+             format: :keyword, line: 23, column: 33], [:micky]}, \
+             {:__block__, [trailing_comments: [], leading_comments: [], \
+             token: "1", line: 23, column: 40], [1]}}]]}}]}, \
              {Traverse.Gladstone, [trailing_comments: [], leading_comments: [], \
              end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}, \
              {Traverse.Gander, [trailing_comments: [], leading_comments: [], \
-             end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}]
+             end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}]\
              """
     end
   end
@@ -276,7 +283,26 @@ defmodule Recode.ContextTest do
                      line: 19,
                      column: 3
                    ],
-                   [as: Goofy]
+                   [
+                     {
+                       {:__block__,
+                        [
+                          trailing_comments: [],
+                          leading_comments: [],
+                          format: :keyword,
+                          line: 19,
+                          column: 22
+                        ], [:as]},
+                       {:__aliases__,
+                        [
+                          trailing_comments: [],
+                          leading_comments: [],
+                          last: [line: 19, column: 26],
+                          line: 19,
+                          column: 26
+                        ], [:Goofy]}
+                     }
+                   ]
                  },
                  {
                    Foo.Bar,
@@ -329,7 +355,47 @@ defmodule Recode.ContextTest do
                     end_of_expression: [newlines: 1, line: 23, column: 42],
                     line: 23,
                     column: 3
-                  ], [only: [micky: 1]]},
+                  ],
+                  [
+                    {
+                      {:__block__,
+                       [
+                         trailing_comments: [],
+                         leading_comments: [],
+                         format: :keyword,
+                         line: 23,
+                         column: 26
+                       ], [:only]},
+                      {:__block__,
+                       [
+                         trailing_comments: [],
+                         leading_comments: [],
+                         closing: [line: 23, column: 41],
+                         line: 23,
+                         column: 32
+                       ],
+                       [
+                         [
+                           {{:__block__,
+                             [
+                               trailing_comments: [],
+                               leading_comments: [],
+                               format: :keyword,
+                               line: 23,
+                               column: 33
+                             ], [:micky]},
+                            {:__block__,
+                             [
+                               trailing_comments: [],
+                               leading_comments: [],
+                               token: "1",
+                               line: 23,
+                               column: 40
+                             ], [1]}}
+                         ]
+                       ]}
+                    }
+                  ]},
                  {Traverse.Gladstone,
                   [
                     trailing_comments: [],
@@ -377,7 +443,27 @@ defmodule Recode.ContextTest do
                     end_of_expression: [newlines: 2, line: 27, column: 37],
                     line: 27,
                     column: 3
-                  ], [as: Animal]}
+                  ],
+                  [
+                    {
+                      {:__block__,
+                       [
+                         trailing_comments: [],
+                         leading_comments: [],
+                         format: :keyword,
+                         line: 27,
+                         column: 27
+                       ], [:as]},
+                      {:__aliases__,
+                       [
+                         trailing_comments: [],
+                         leading_comments: [],
+                         last: [line: 27, column: 31],
+                         line: 27,
+                         column: 31
+                       ], [:Animal]}
+                    }
+                  ]}
                ],
                usages: [
                  {
@@ -389,7 +475,26 @@ defmodule Recode.ContextTest do
                      line: 16,
                      column: 3
                    ],
-                   [app: Traverse]
+                   [
+                     {
+                       {:__block__,
+                        [
+                          trailing_comments: [],
+                          leading_comments: [],
+                          format: :keyword,
+                          line: 16,
+                          column: 24
+                        ], [:app]},
+                       {:__aliases__,
+                        [
+                          trailing_comments: [],
+                          leading_comments: [],
+                          last: [line: 16, column: 29],
+                          line: 16,
+                          column: 29
+                        ], [:Traverse]}
+                     }
+                   ]
                  }
                ]
              }

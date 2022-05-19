@@ -244,7 +244,6 @@ defmodule Recode.Context do
 
   defp do_traverse({{:import, meta, [arg, opts]}, _} = zipper, context, fun) do
     import = get_alias(arg, context)
-    opts = eval(opts)
     context = add_import(context, {import, meta, opts})
 
     cont(zipper, context, fun)
@@ -259,7 +258,6 @@ defmodule Recode.Context do
 
   defp do_traverse({{:use, meta, [arg, opts]}, _} = zipper, context, fun) do
     use = get_alias(arg, context)
-    opts = eval(opts)
     context = add_use(context, {use, meta, opts})
 
     cont(zipper, context, fun)
@@ -274,7 +272,6 @@ defmodule Recode.Context do
 
   defp do_traverse({{:require, meta, [arg, opts]}, _} = zipper, context, fun) do
     require = get_alias(arg, context)
-    opts = eval(opts)
     context = add_require(context, {require, meta, opts})
 
     cont(zipper, context, fun)
@@ -359,7 +356,6 @@ defmodule Recode.Context do
   # TODO
   defp do_traverse({{:import, meta, [arg, opts]}, _zipper_meta} = zipper, context, acc, fun) do
     import = get_alias(arg, context)
-    opts = eval(opts)
     context = add_import(context, {import, meta, opts})
 
     cont(zipper, context, acc, fun)
@@ -374,7 +370,6 @@ defmodule Recode.Context do
 
   defp do_traverse({{:use, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
     use = get_alias(arg, context)
-    opts = eval(opts)
     context = add_use(context, {use, meta, opts})
 
     cont(zipper, context, acc, fun)
@@ -389,7 +384,6 @@ defmodule Recode.Context do
 
   defp do_traverse({{:require, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
     require = get_alias(arg, context)
-    opts = eval(opts)
     context = add_require(context, {require, meta, opts})
 
     cont(zipper, context, acc, fun)
@@ -490,17 +484,6 @@ defmodule Recode.Context do
 
   # other helpers
 
-  defp eval(ast) do
-    # TODO: - compiler_options should be set global
-    #       - errors schould be saved in %Context{}
-    Code.put_compiler_option(:no_warn_undefined, :all)
-    result = ast |> Code.eval_quoted() |> elem(0)
-    Code.put_compiler_option(:no_warn_undefined, [])
-    result
-  rescue
-    error -> error
-  end
-
   defp get_definition(kind, [{:when, _meta1, [{name, _meta2, args}, _expr]}, _block]) do
     {kind, name, length(args)}
   end
@@ -541,7 +524,7 @@ defmodule Recode.Context do
 
   defp get_aliases([arg], meta, context), do: [{get_alias(arg, context), meta, nil}]
 
-  defp get_aliases([arg, opts], meta, context), do: [{get_alias(arg, context), meta, eval(opts)}]
+  defp get_aliases([arg, opts], meta, context), do: [{get_alias(arg, context), meta, opts}]
 
   defp cont(zipper, context, fun) do
     {zipper, context} = fun.(zipper, context)
@@ -564,10 +547,20 @@ defmodule Recode.Context do
         end
 
       {alias, _meta, opts} ->
-        case Keyword.get(opts, :as, :none) == module do
+        case get_as(opts) == module do
           false -> false
           true -> {:ok, alias}
         end
+    end)
+  end
+
+  defp get_as(opts, default \\ :none) do
+    Enum.find_value(opts, default, fn
+      {{:__block__, _meta_block, [:as]}, {:__aliases__, _meta_aliases, as}} ->
+        Module.concat(as)
+
+      _item ->
+        false
     end)
   end
 
