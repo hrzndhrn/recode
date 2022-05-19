@@ -493,9 +493,9 @@ defmodule Recode.Context do
   defp eval(ast) do
     # TODO: - compiler_options should be set global
     #       - errors schould be saved in %Context{}
-    Code.put_compiler_option(:no_warn_undefined, true)
+    Code.put_compiler_option(:no_warn_undefined, :all)
     result = ast |> Code.eval_quoted() |> elem(0)
-    Code.put_compiler_option(:no_warn_undefined, false)
+    Code.put_compiler_option(:no_warn_undefined, [])
     result
   rescue
     error -> error

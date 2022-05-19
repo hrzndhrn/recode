@@ -20,7 +20,7 @@ defmodule Recode.Runner.Impl do
       |> format(:project, config)
 
     tasks
-    |> run_tasks(project)
+    |> run_tasks(project, config)
     |> format(:results, config)
     |> tap(fn project -> write(project, config) end)
   end
@@ -29,34 +29,44 @@ defmodule Recode.Runner.Impl do
     run([{module, opts}], config)
   end
 
-  defp run_tasks(tasks, project) do
+  defp run_tasks(tasks, project, config) do
     Enum.reduce(tasks, project, fn {module, opts}, project ->
-      run_task(project, module, opts)
+      run_task(project, config, module, opts)
     end)
   end
 
-  defp run_task(%Project{} = project, module, opts) do
+  defp run_task(%Project{} = project, config, module, opts) do
     Project.map(project, fn source ->
       exclude = Keyword.get(opts, :exclude, [])
 
       case source.path in exclude do
-        true -> source
-        false -> module.run(source, opts)
+        true ->
+          source
+
+        false ->
+          format(project, :task, config, {source, module, opts})
+          module.run(source, opts)
       end
     end)
   end
 
-  defp format(project, label, config) do
+  defp format(%Project{} = project, label, config, info \\ nil) do
     case Keyword.fetch(config, :formatter) do
-      {:ok, {formatter, opts}} -> format(formatter, label, project, opts, config)
-      :error -> project
+      {:ok, {formatter, opts}} ->
+        format(formatter, label, project, opts, config, info)
+        project
+
+      :error ->
+        project
     end
   end
 
-  defp format(formatter, label, project, opts, config) do
-    formatter.format(label, project, opts, config)
+  defp format(formatter, label, project, opts, config, nil) do
+    formatter.format(label, {project, config}, opts)
+  end
 
-    project
+  defp format(formatter, label, project, opts, config, info) do
+    formatter.format(label, {project, config}, info, opts)
   end
 
   defp project(config) do

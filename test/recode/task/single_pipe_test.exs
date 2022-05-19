@@ -30,14 +30,14 @@ defmodule Recode.Task.SinglePipeTest do
   test "expands single pipes" do
     code = """
     def fixme(arg) do
-      foo(arg) |> bar()
+      foo(arg) |> zoo()
       foo(arg, :animal) |> zoo(:tiger)
     end
     """
 
     expected = """
     def fixme(arg) do
-      arg |> foo() |> bar()
+      arg |> foo() |> zoo()
       arg |> foo(:animal) |> zoo(:tiger)
     end
     """

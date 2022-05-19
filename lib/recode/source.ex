@@ -225,13 +225,13 @@ defmodule Recode.Source do
   If the new value equal to the current value, no updates will be added.
 
       iex> source =
-      ...>   "a + b"
+      ...>   "a = 42"
       ...>   |> Source.from_string()
-      ...>   |> Source.update(:example, code: "a - b")
-      ...>   |> Source.update(:example, code: "a - b")
-      ...>   |> Source.update(:example, code: "a - b")
+      ...>   |> Source.update(:example, code: "b = 21")
+      ...>   |> Source.update(:example, code: "b = 21")
+      ...>   |> Source.update(:example, code: "b = 21")
       iex> source.updates
-      [{:code, :example, "a + b"}]
+      [{:code, :example, "a = 42"}]
   """
   @spec update(t(), by(), [code: String.t() | Zipper.zipper()] | [path: Path.t()]) :: t()
   def update(%Source{ast: ast} = source, _by, [{:code, {ast, _meta}}]), do: source
@@ -270,10 +270,10 @@ defmodule Recode.Source do
 
   ## Examples
 
-      iex> source = Source.from_string("a + b")
+      iex> source = Source.from_string("a = 42")
       iex> Source.updated?(source)
       false
-      iex> source = Source.update(source, :example, code: "a - b")
+      iex> source = Source.update(source, :example, code: "b = 21")
       iex> Source.updated?(source)
       true
       iex> Source.updated?(source, :path)
@@ -571,6 +571,8 @@ defmodule Recode.Source do
   end
 
   defp get_modules(code) do
+    # `get_modules/1` does not use `Code.compile_*/2` so that code fragments and
+    # non-compilable code can also be examined.
     code
     |> Zipper.zip()
     |> Context.traverse(MapSet.new(), fn zipper, context, acc ->

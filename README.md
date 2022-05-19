@@ -67,5 +67,7 @@ alias Recode.Task
 
 ### `mix recode.rename`
 
+Refactored code should be compellable, but it is not guaranteed.
+
 ## Differences to Credo
 

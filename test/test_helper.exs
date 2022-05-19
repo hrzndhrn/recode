@@ -4,4 +4,4 @@ Code.compile_file("test/support/recode_case.ex")
 Mox.defmock(Recode.RunnerMock, for: Recode.Runner)
 Application.put_env(:recode, :runner, Recode.RunnerMock)
 
-ExUnit.start()
+ExUnit.start(capture_log: true)

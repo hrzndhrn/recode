@@ -155,8 +155,8 @@ defmodule Recode.SourceTest do
       source =
         path
         |> Source.new!()
-        |> Source.update(:test, code: "a.ex")
-        |> Source.update(:test, code: "b.ex")
+        |> Source.update(:test, code: "a = 1")
+        |> Source.update(:test, code: "b = 2")
 
       assert Source.path(source, 1) == path
       assert Source.path(source, 2) == path
@@ -186,12 +186,12 @@ defmodule Recode.SourceTest do
       source =
         code
         |> Source.from_string()
-        |> Source.update(:test, code: "a + c")
-        |> Source.update(:test, code: "a + d")
+        |> Source.update(:test, code: "a = 1")
+        |> Source.update(:test, code: "b = 2")
 
       assert Source.code(source, 1) == code
-      assert Source.code(source, 2) == "a + c\n"
-      assert Source.code(source, 3) == "a + d\n"
+      assert Source.code(source, 2) == "a = 1\n"
+      assert Source.code(source, 3) == "b = 2\n"
     end
   end
 
