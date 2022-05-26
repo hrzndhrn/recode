@@ -38,11 +38,11 @@ defmodule Recode.Formatter do
 
   def format(:project, {%Project{} = project, _config}, _opts) do
     case counts(project) do
-      {0, 0, 0} ->
+      {0, 0} ->
         :ok
 
-      {sources, scripts, modules} ->
-        puts([:info, "Found #{sources} files, including #{scripts} scripts. Modules: #{modules}"])
+      {sources, scripts} ->
+        puts([:info, "Found #{sources} files, including #{scripts} scripts."])
     end
   end
 
@@ -53,8 +53,7 @@ defmodule Recode.Formatter do
   defp counts(project) do
     {
       Project.count(project, :sources),
-      Project.count(project, :scripts),
-      Project.count(project, :modules)
+      Project.count(project, :scripts)
     }
   end
 

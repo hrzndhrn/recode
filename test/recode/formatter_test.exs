@@ -205,7 +205,7 @@ defmodule Recode.FormatterTest do
           Formatter.format(:project, {project, @config}, @opts)
         end)
 
-      assert strip_esc_seq(output) == "Found 1 files, including 0 scripts. Modules: 1\n"
+      assert strip_esc_seq(output) == "Found 1 files, including 0 scripts.\n"
     end
 
     test "formats when tasks ready for an empty project" do

@@ -18,7 +18,8 @@ defmodule Recode.MixProject do
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: preferred_cli_env(),
       deps: deps(),
-      package: package()
+      package: package(),
+      aliases: aliases()
     ]
   end
 
@@ -54,8 +55,16 @@ defmodule Recode.MixProject do
     ]
   end
 
+  defp dialyzer do
+    [
+      plt_file: {:no_warn, "test/support/plts/dialyzer.plt"},
+      flags: [:unmatched_returns]
+    ]
+  end
+
   def preferred_cli_env do
     [
+      carp: :test,
       coveralls: :test,
       "coveralls.detail": :test,
       "coveralls.post": :test,
@@ -64,10 +73,9 @@ defmodule Recode.MixProject do
     ]
   end
 
-  defp dialyzer do
+  defp aliases do
     [
-      plt_file: {:no_warn, "test/support/plts/dialyzer.plt"},
-      flags: [:unmatched_returns]
+      carp: "test --seed 0 --max-failures 1"
     ]
   end
 

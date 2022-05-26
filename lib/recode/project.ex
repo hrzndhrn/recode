@@ -16,8 +16,6 @@ defmodule Recode.Project do
   @type t :: %Project{
           sources: %{id() => Source.t()},
           paths: %{Path.t() => id()},
-          # TODO: remove modules
-          modules: %{module() => id()},
           inputs: [Path.t()]
         }
 
@@ -34,38 +32,38 @@ defmodule Recode.Project do
   def new(inputs) do
     inputs = inputs |> List.wrap() |> Enum.flat_map(&Path.wildcard/1)
 
-    {sources, paths, modules} =
-      Enum.reduce(inputs, {%{}, %{}, %{}}, fn path, {sources, paths, modules} ->
+    {sources, paths} =
+      Enum.reduce(inputs, {%{}, %{}}, fn path, {sources, paths} ->
         source = Source.new!(path)
-        update_internals({sources, paths, modules}, source)
+        update_internals({sources, paths}, source)
       end)
 
-    struct!(Project, sources: sources, paths: paths, modules: modules, inputs: inputs)
+    struct!(Project, sources: sources, paths: paths, inputs: inputs)
   end
 
   @doc ~S"""
   Creates a `%Project{}` from the given sources.
   """
   def from_sources(sources) do
-    {sources, paths, modules} =
-      Enum.reduce(sources, {%{}, %{}, %{}}, fn source, {sources, paths, modules} ->
-        update_internals({sources, paths, modules}, source)
+    {sources, paths} =
+      Enum.reduce(sources, {%{}, %{}}, fn source, {sources, paths} ->
+        update_internals({sources, paths}, source)
       end)
 
-    struct!(Project, sources: sources, paths: paths, modules: modules, inputs: nil)
+    struct!(Project, sources: sources, paths: paths, inputs: nil)
   end
 
   @doc ~S'''
-  Returns a `%Source{}` for the given key.
+  Returns a `%Source{}` for the given `key`.
 
-  The key could be a moudle, path or an id. For type module and path keys, the
-  most recent file is returned.
+  The key could be a path or an id. For path keys, the most recent file is
+  returned.
 
   ## Examples
 
       iex> source = Source.from_string(
       ...>    """
-      ...>    defmodule MyApp.Mod do
+      ...>    defmodule MyApp.Mode do
       ...>    end
       ...>    """,
       ...>    "my_app/mode.ex"
@@ -75,11 +73,8 @@ defmodule Recode.Project do
       {:ok, source}
       iex> Project.source(project, source.id)
       {:ok, source}
-      iex> Project.source(project, MyApp.Mod)
-      {:ok, source}
-      iex> Project.source(project, MyApp.Foo)
+      iex> Project.source(project, "foo")
       :error
-
 
       iex> source = Source.from_string(":a", "a.ex")
       iex> project = Project.from_sources(
@@ -93,15 +88,9 @@ defmodule Recode.Project do
       {:ok, update}
   '''
   @spec source(t(), key) :: {:ok, Source.t()} | :error
-        when key: id() | Path.t() | module()
+        when key: id() | Path.t()
   def source(%Project{sources: sources}, key) when is_reference(key) do
     Map.fetch(sources, key)
-  end
-
-  def source(%Project{sources: sources, modules: modules}, key) when is_atom(key) do
-    with {:ok, id} <- Map.fetch(modules, key) do
-      Map.fetch(sources, id)
-    end
   end
 
   def source(%Project{sources: sources, paths: paths}, key) when is_binary(key) do
@@ -139,17 +128,14 @@ defmodule Recode.Project do
   otherwise the `source` will be added.
   """
   @spec update(t(), Source.t()) :: t()
-  def update(
-        %Project{sources: sources, paths: paths, modules: modules} = project,
-        %Source{} = source
-      ) do
+  def update(%Project{sources: sources, paths: paths} = project, %Source{} = source) do
     case update?(project, source) do
       false ->
         project
 
       true ->
-        {sources, paths, modules} = update_internals({sources, paths, modules}, source)
-        %Project{project | sources: sources, paths: paths, modules: modules}
+        {sources, paths} = update_internals({sources, paths}, source)
+        %Project{project | sources: sources, paths: paths}
     end
   end
 
@@ -160,16 +146,11 @@ defmodule Recode.Project do
     end
   end
 
-  defp update_internals({sources, paths, modules}, source) do
+  defp update_internals({sources, paths}, source) do
     sources = Map.put(sources, source.id, source)
     paths = Map.put(paths, source.path, source.id)
 
-    modules =
-      source.modules
-      |> Enum.into(%{}, fn module -> {module, source.id} end)
-      |> Map.merge(modules)
-
-    {sources, paths, modules}
+    {sources, paths}
   end
 
   @doc """
@@ -247,11 +228,15 @@ defmodule Recode.Project do
 
   @doc """
   Counts the items of the given `type` in the `project`.
-  """
-  @spec count(t, type :: :sources | :scripts | :modules) :: non_neg_integer
-  def count(%Project{sources: sources}, :sources), do: map_size(sources)
 
-  def count(%Project{modules: modules}, :modules), do: map_size(modules)
+  The `type` `:sources` returns the count for all sources in the project,
+  including scripts.
+
+  The `type` `:scripts` returns the count of all sources with a path that ends
+  with `".exs"`.
+  """
+  @spec count(t, type :: :sources | :scripts) :: non_neg_integer
+  def count(%Project{sources: sources}, :sources), do: map_size(sources)
 
   def count(%Project{paths: paths}, :scripts) do
     paths

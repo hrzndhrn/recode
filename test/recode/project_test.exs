@@ -14,28 +14,29 @@ defmodule Recode.ProjectTest do
       assert project.inputs == inputs
       assert Map.keys(project.paths) == inputs
       assert Enum.count(project.sources) == 1
-      assert Map.keys(project.modules) == [MyApp.Simple]
     end
   end
 
   describe "source/2" do
-    test "returns the source struct for a module" do
-      project = Project.new(["test/fixtures/source/simple.ex"])
-      assert {:ok, %Source{}} = Project.source(project, MyApp.Simple)
+    test "returns the source struct for a path" do
+      path = "test/fixtures/source/simple.ex"
+      project = Project.new([path])
+      assert {:ok, %Source{}} = Project.source(project, path)
     end
   end
 
   describe "source!/2" do
-    test "returns the source struct for a module" do
-      project = Project.new(["test/fixtures/source/simple.ex"])
-      assert %Source{} = Project.source!(project, MyApp.Simple)
+    test "returns the source struct for a path" do
+      path = "test/fixtures/source/simple.ex"
+      project = Project.new([path])
+      assert %Source{} = Project.source!(project, path)
     end
 
-    test "raises an error for an invalid module" do
+    test "raises an error for an invalid path" do
       project = Project.new(["test/fixtures/source/simple.ex"])
 
-      assert_raise ProjectError, "No source for Invalid.Module found.", fn ->
-        Project.source!(project, Invalid.Module)
+      assert_raise ProjectError, ~s|No source for "foo/bar.ex" found.|, fn ->
+        Project.source!(project, "foo/bar.ex")
       end
     end
   end
@@ -209,7 +210,6 @@ defmodule Recode.ProjectTest do
         ])
 
       assert Project.count(project, :sources) == 2
-      assert Project.count(project, :modules) == 0
       assert Project.count(project, :scripts) == 1
     end
   end
