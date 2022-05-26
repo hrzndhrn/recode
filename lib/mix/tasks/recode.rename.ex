@@ -1,5 +1,4 @@
 defmodule Mix.Tasks.Recode.Rename do
-  # TODO: Replace by exchange
   @shortdoc "Renames the given function"
 
   @moduledoc """
@@ -21,7 +20,7 @@ defmodule Mix.Tasks.Recode.Rename do
   mix recode.rename MyApp.SomeMoudle.do_it/2 make
   ```
 
-  ## Options
+  ## Switchtes
 
     * `--config` - specifies an alternative config file.
 
@@ -45,13 +44,6 @@ defmodule Mix.Tasks.Recode.Rename do
   def run(opts) do
     {opts, args} = OptionParser.parse!(opts, @opts)
     args = args!(args)
-
-    # opts = update(opts, :verbose)
-
-    # config =
-    #   opts
-    #   |> update(:verbose)
-    #   |> config!()
 
     config =
       opts
