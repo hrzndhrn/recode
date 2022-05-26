@@ -25,8 +25,7 @@ defmodule Recode.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :mix, :ex_unit, :crypto],
-      mod: {Recode.Application, []}
+      extra_applications: [:logger, :mix, :ex_unit, :crypto]
     ]
   end
 
