@@ -230,7 +230,7 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:@, _meta, _args} = attribute, _zipper_meta} = zipper, context, fun) do
-    context = traverse_helper(:attribute, attribute, context)
+    context = add_attribute(context, attribute)
     cont(zipper, context, fun)
   end
 
@@ -334,7 +334,7 @@ defmodule Recode.Context do
   end
 
   defp do_traverse({{:@, _meta, _args} = attribute, _zipper_meta} = zipper, context, acc, fun) do
-    context = traverse_helper(:attribute, attribute, context)
+    context = add_attribute(context, attribute)
     cont(zipper, context, acc, fun)
   end
 
@@ -447,8 +447,7 @@ defmodule Recode.Context do
 
   # helpers for traverse/2/3
 
-  # TODO: rename function
-  defp traverse_helper(:attribute, {:@, _meta, [arg]} = attribute, context) do
+  defp add_attribute(context, {:@, _meta, [arg]} = attribute) do
     case arg do
       {:moduledoc, _meta, _args} ->
         %{context | moduledoc: attribute}
@@ -554,15 +553,11 @@ defmodule Recode.Context do
     end)
   end
 
-  defp get_as(opts, default \\ :none) do
-    Enum.find_value(opts, default, fn
-      {{:__block__, _meta_block, [:as]}, {:__aliases__, _meta_aliases, as}} ->
-        Module.concat(as)
-
-      _item ->
-        false
-    end)
+  defp get_as([{{:__block__, _meta_block, [:as]}, {:__aliases__, _meta_aliases, as}}]) do
+    Module.concat(as)
   end
+
+  defp get_as(_ast), do: :error
 
   defp definition(%Context{definition: nil}, :meta), do: nil
 

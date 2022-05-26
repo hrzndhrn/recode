@@ -16,6 +16,7 @@ defmodule Recode.Project do
   @type t :: %Project{
           sources: %{id() => Source.t()},
           paths: %{Path.t() => id()},
+          # TODO: remove modules
           modules: %{module() => id()},
           inputs: [Path.t()]
         }
@@ -255,7 +256,10 @@ defmodule Recode.Project do
   def count(%Project{paths: paths}, :scripts) do
     paths
     |> Map.keys()
-    |> Enum.filter(fn path -> String.ends_with?(path, ".exs") end)
+    |> Enum.filter(fn
+      nil -> false
+      path -> String.ends_with?(path, ".exs")
+    end)
     |> Enum.count()
   end
 

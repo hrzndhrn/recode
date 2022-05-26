@@ -1,6 +1,8 @@
 defmodule Recode.Application do
   @moduledoc false
 
+  # TODO: needed?
+
   use Application
 
   @impl true

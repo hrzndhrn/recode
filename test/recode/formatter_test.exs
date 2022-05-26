@@ -7,12 +7,13 @@ defmodule Recode.FormatterTest do
   alias Recode.Issue
   alias Recode.Project
   alias Recode.Source
+  alias Recode.Task.Format
 
   @config verbose: true
   @opts []
 
   describe "formatter/3" do
-    test "formats a project" do
+    test "formats results for a project without changes" do
       code = """
       defmodule Foo do
         def bar, do: :foo
@@ -31,7 +32,7 @@ defmodule Recode.FormatterTest do
       assert strip_esc_seq(output) == ""
     end
 
-    test "formats a project with changed source" do
+    test "formats results for a project with changed source" do
       code = """
       defmodule Foo do
         def bar, do: :foo
@@ -63,7 +64,7 @@ defmodule Recode.FormatterTest do
              """
     end
 
-    test "formats a project with changed and reverted source" do
+    test "formats results for a project with changed and reverted source" do
       code = """
       defmodule Foo do
         def bar, do: :foo
@@ -91,7 +92,7 @@ defmodule Recode.FormatterTest do
              """
     end
 
-    test "formats a project with changed source in big file" do
+    test "formats results for a project with changed source in big file" do
       code = """
       defmodule Foo do
         # Not really a very big file ;-)
@@ -129,7 +130,34 @@ defmodule Recode.FormatterTest do
       assert output =~ "...   |"
     end
 
-    test "formats a project with issues" do
+    test "formats results for a project with moved source" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source =
+        code
+        |> Source.from_string("foo.ex")
+        |> Source.update(:test, path: "bar.ex")
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:results, {project, @config}, @opts)
+        end)
+
+      assert strip_esc_seq(output) == """
+              File: bar.ex
+             Updates: 1
+             Changed by: test
+             Moved from: foo.ex
+             """
+    end
+
+    test "formats results for a project with issues" do
       code = """
       defmodule Foo do
         def bar, do: :foo
@@ -159,6 +187,70 @@ defmodule Recode.FormatterTest do
              [bar 2/3] no no no
 
              """
+    end
+
+    test "formats project infos" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source = Source.from_string(code)
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:project, {project, @config}, @opts)
+        end)
+
+      assert strip_esc_seq(output) == "Found 1 files, including 0 scripts. Modules: 1\n"
+    end
+
+    test "formats when tasks ready for an empty project" do
+      project = Project.from_sources([])
+      assert Formatter.format(:tasks_ready, {project, @config}, @opts) == :ok
+    end
+
+    test "formats when tasks ready" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source = Source.from_string(code)
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:tasks_ready, {project, @config}, @opts) == :ok
+        end)
+
+      assert output == "\n"
+    end
+  end
+
+  describe "formatter/4" do
+    test "formats task info" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source = Source.from_string(code)
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:task, {project, @config}, {source, Format, []}, @opts)
+        end)
+
+      assert strip_esc_seq(output) == "."
     end
   end
 

@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Recode.Rename do
+  # TODO: Replace by exchange
   @shortdoc "Renames the given function"
 
   @moduledoc """

@@ -37,13 +37,19 @@ defmodule Recode.IO do
   Formats a chardata-like argument by converting named ANSI sequences into
   actual ANSI codes and writes it to `:stdio`.
   """
-  def write(chardata) do
+  def write(chardata) when is_list(chardata) do
     chardata
     |> Enum.map(&colors/1)
     |> Bunt.write()
   end
 
+  def write(string) when is_binary(string), do: IO.write(string)
+
   defp colors(data) when is_atom(data), do: Map.get(@colors, data, data)
 
   defp colors(data), do: data
+
+  defdelegate reverse, to: IO.ANSI
+
+  defdelegate reverse_off, to: IO.ANSI
 end

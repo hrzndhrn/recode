@@ -12,6 +12,7 @@ defmodule Recode.Task.SinglePipeTest do
     def fixme(arg) do
       arg |> zoo()
       arg |> zoo(:tiger)
+      one() |> two()
     end
     """
 
@@ -19,6 +20,7 @@ defmodule Recode.Task.SinglePipeTest do
     def fixme(arg) do
       zoo(arg)
       zoo(arg, :tiger)
+      two(one())
     end
     """
 

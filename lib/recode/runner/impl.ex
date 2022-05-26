@@ -45,7 +45,7 @@ defmodule Recode.Runner.Impl do
           source
 
         false ->
-          format(project, :task, config, {source, module, opts})
+          _project = format(project, :task, config, {source, module, opts})
           module.run(source, opts)
       end
     end)
@@ -54,7 +54,7 @@ defmodule Recode.Runner.Impl do
   defp format(%Project{} = project, label, config, info \\ nil) do
     case Keyword.fetch(config, :formatter) do
       {:ok, {formatter, opts}} ->
-        format(formatter, label, project, opts, config, info)
+        do_format(formatter, label, project, opts, config, info)
         project
 
       :error ->
@@ -62,11 +62,11 @@ defmodule Recode.Runner.Impl do
     end
   end
 
-  defp format(formatter, label, project, opts, config, nil) do
+  defp do_format(formatter, label, project, opts, config, nil) do
     formatter.format(label, {project, config}, opts)
   end
 
-  defp format(formatter, label, project, opts, config, info) do
+  defp do_format(formatter, label, project, opts, config, info) do
     formatter.format(label, {project, config}, info, opts)
   end
 

@@ -30,7 +30,7 @@ defmodule Recode.MixProject do
   end
 
   defp description do
-    "A linter with autocorrection and a refactoring tool."
+    "An experimental linter with autocorrection and a refactoring tool."
   end
 
   defp docs do

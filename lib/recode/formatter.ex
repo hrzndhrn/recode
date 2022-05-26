@@ -3,7 +3,6 @@ defmodule Recode.Formatter do
   The default formatter and the formatter bebaviour.
   """
 
-  import IO.ANSI, only: [reverse: 0, reverse_off: 0]
   import Recode.IO
 
   alias Recode.Project
@@ -33,7 +32,7 @@ defmodule Recode.Formatter do
   def format(:tasks_ready, {%Project{} = project, _config}, _opts) do
     case Project.sources(project) do
       [] -> :ok
-      [_ | _] -> IO.write("\n")
+      [_ | _] -> write("\n")
     end
   end
 
@@ -43,14 +42,12 @@ defmodule Recode.Formatter do
         :ok
 
       {sources, scripts, modules} ->
-        [:info, "Found #{sources} files, including #{scripts} scripts.  Modules: #{modules}"]
-        |> newline()
-        |> write()
+        puts([:info, "Found #{sources} files, including #{scripts} scripts. Modules: #{modules}"])
     end
   end
 
   def format(:task, {_project, _config}, {_source, _task_module, _task_opts}, _opts) do
-    IO.write(".")
+    write(".")
   end
 
   defp counts(project) do
@@ -63,13 +60,15 @@ defmodule Recode.Formatter do
 
   defp do_format(source, opts, verbose) do
     issues? = Source.has_issues?(source, :all)
-    updated? = Source.updated?(source) and verbose
+    code_updated? = Source.updated?(source, :code) and verbose
+    path_updated? = Source.updated?(source, :path) and verbose
+    updated? = code_updated? or path_updated?
 
     []
     |> format_file(source, opts, issues? or updated?)
     |> format_updates(source, opts, updated?)
-    |> format_path_update(source, opts, updated?)
-    |> format_code_update(source, opts, updated?)
+    |> format_path_update(source, opts, path_updated?)
+    |> format_code_update(source, opts, code_updated?)
     |> format_issues(source, opts, issues?)
     |> newline(issues? or updated?)
     |> write()
@@ -102,33 +101,21 @@ defmodule Recode.Formatter do
   defp format_path_update(output, _source, _opts, false), do: output
 
   defp format_path_update(output, source, _opts, true) do
-    case Source.updated?(source, :path) do
-      true ->
-        Enum.concat([
-          output,
-          changed_by(source),
-          ["Moved from: #{Source.path(source, 1)}"]
-        ])
-
-      false ->
-        output
-    end
+    Enum.concat([
+      output,
+      changed_by(source),
+      ["Moved from: #{Source.path(source, 1)}"]
+    ])
   end
 
   defp format_code_update(output, _source, _opts, false), do: output
 
   defp format_code_update(output, source, _opts, true) do
-    case Source.updated?(source, :code) do
-      true ->
-        Enum.concat([
-          output,
-          changed_by(source),
-          diff(Source.code(source), Source.code(source, 1))
-        ])
-
-      false ->
-        output
-    end
+    Enum.concat([
+      output,
+      changed_by(source),
+      diff(Source.code(source), Source.code(source, 1))
+    ])
   end
 
   defp format_issues(output, _source, _opts, false), do: output

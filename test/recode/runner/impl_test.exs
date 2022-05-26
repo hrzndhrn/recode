@@ -20,7 +20,7 @@ defmodule Recode.Runner.ImplTest do
 
   describe "run/1" do
     test "runs tasks from config", %{config: config} do
-      config = Keyword.merge(config, dry: true, tasks: [{SinglePipe, []}])
+      config = Keyword.merge(config, dry: true, verbose: true, tasks: [{SinglePipe, []}])
 
       capture_io(fn ->
         assert %Project{} = Runner.run(config)

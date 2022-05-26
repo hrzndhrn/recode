@@ -71,6 +71,44 @@ defmodule Recode.ContextTest do
       assert output =~ ~r/^64:.spec:.nil/m
     end
 
+    test "traverses modules and collects @impl" do
+      src = File.read!("test/fixtures/context/impl.ex")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output =~ """
+             27: impl: {{:def, :foo, 1}, \
+             {:@, [trailing_comments: [], leading_comments: [], \
+             end_of_expression: [newlines: 1, line: 4, column: 13], line: 4, column: 3], \
+             [{:impl, [trailing_comments: [], leading_comments: [], line: 4, column: 4], \
+             [{:__block__, [trailing_comments: [], leading_comments: [], line: 4, column: 9], \
+             [true]}]}]}}\
+             """
+
+      assert output =~ """
+             42: impl: {{:def, :baz, 0}, \
+             {:@, [trailing_comments: [], leading_comments: [], \
+             end_of_expression: [newlines: 1, line: 7, column: 27], line: 7, column: 3], \
+             [{:impl, [trailing_comments: [], leading_comments: [], line: 7, column: 4], \
+             [{:__aliases__, [trailing_comments: [], leading_comments: [], \
+             last: [line: 7, column: 18], line: 7, column: 9], \
+             [:Traverse, :Something]}]}]}}\
+             """
+    end
+
     test "traverse a nested module" do
       src = File.read!("test/fixtures/context/nested.ex")
 
@@ -248,6 +286,62 @@ defmodule Recode.ContextTest do
       assert acc |> Enum.at(at) |> Map.get(:moduledoc) == nil
       assert acc |> Enum.at(at) |> Map.get(:doc) == nil
       assert acc |> Enum.at(at) |> Map.get(:spec) == nil
+    end
+
+    test "traverses modules and collects @impl" do
+      src = File.read!("test/fixtures/context/impl.ex")
+
+      {_result, acc} =
+        src
+        |> Sourceror.parse_string!()
+        |> Zipper.zip()
+        |> Context.traverse([], fn zipper, context, acc ->
+          {zipper, context, [context | acc]}
+        end)
+
+      acc = Enum.reverse(acc)
+
+      assert acc |> Enum.at(17) |> Map.get(:impl) ==
+               {{:def, :foo, 1},
+                {:@,
+                 [
+                   trailing_comments: [],
+                   leading_comments: [],
+                   end_of_expression: [newlines: 1, line: 4, column: 13],
+                   line: 4,
+                   column: 3
+                 ],
+                 [
+                   {:impl, [trailing_comments: [], leading_comments: [], line: 4, column: 4],
+                    [
+                      {:__block__,
+                       [trailing_comments: [], leading_comments: [], line: 4, column: 9], [true]}
+                    ]}
+                 ]}}
+
+      assert acc |> Enum.at(41) |> Map.get(:impl) ==
+               {{:def, :baz, 0},
+                {:@,
+                 [
+                   trailing_comments: [],
+                   leading_comments: [],
+                   end_of_expression: [newlines: 1, line: 7, column: 27],
+                   line: 7,
+                   column: 3
+                 ],
+                 [
+                   {:impl, [trailing_comments: [], leading_comments: [], line: 7, column: 4],
+                    [
+                      {:__aliases__,
+                       [
+                         trailing_comments: [],
+                         leading_comments: [],
+                         last: [line: 7, column: 18],
+                         line: 7,
+                         column: 9
+                       ], [:Traverse, :Something]}
+                    ]}
+                 ]}}
     end
 
     test "collects use, import, etc..." do
@@ -558,6 +652,7 @@ defmodule Recode.ContextTest do
     IO.write("#{count}: moduledoc: #{inspect(context.moduledoc)}" <> "\n")
     IO.write("#{count}: doc: #{inspect(context.doc)}" <> "\n")
     IO.write("#{count}: spec: #{inspect(context.spec)}" <> "\n")
+    IO.write("#{count}: impl: #{inspect(context.impl)}" <> "\n")
     context
   end
 end
