@@ -42,7 +42,7 @@ Documentation can be found at https://hexdocs.pm/recode.
 ## Usage
 
 To start with Foo a configuration file is needed.
-```shell
+```
 $ mix recode.gen.config
 ```
 This mix task generates the config file `.recode.exs`.
@@ -76,7 +76,7 @@ alias Recode.Task
 This mix tasks runs the linter with autocorrection. The switch `--dry` prevents
 the update of the files and shows all changes in the console.
 
-```shell
+```
 > cd examples/my_code
 > mix recode --dry
 Found 11 files, including 2 scripts.
@@ -169,7 +169,7 @@ Moved from: test/my_code_test.ex
 
 The switch `--no-autocorrect` runs the linter without any file changes.
 
-```shell
+```
 > cd examples/my_code
 > mix recode --no-autocorrect
 Found 11 files, including 2 scripts.
@@ -208,7 +208,7 @@ Found 11 files, including 2 scripts.
 
 A mix task to rename a function and all their function calls.
 
-```shell
+```
 > cd examples/my_code
 > mix recode.rename --dry MyCode.SinglePipe.double dbl
 Found 11 files, including 2 scripts.
