@@ -1,4 +1,4 @@
-# Created with GitHubActions version 0.1.9
+# Created with GitHubActions version 0.1.10
 name: CI
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,6 +45,7 @@ jobs:
         with:
           path: test/support/plts
           key: test/support/plts-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        if: ${{ contains(matrix.elixir, '1.13.4') && contains(matrix.otp, '25.0') }}
       - name: Get dependencies
         run: mix deps.get
       - name: Compile dependencies
@@ -65,3 +66,4 @@ jobs:
         if: ${{ contains(matrix.elixir, '1.13.4') && contains(matrix.otp, '25.0') }}
       - name: Static code analysis
         run: mix dialyzer
+        if: ${{ contains(matrix.elixir, '1.13.4') && contains(matrix.otp, '25.0') }}
