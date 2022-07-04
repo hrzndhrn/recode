@@ -3,14 +3,37 @@ defmodule Recode.Task do
   The behaviour for a `recode` task.
   """
 
-  @callback run(ast :: Macro.t(), opts :: Keyword.t()) :: Macro.t()
+  alias Recode.Source
 
-  defmacro __using__(_opts) do
+  @doc """
+  Applies a task with the given `source` and `opts`.
+  """
+  @callback run(source :: Source.t(), opts :: Keyword.t()) :: Source.t()
+
+  @doc """
+  Returns the configuration for the given `key`.
+  """
+  @callback config(key :: :check | :correct | :refactor) :: boolean
+
+  defmacro __using__(opts) do
     quote do
-      alias Sourceror.Zipper
+      @behaviour Recode.Task
 
-      @spec run(ast :: Macro.t()) :: Macro.t()
-      def run(ast), do: run(ast, [])
+      @opts Map.merge(
+              %{
+                check: false,
+                correct: false,
+                refactor: false
+              },
+              Enum.into(unquote(opts), %{})
+            )
+
+      @doc false
+      def config(key) when key in [:check, :correct, :refactor] do
+        Map.fetch!(@opts, key)
+      end
+
+      defoverridable config: 1
     end
   end
 end

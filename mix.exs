@@ -8,7 +8,7 @@ defmodule Recode.MixProject do
     [
       app: :recode,
       version: "0.1.0",
-      elixir: "~> 1.10",
+      elixir: "~> 1.12",
       name: "Recode",
       description: description(),
       docs: docs(),
@@ -18,29 +18,53 @@ defmodule Recode.MixProject do
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: preferred_cli_env(),
       deps: deps(),
-      package: package()
+      package: package(),
+      aliases: aliases()
     ]
   end
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :mix, :ex_unit, :crypto]
     ]
   end
 
   defp description do
-    "A codre refactoring tool and credo issue solver"
+    "An experimental linter with autocorrection and a refactoring tool."
   end
 
   defp docs do
     [
       source_ref: "v#{@version}",
-      formatters: ["html"]
+      formatters: ["html"],
+      groups_for_modules: [
+        "Linter tasks": [
+          Recode.Task.AliasExpansion,
+          Recode.Task.AliasOrder,
+          Recode.Task.Format,
+          Recode.Task.PipeFunOne,
+          Recode.Task.SinglePipe,
+          Recode.Task.Specs,
+          Recode.Task.TestFileExt
+        ],
+        "Refactoring tasks": [
+          Recode.Task.Rename
+        ]
+      ]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      ignore_warnings: ".dialyzer_ignore.exs",
+      plt_file: {:no_warn, "test/support/plts/dialyzer.plt"},
+      flags: [:unmatched_returns]
     ]
   end
 
   def preferred_cli_env do
     [
+      carp: :test,
       coveralls: :test,
       "coveralls.detail": :test,
       "coveralls.post": :test,
@@ -49,23 +73,24 @@ defmodule Recode.MixProject do
     ]
   end
 
-  defp dialyzer do
+  defp aliases do
     [
-      plt_file: {:no_warn, "test/support/plts/dialyzer.plt"},
-      flags: [:unmatched_returns]
+      carp: "test --seed 0 --max-failures 1"
     ]
   end
 
   defp deps do
     [
-      # {:sourceror, "~> 0.9"},
+      {:beam_file, "~> 0.3"},
+      {:bunt, "~> 0.2.0"},
+      {:sourceror, "~> 0.11"},
       # {:sourceror, path: "../../forks/sourceror"},
-      {:sourceror, git: "https://github.com/doorgan/sourceror"},
-      {:credo, "~> 1.6", runtime: false},
-      # dev and test
+      # dev/test
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
+      {:mox, "~> 1.0", only: :test}
     ]
   end
 

@@ -1,5 +1,7 @@
 defmodule Rename.Bar do
   def bar, do: :baz
+
+  def bar(x), do: {x, :baz}
 end
 
 defmodule Rename.Foo do
@@ -8,6 +10,10 @@ defmodule Rename.Foo do
   def foo(:a), do: bar()
 
   def foo(:b) do
-    bar()
+    bar() |> bar() |> List.wrap()
+  end
+
+  def go(x) do
+    x
   end
 end

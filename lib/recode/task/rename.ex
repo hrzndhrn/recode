@@ -1,56 +1,48 @@
 defmodule Recode.Task.Rename do
   @moduledoc """
-  TODO:
-  - Write moduledoc
-  - Add a mix task
+  A refactoring task to rename functions.
+
+  For usage, see `mix recode.rename`.
   """
 
+  use Recode.Task, refactor: true
+
+  import Kernel, except: [match?: 2]
+
   alias Recode.AST
-  alias Recode.Equal
-  alias Recode.Project
+  alias Recode.Context
+  alias Recode.DebugInfo
+  alias Recode.Source
+  alias Recode.Task.Rename
+  alias Sourceror.Zipper
 
-  use Recode.Task
+  @impl Recode.Task
+  def run(source, opts) do
+    zipper =
+      source
+      |> Source.zipper()
+      |> Context.traverse(fn zipper, context ->
+        opts = Keyword.put(opts, :source, source)
+        rename(zipper, context, opts)
+      end)
 
-  def run(ast, opts) do
-    ast
-    |> Zipper.zip()
-    |> Recode.traverse(fn zipper, context ->
-      rename(zipper, context, opts)
-    end)
-    |> Zipper.root()
+    Source.update(source, Rename, code: zipper)
   end
 
-  {
-    {:., [trailing_comments: [], line: 5, column: 8],
-     [
-       {:__aliases__,
-        [
-          trailing_comments: [],
-          leading_comments: [],
-          last: [line: 5, column: 5],
-          line: 5,
-          column: 5
-        ], [:Bar]},
-       :baz
-     ]},
-    [
-      trailing_comments: [],
-      leading_comments: [],
-      end_of_expression: [newlines: 1, line: 5, column: 15],
-      closing: [line: 5, column: 14],
-      line: 5,
-      column: 9
-    ],
-    [{:x, [trailing_comments: [], leading_comments: [], line: 5, column: 13], nil}]
-  }
-
-  defp rename({{{:., _, _}, _, _} = ast, _} = zipper, context, opts) do
-    case rename?(:dot, ast, context, opts) do
-      false ->
+  defp rename({{fun, _meta, [call, _expr]}, _zipper_meta} = zipper, context, opts)
+       when fun in [
+              :def,
+              :defp,
+              :defmacro,
+              :defmacrop
+            ] do
+    case rename?(:definition, call, context, opts[:from]) do
+      true ->
+        zipper = zipper |> update_definition(opts[:to]) |> Zipper.next()
         {zipper, context}
 
-      true ->
-        zipper = Zipper.replace(zipper, AST.update_mfa(ast, opts[:to]))
+      false ->
+        zipper = Zipper.next(zipper)
         {zipper, context}
     end
   end
@@ -58,62 +50,182 @@ defmodule Recode.Task.Rename do
   defp rename({{fun, _meta, _args}, _zipper_meta} = zipper, context, _opts)
        when fun in [
               :alias,
-              :def,
-              :defp,
-              :defmacro,
-              :defmacrop,
-              :defdelegate,
               :defmodule,
+              :defdelegate,
               :__aliases__,
               :__block__
             ] do
     {zipper, context}
   end
 
-  # TODO: merge the next two functions?
-  defp rename({{fun, _meta, nil} = ast, _zipper_meta} = zipper, context, opts)
-       when is_atom(fun) do
-    case rename?(:function, ast, context, opts) && do_block?(zipper) do
+  defp rename(
+         {{:@, _meta1, [{:spec, _meta2, [arg]}]}, _zipper_meta} = zipper,
+         context,
+         opts
+       ) do
+    case rename?(:spec, arg, context, opts[:from]) do
+      true ->
+        zipper = update_spec(zipper, opts[:to])
+        {zipper, context}
+
       false ->
         {zipper, context}
-
-      true ->
-        zipper = Zipper.replace(zipper, AST.update_function(ast, opts[:to]))
-
-        {zipper, context}
     end
+  end
+
+  defp rename({{:@, _meta1, _args}, _zipper_meta} = zipper, context, _opts) do
+    {zipper, context}
   end
 
   defp rename({{fun, _meta, _args} = ast, _zipper_meta} = zipper, context, opts)
        when is_atom(fun) do
-    case rename?(:function, ast, context, opts) do
+    case rename?(:call, ast, context, opts) do
       false ->
         {zipper, context}
 
       true ->
-        zipper = Zipper.replace(zipper, AST.update_function(ast, opts[:to]))
+        zipper = update_call(zipper, opts[:to])
 
         {zipper, context}
     end
   end
 
-  defp rename(zipper, context, _) do
+  defp rename(
+         {{{:., _meta1, [{:__aliases__, _meta2, _args2}, _fun]}, _meta3, _args3} = ast,
+          _zipper_meta} = zipper,
+         context,
+         opts
+       ) do
+    case rename?(:dot, ast, context, opts) do
+      false ->
+        {zipper, context}
+
+      true ->
+        zipper = update_dot_call(zipper, opts[:to])
+
+        {zipper, context}
+    end
+  end
+
+  defp rename(zipper, context, _opts) do
     {zipper, context}
   end
 
-  defp do_block?(zipper) do
-    zipper |> Zipper.next() |> Zipper.node() |> AST.do_block?()
+  defp rename?(
+         :spec,
+         {:"::", _meta1, [{fun, _meta2, args}, _result]},
+         %Context{module: {module, _meta3}},
+         {module, fun, arity}
+       ) do
+    arity?(args, arity)
+  end
+
+  defp rename?(:spec, {:when, _meta, [spec, _when]}, context, from) do
+    rename?(:spec, spec, context, from)
+  end
+
+  defp rename?(:spec, _ast, _context, _from), do: false
+
+  defp rename?(
+         :definition,
+         {fun, _meta1, args},
+         %Context{module: {module, _meta2}},
+         {module, fun, arity}
+       ) do
+    arity?(args, arity)
+  end
+
+  defp rename?(
+         :definition,
+         {:when, _meta1, [{fun, _meta2, args}, _when]},
+         %Context{module: {module, _meta3}},
+         {module, fun, arity}
+       ) do
+    arity?(args, arity)
+  end
+
+  defp rename?(:definition, _ast, _context, _from) do
+    false
+  end
+
+  defp rename?(:call, {fun, _meta, args}, context, opts) when not is_nil(args) do
+    from = opts[:from]
+
+    with true <- fun == elem(from, 1) do
+      mfa = {nil, fun, length(args)}
+      rename?(:debug, mfa, context, opts)
+    end
+  end
+
+  defp rename?(:call, _ast, _context, _from) do
+    false
   end
 
   defp rename?(:dot, ast, context, opts) do
-    mfa = AST.get_mfa(ast)
-    mfa = Project.mfa(opts[:project], context, mfa)
-    Equal.mfa?(mfa, opts[:from])
+    mfa = AST.mfa(ast)
+    from = opts[:from]
+
+    with true <- fun?(mfa, from) do
+      case Context.expand_mfa(context, mfa) do
+        {:ok, mfa} ->
+          match?(mfa, from)
+
+        :error ->
+          rename?(:debug, mfa, context, opts)
+      end
+    end
   end
 
-  defp rename?(:function, ast, context, opts) do
-    mfa = AST.get_mfa(ast)
-    mfa = Project.mfa(opts[:project], context, mfa)
-    Equal.mfa?(mfa, opts[:from])
+  defp rename?(:debug, mfa, context, opts) do
+    source = opts[:source]
+
+    case Source.debug_info(source, Context.module(context)) do
+      {:error, _reason} ->
+        false
+
+      {:ok, debug_info} ->
+        case DebugInfo.expand_mfa(debug_info, context, mfa) do
+          {:ok, mfa} -> match?(mfa, opts[:from])
+          :error -> false
+        end
+    end
+  end
+
+  defp arity?(args, arity) do
+    cond do
+      is_nil(arity) -> true
+      is_nil(args) -> arity == 0
+      true -> length(args) == arity
+    end
+  end
+
+  defp fun?({_module1, fun, _arity1}, {_module2, fun, _arity2}), do: true
+
+  defp fun?(_mfa1, _mfa2), do: false
+
+  defp match?({module, fun, arity}, {module, fun, arity}), do: true
+
+  defp match?({module, fun, _arity}, {module, fun, nil}), do: true
+
+  defp match?(_mfa1, _mfa2), do: false
+
+  defp update_definition({ast, _meta} = zipper, %{fun: name}) do
+    ast = AST.update_definition(ast, name: name)
+    Zipper.replace(zipper, ast)
+  end
+
+  defp update_spec({ast, _meta} = zipper, %{fun: name}) do
+    ast = AST.update_spec(ast, name: name)
+    Zipper.replace(zipper, ast)
+  end
+
+  defp update_call({ast, _meta} = zipper, %{fun: name}) do
+    ast = AST.update_call(ast, name: name)
+    Zipper.replace(zipper, ast)
+  end
+
+  defp update_dot_call({ast, _meta} = zipper, %{fun: name}) do
+    ast = AST.update_dot_call(ast, name: name)
+    Zipper.replace(zipper, ast)
   end
 end

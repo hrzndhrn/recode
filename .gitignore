@@ -23,4 +23,9 @@ erl_crash.dump
 recode-*.tar
 
 # Temporary files, for example, from tests.
-/tmp/
+/tmp/*
+!/tmp/.keep
+
+# dialyzer plt
+/test/support/plts/*.plt
+/test/support/plts/*.plt.hash

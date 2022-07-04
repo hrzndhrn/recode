@@ -1,82 +1,304 @@
 defmodule Recode.AST do
-  def get_aliases([{:__aliases__, _, path}, name]), do: {path, name}
-  def get_aliases(_), do: nil
+  @moduledoc """
+  This module provides functions to manipulate the AST.
+  """
 
-  def fetch_aliases(ast) do
-    case get_aliases(ast) do
-      nil -> :error
-      dot -> {:ok, dot}
-    end
-  end
+  @doc """
+  Updates the AST representing a definition.
 
-  def get_dot({{:., _meta1, aliases}, _meta2, args}) do
-    case fetch_aliases(aliases) do
-      :error -> nil
-      {:ok, {path, name}} -> {path, name, args}
-    end
-  end
+  The keyword list `updates` can have the keys `name`, `meta` and `args`.
 
-  # TODO: rename to get_afa (afa = alias-function-arity eq. moudle-function-arity)
-  def get_mfa({{:., _, aliases}, _, args}) do
-    case fetch_aliases(aliases) do
-      :error -> nil
-      {:ok, {path, name}} -> {path, name, length(args)}
-    end
-  end
+  ## Examples
 
-  def get_mfa(ast) do
-    case fetch_function(ast) do
-      :error -> nil
-      {:ok, {fun, args}} -> {nil, fun, length(args)}
-    end
-  end
-
-  def get_function({atom, _meta, nil}) when is_atom(atom) do
-    {atom, []}
-  end
-
-  def get_function({atom, _meta, args}) when is_atom(atom) and is_list(args) do
-    {atom, args}
-  end
-
-  def get_function(_), do: nil
-
-  def fetch_function(ast) do
-    case get_function(ast) do
-      nil -> :error
-      fun -> {:ok, fun}
-    end
-  end
-
-  def update_mfa({{:., meta1, aliases}, meta2, args}, {nil, fun, nil}) do
-    {{:., meta1, update_aliases(aliases, name: fun)}, meta2, args}
-  end
-
-  def update_aliases([{:__aliases__, meta, path}, name], opts) do
-    name = Keyword.get(opts, :name, name)
-    path = Keyword.get(opts, :path, path)
-    [{:__aliases__, meta, path}, name]
-  end
-
-  def update_function({_name, meta, args}, {nil, fun, nil}) do
-    {fun, meta, args}
-  end
-
-  [
-    {
-      {:__block__,
+      iex> ast = quote do
+      ...>   def foo(x), do: x
+      ...> end
+      iex> update_definition(ast, name: :bar)
+      {:def, [context: Recode.ASTTest, import: Kernel],
        [
-         trailing_comments: [],
-         leading_comments: [],
-         format: :keyword,
-         line: 2,
-         column: 12
-       ], [:do]},
-      {:__block__, [trailing_comments: [], leading_comments: [], line: 2, column: 16], [:baz]}
-    }
-  ]
+         {:bar, [context: Recode.ASTTest], [{:x, [], Recode.ASTTest}]},
+         [do: {:x, [], Recode.ASTTest}]
+       ]}
+      iex> update_definition(ast, meta: [])
+      {:def, [],
+       [
+         {:foo, [context: Recode.ASTTest], [{:x, [], Recode.ASTTest}]},
+         [do: {:x, [], Recode.ASTTest}]
+       ]}
+      iex> update_definition(ast, args: [{:y, [], Recode.ASTTest}], meta: [])
+      {:def, [],
+       [
+         {:foo, [context: Recode.ASTTest], [{:y, [], Recode.ASTTest}]},
+         [do: {:x, [], Recode.ASTTest}]
+       ]}
+  """
+  @spec update_definition(Macro.t(), updates :: keyword()) :: Macro.t()
+  def update_definition(
+        {:def, meta, [{:when, meta1, [{name, meta2, args}, expr1]}, expr2]},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
 
-  def do_block?([{{:__block__, _meta, [:do]}, _block}]), do: true
+    {:def, meta, [{:when, meta1, [{name, meta2, args}, expr1]}, expr2]}
+  end
 
-  def do_block?(_ast), do: false
+  def update_definition({def, meta, [{name, meta1, args}, expr]}, updates) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {def, meta, [{name, meta1, args}, expr]}
+  end
+
+  @doc """
+  Updates a spec.
+
+  The keyword list `updates` can have the keys `name`, `meta`, `args` and
+  `return`.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   @spec foo(integer()) :: integer()
+      ...> end
+      {:@, [context: Recode.ASTTest, import: Kernel],
+       [
+         {:spec, [context: Recode.ASTTest],
+          [{:"::", [], [{:foo, [], [{:integer, [], []}]}, {:integer, [], []}]}]}
+       ]}
+      iex> update_spec(ast, meta: [], name: :bar, return: {:term, [], []})
+      {:@, [],
+       [
+         {:spec, [context: Recode.ASTTest],
+          [{:"::", [], [{:bar, [], [{:integer, [], []}]}, {:term, [], []}]}]}
+       ]}
+  """
+  @spec update_spec(Macro.t(), updates :: keyword()) :: Macro.t()
+  def update_spec(
+        {:@, meta,
+         [
+           {:spec, meta_spec,
+            [
+              {:"::", meta_op, [{name, meta_name, args}, return]}
+            ]}
+         ]},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+    return = Keyword.get(updates, :return, return)
+
+    {:@, meta,
+     [
+       {:spec, meta_spec,
+        [
+          {:"::", meta_op, [{name, meta_name, args}, return]}
+        ]}
+     ]}
+  end
+
+  def update_spec(
+        {:@, meta,
+         [
+           {:spec, meta_spec,
+            [
+              {:when, meta_when,
+               [
+                 {:"::", meta_op,
+                  [
+                    {name, meta_name, args},
+                    return
+                  ]},
+                 when_block
+               ]}
+            ]}
+         ]},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+    return = Keyword.get(updates, :return, return)
+
+    {:@, meta,
+     [
+       {:spec, meta_spec,
+        [
+          {:when, meta_when,
+           [
+             {:"::", meta_op,
+              [
+                {name, meta_name, args},
+                return
+              ]},
+             when_block
+           ]}
+        ]}
+     ]}
+  end
+
+  @doc """
+  Update a function call.
+
+  The keyword list `updates` can have the keys `name`, `meta` and `args`.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   foo(x)
+      ...> end
+      iex> update_call(ast, name: :bar)
+      {:bar, [], [{:x, [], Recode.ASTTest}]}
+  """
+  @spec update_call(Macro.t(), updates :: keyword()) :: Macro.t()
+  def update_call({name, meta, args}, updates) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {name, meta, args}
+  end
+
+  @doc """
+  Update a dotted function call.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   Foo.foo(x)
+      ...> end
+      iex> update_dot_call(ast, name: :bar)
+      {{:., [], [{:__aliases__, [alias: false], [:Foo]}, :bar]}, [], [{:x, [], Recode.ASTTest}]}
+  """
+  @spec update_dot_call(Macro.t(), updates :: keyword()) :: Macro.t()
+  def update_dot_call(
+        {{:., meta, [{:__aliases__, meta1, module}, name]}, meta2, args},
+        updates
+      ) do
+    name = Keyword.get(updates, :name, name)
+    meta = Keyword.get(updates, :meta, meta)
+    args = Keyword.get(updates, :args, args)
+
+    {{:., meta, [{:__aliases__, meta1, module}, name]}, meta2, args}
+  end
+
+  @doc """
+  Returns a `mfa`-tuple for the given `.`-call.
+  """
+  @spec mfa({{:., keyword(), list()}, Macro.metadata(), Macro.t()}) ::
+          {module(), atom(), non_neg_integer()}
+  def mfa({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, args}) do
+    {Module.concat(aliases), fun, length(args)}
+  end
+
+  @doc """
+  Puts the given value `newlines` under the key `nevlines` in
+  `meta[:end_of_expression]`.
+  """
+  @spec put_newlines({term(), Macro.metadata(), Macro.t()}, integer()) ::
+          {term(), keyword(), list()}
+  def put_newlines({name, meta, args}, newlines) do
+    meta =
+      Keyword.update(meta, :end_of_expression, [newlines: newlines], fn end_of_expression ->
+        Keyword.put(end_of_expression, :newlines, newlines)
+      end)
+
+    {name, meta, args}
+  end
+
+  @doc """
+  Returns the `newlines` value from `meta[:end_of_expression]`, or `nil`.
+  """
+  @spec get_newlines(Macro.t()) :: integer()
+  def get_newlines({_name, meta, _args}) do
+    case Keyword.fetch(meta, :end_of_expression) do
+      {:ok, end_of_expression} -> Keyword.get(end_of_expression, :newlines)
+      :error -> nil
+    end
+  end
+
+  # {alias :: module(), multi :: [module()], as :: nil | module()}
+  @doc """
+  Returns the infos from an AST representing an `alias` expression.
+
+  The function returns 3-tuple containing the alias, the multi part and the
+  `:as`.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   alias Foo.Bar
+      ...> end
+      iex> alias_info(ast)
+      {Foo.Bar, [], nil}
+
+      iex> ast = quote do
+      ...>   alias Foo.{Bar, Baz}
+      ...> end
+      iex> alias_info(ast)
+      {Foo, [Bar, Baz], nil}
+
+      iex> ast = quote do
+      ...>   alias Foo, as: Baz
+      ...> end
+      iex> alias_info(ast)
+      {Foo, [], Baz}
+  """
+  def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}]}) do
+    module = Module.concat(aliases)
+    {module, [], nil}
+  end
+
+  def alias_info({:alias, _meta, [{{:., _meta2, [aliases, _opts]}, _meta3, multi}]}) do
+    module = aliases_concat(aliases)
+    multi = Enum.map(multi, &aliases_concat/1)
+
+    {module, multi, nil}
+  end
+
+  def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}, [{_block, as}]]}) do
+    module = Module.concat(aliases)
+    as = aliases_concat(as)
+    {module, [], as}
+  end
+
+  @doc """
+  Concatinates the aliases of an `:__aliases__` tuple.
+
+  ## Examples
+
+      iex> aliases_concat({:__aliases__, [], [:Alpha, :Bravo]})
+      Alpha.Bravo
+  """
+  @spec aliases_concat({:__aliases__, Macro.metadata(), [atom()]}) :: module()
+  def aliases_concat({:__aliases__, _meta, aliases}) do
+    Module.concat(aliases)
+  end
+
+  @doc """
+  Converts AST representing a name to a string.
+
+  This function suppresses the prfix `"Elixir."`.
+
+  ## Examples
+
+      iex> name([Recode, AST])
+      "Recode.AST"
+
+      iex> name(Recode.AST)
+      "Recode.AST"
+  """
+  @spec name(atom() | [atom()]) :: String.t()
+  def name(aliases) when is_list(aliases) do
+    Enum.map_join(aliases, ".", &name/1)
+  end
+
+  def name(atom) when is_atom(atom) do
+    with "Elixir." <> name <- to_string(atom) do
+      name
+    end
+  end
 end
