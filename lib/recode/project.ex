@@ -277,7 +277,6 @@ defmodule Recode.Project do
     map(project, sources, fun, opts)
   rescue
     error ->
-      # TODO: Save the exception in `source` an log/output later.
       Logger.error(Exception.format(:error, error, __STACKTRACE__))
       map(project, sources, fun, opts)
   end
