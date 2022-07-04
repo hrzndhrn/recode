@@ -56,6 +56,7 @@ defmodule Recode.MixProject do
 
   defp dialyzer do
     [
+      ignore_warnings: ".dialyzer_ignore.exs",
       plt_file: {:no_warn, "test/support/plts/dialyzer.plt"},
       flags: [:unmatched_returns]
     ]
