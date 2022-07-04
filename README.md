@@ -13,8 +13,8 @@ For now, `recode` reformats the code in some cases where the Elixir formatter
 doesn't make any changes. It is also possible to run `recode` in a
 none-autocorect mode to just lint your code.
 
-Also, there is a mix task for code refactoring. At the moment it is only
-possible to rename functions, replacing all function calls in the code.
+There is also one mix task for code refactoring. The task `mix recode.rename`
+renames a function and all their function calls.
 
 ## Installation
 
@@ -65,9 +65,194 @@ alias Recode.Task
 
 ### `mix recode`
 
+This mix tasks runs the linter with autocorrection. The switch `--dry` prevents
+the update of the files and shows all changes in the console.
+
+```shell
+> cd examples/my_code
+> mix recode --dry
+Found 11 files, including 2 scripts.
+.............................................................................
+ File: lib/my_code.ex
+[Specs 15/3] Functions should have a @spec type specification.
+
+ File: lib/my_code/alias_expansion.ex
+Updates: 1
+Changed by: AliasExpansion
+001   |defmodule MyCode.AliasExpansion do
+002 - |  alias MyCode.{PipeFunOne, SinglePipe}
+002 + |  alias MyCode.PipeFunOne
+003 + |  alias MyCode.SinglePipe
+004   |
+005   |  def foo(x) do
+[Specs 5/3] Functions should have a @spec type specification.
+
+ File: lib/my_code/alias_order.ex
+Updates: 2
+Changed by: AliasOrder, AliasExpansion
+012   |
+013   |defmodule Mycode.AliasOrder do
+014 - |  alias MyCode.SinglePipe
+014 + |  alias MyCode.Echo
+015 + |  alias MyCode.Foxtrot
+016   |  alias MyCode.PipeFunOne
+017 - |  alias MyCode.{Foxtrot, Echo}
+017 + |  alias MyCode.SinglePipe
+018   |
+019   |  @doc false
+
+ File: lib/my_code/fun.ex
+Updates: 1
+Changed by: Format
+002   |  @moduledoc false
+003   |
+004 - |
+005 - |
+006 - |
+007 - |
+008 - |
+004   |  def noop(x), do: x
+005   |end
+
+ File: lib/my_code/multi.ex
+Updates: 2
+Changed by: SinglePipe, PipeFunOne
+007   |
+008   |  def pipe(x) do
+009 - |    x |> double |> double()
+009 + |    x |> double() |> double()
+010   |  end
+011   |
+012   |  def single(x) do
+013 - |    x |> double()
+013 + |    double(x)
+014   |  end
+015   |
+
+ File: lib/my_code/pipe_fun_one.ex
+Updates: 1
+Changed by: PipeFunOne
+005   |
+006   |  def pipe(x) do
+007 - |    x |> double |> double()
+007 + |    x |> double() |> double()
+008   |  end
+009   |end
+
+ File: lib/my_code/singel_pipe.ex
+Updates: 1
+Changed by: SinglePipe
+005   |
+006   |  def single_pipe(x) do
+007 - |    x |> double()
+007 + |    double(x)
+008   |  end
+009   |
+010 - |  def reverse(a), do: a |> Enum.reverse()
+010 + |  def reverse(a), do: Enum.reverse(a)
+011   |end
+012   |
+
+ File: test/my_code_test.exs
+Updates: 1
+Changed by: TestFileExt
+Moved from: test/my_code_test.ex
+```
+
+The switch `--no-autocorrect` runs the linter without any file changes.
+
+```shell
+> cd examples/my_code
+> mix recode --no-autocorrect
+Found 11 files, including 2 scripts.
+.............................................................................
+ File: lib/my_code.ex
+[Specs 15/3] Functions should have a @spec type specification.
+
+ File: lib/my_code/alias_expansion.ex
+[AliasExpansion 2/3] Avoid multi aliases.
+[Specs 4/3] Functions should have a @spec type specification.
+
+ File: lib/my_code/alias_order.ex
+[AliasOrder 15/3] The alias `MyCode.PipeFunOne` is not alphabetically ordered among its group
+[AliasOrder 16/3] The alias `MyCode` is not alphabetically ordered among its group
+[AliasOrder 16/26] The alias `Echo` is not alphabetically ordered among its multi group
+[AliasExpansion 16/3] Avoid multi aliases.
+
+ File: lib/my_code/fun.ex
+[Format -/-] The file is not formatted.
+
+ File: lib/my_code/multi.ex
+[PipeFunOne 9/7] Use parentheses for one-arity functions in pipes.
+[SinglePipe 13/7] Use a function call when a pipeline is only one function long.
+
+ File: lib/my_code/pipe_fun_one.ex
+[PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
+
+ File: lib/my_code/singel_pipe.ex
+[SinglePipe 7/7] Use a function call when a pipeline is only one function long.
+[SinglePipe 10/25] Use a function call when a pipeline is only one function long.
+
+ File: test/my_code_test.ex
+[TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
+```
 ### `mix recode.rename`
+
+A mix task to rename a function and all their function calls.
+
+```shell
+> cd examples/my_code
+> mix recode.rename --dry MyCode.SinglePipe.double dbl
+Found 11 files, including 2 scripts.
+...........
+ File: lib/my_code/alias_expansion.ex
+Updates: 1
+Changed by: Rename
+003   |
+004   |  def foo(x) do
+005 - |    SinglePipe.double(x) + PipeFunOne.double(x)
+005 + |    SinglePipe.dbl(x) + PipeFunOne.double(x)
+006   |  end
+007   |end
+
+ File: lib/my_code/alias_order.ex
+Updates: 1
+Changed by: Rename
+018   |  @doc false
+019   |  def foo do
+020 - |    {SinglePipe.double(2), PipeFunOne.double(3)}
+020 + |    {SinglePipe.dbl(2), PipeFunOne.double(3)}
+021   |  end
+022   |
+
+ File: lib/my_code/singel_pipe.ex
+Updates: 1
+Changed by: Rename
+002   |  @moduledoc false
+003   |
+004 - |  def double(x), do: x + x
+004 + |  def dbl(x), do: x + x
+005   |
+006   |  def single_pipe(x) do
+007 - |    x |> double()
+007 + |    x |> dbl()
+008   |  end
+009   |
+```
 
 Refactored code should be compellable, but it is not guaranteed.
 
 ## Differences to Credo
 
+`recode` was started as a plugin for `credo`. Unfortunately it was not possible
+because the traversation of the code does not support chaning the code.
+
+Maybe some line of codes from `recode` could be used as inspiration for `credo`
+to bring the autocorrect feature to `credo`.
+
+Other differences:
+
+  * `recode` has autocorrection
+  * `credo` has much more checkers
+  * `credo` is faster
+  * `credo` has more features

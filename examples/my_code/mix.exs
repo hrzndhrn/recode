@@ -2,7 +2,7 @@ defmodule MyCode.MixProject do
   use Mix.Project
 
   def project do
-    [
+[
       app: :my_code,
       version: "0.1.0",
       elixir: "~> 1.13",

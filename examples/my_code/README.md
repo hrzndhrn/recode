@@ -1,21 +1,7 @@
 # MyCode
 
-**TODO: Add description**
+A Project with some nonsense code to test `recode`.
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `my_code` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:my_code, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/my_code>.
-
+The project provides two scripts
+- `mix backup` to backup the source code
+- `mix backup.restore` to write the backup back
