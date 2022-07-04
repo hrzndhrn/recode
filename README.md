@@ -3,15 +3,23 @@
 A linter with autocorrection and a refactoring tool.
 
 `recode` is an experimental project to play around with the great
-[`sourceror`](https://github.com/doorgan/sourceror) package.
+[`sourceror`](https://github.com/doorgan/sourceror) package by @doorgan.
 
 This library is still under development, breaking changes are expected.
 The same is true for `sourceror` and most of `recode`'s functionality is based
 on `sourceror`.
 
-For now, `recode` reformats the code in some cases where the Elixir formatter
-doesn't make any changes. It is also possible to run `recode` in a
-none-autocorect mode to just lint your code.
+For now, `recode` corrects only a few things:
+
+  * `AliasExpansion` expands multi aliases
+  * `AliasOrder` orders aliases alphabetically
+  * `Format` runs the Elixir formatter
+  * `PipeFunOne` adds `()` to one arrity funciotns in pipes
+  * `SinglePipe` corrects single pipes
+  * `TestFileExt` renames test file extensions to `*.exs`
+
+It is also possible to run `recode` in a none-autocorect mode to just lint your
+code.
 
 There is also one mix task for code refactoring. The task `mix recode.rename`
 renames a function and all their function calls.
@@ -57,7 +65,7 @@ alias Recode.Task
     {Task.AliasOrder, []},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
-    {Task.Specs, []},
+    {Task.Specs, [only: :visible, exclude: "test/**/*.{ex,exs}"]},
     {Task.TestFileExt, []}
   ]
 ]
