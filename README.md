@@ -52,7 +52,7 @@ alias Recode.Task
 [
   # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
   autocorrect: true,
-  # With "--dry" no changes will be writen to the files.
+  # With "--dry" no changes will be written to the files.
   # Can also be set/reset with "--dry"/"--no-dry".
   # If dry is true then verbose is also active.
   dry: false,
@@ -253,7 +253,7 @@ Refactored code should be compellable, but it is not guaranteed.
 ## Differences to Credo
 
 `recode` was started as a plugin for `credo`. Unfortunately it was not possible
-because the traversation of the code does not support chaning the code.
+because the traversation of the code does not support chaining the code.
 
 Maybe some line of codes from `recode` could be used as inspiration for `credo`
 to bring the autocorrect feature to `credo`.

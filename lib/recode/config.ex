@@ -1,6 +1,6 @@
 defmodule Recode.Config do
   @moduledoc """
-  This moudle reads the `Recode` configuration.
+  This module reads the `Recode` configuration.
   """
 
   alias Recode.Task.Format

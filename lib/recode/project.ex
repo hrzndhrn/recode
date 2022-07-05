@@ -1,6 +1,6 @@
 defmodule Recode.Project do
   @moduledoc """
-  The `%Project{}` conatins all `Recode.Sources` of a project.
+  The `%Project{}` contains all `Recode.Sources` of a project.
   """
 
   alias Recode.Project
@@ -181,7 +181,7 @@ defmodule Recode.Project do
   end
 
   @doc """
-  Retruns conflicts between sources.
+  Returns conflicts between sources.
 
   Sources with the same path have a conflict.
   """
