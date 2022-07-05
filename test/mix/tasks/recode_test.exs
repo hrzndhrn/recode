@@ -31,7 +31,9 @@ defmodule Mix.Tasks.RecodeTest do
   end
 
   test "mix recode raises exception for unknown config file" do
-    assert_raise Mix.Error, "Config file not found", fn -> Tasks.Recode.run([]) end
+    assert_raise Mix.Error, "Config file not found", fn ->
+      Tasks.Recode.run(["--config", "priv/no_config.exs"])
+    end
   end
 
   test "mix recode raises exception for unknown arg" do

@@ -35,7 +35,7 @@ defmodule Mix.Tasks.Recode.RenameTest do
 
   test "mix recode.rename raises error for missing config" do
     assert_raise Mix.Error, "Config file not found", fn ->
-      Rename.run(["Rename.Bar.baz/5", "bar"])
+      Rename.run(["--config", "../../../priv/no_configs.exs", "Rename.Bar.baz/5", "bar"])
     end
   end
 
