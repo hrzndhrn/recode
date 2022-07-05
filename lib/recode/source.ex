@@ -2,7 +2,7 @@ defmodule Recode.Source do
   @moduledoc """
   A representation of some source in a project.
 
-  The `%Source{}` conatins the `code` of the file given by `path`. The moudle
+  The `%Source{}` contains the `code` of the file given by `path`. The module
   contains `Source.update/3` to update the `path` and/or the `code`. The changes
   are recorded in the `updates` list.
 

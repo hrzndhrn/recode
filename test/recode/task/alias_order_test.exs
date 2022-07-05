@@ -7,7 +7,7 @@ defmodule Recode.Task.AliasOrderTest do
     code |> source() |> run_task({AliasOrder, opts})
   end
 
-  test "keeps a sinlge alias" do
+  test "keeps a single alias" do
     code = """
     defmodule MyModule do
       alias Alpha

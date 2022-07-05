@@ -1,6 +1,6 @@
 defmodule Recode.Context do
   @moduledoc ~S'''
-  This moudle provides functions to traverse an AST with a `%Context{}`.
+  This module provides functions to traverse an AST with a `%Context{}`.
 
   ## Examples
 
@@ -131,13 +131,13 @@ defmodule Recode.Context do
   end
 
   @doc """
-  Returns `true` if a `spec` is availbale.
+  Returns `true` if a `spec` is available.
   """
   @spec spec?(t()) :: boolean
   def spec?(%Context{spec: spec}), do: not is_nil(spec)
 
   @doc """
-  Returns `true` if an `impl` is availbale.
+  Returns `true` if an `impl` is available.
   """
   @spec impl?(t()) :: boolean
   def impl?(%Context{impl: impl}), do: not is_nil(impl)
@@ -198,7 +198,7 @@ defmodule Recode.Context do
   end
 
   @doc """
-  Traverses the given `zipper` and applys `fun` on each node.
+  Traverses the given `zipper` and applies `fun` on each node.
 
   The `fun` gets the current `zipper` and `context` as arguments.
   """
@@ -211,7 +211,7 @@ defmodule Recode.Context do
   end
 
   @doc """
-  Traverses the given `zipper` with an `acc` and applys `fun` on each node.
+  Traverses the given `zipper` with an `acc` and applies `fun` on each node.
   """
   @spec traverse(zipper(), acc, fun) :: {zipper(), acc}
         when acc: term(),
