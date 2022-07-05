@@ -11,12 +11,12 @@ on `sourceror`.
 
 For now, `recode` corrects only a few things:
 
-  * `AliasExpansion` expands multi aliases
-  * `AliasOrder` orders aliases alphabetically
-  * `Format` runs the Elixir formatter
-  * `PipeFunOne` adds `()` to one arrity funciotns in pipes
-  * `SinglePipe` corrects single pipes
-  * `TestFileExt` renames test file extensions to `*.exs`
+* `AliasExpansion` expands multi aliases
+* `AliasOrder` orders aliases alphabetically
+* `Format` runs the Elixir formatter
+* `PipeFunOne` adds `()` to one arrity funciotns in pipes
+* `SinglePipe` corrects single pipes
+* `TestFileExt` renames test file extensions to `*.exs`
 
 It is also possible to run `recode` in a none-autocorect mode to just lint your
 code.
@@ -37,15 +37,18 @@ def deps do
 end
 ```
 
-Documentation can be found at https://hexdocs.pm/recode.
+Documentation can be found at [https://hexdocs.pm/recode](https://hexdocs.pm/recode).
 
 ## Usage
 
 To start with Foo a configuration file is needed.
+
+```sh
+mix recode.gen.config
 ```
-$ mix recode.gen.config
-```
+
 This mix task generates the config file `.recode.exs`.
+
 ```elixir
 alias Recode.Task
 
@@ -204,6 +207,7 @@ Found 11 files, including 2 scripts.
  File: test/my_code_test.ex
 [TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 ```
+
 ### `mix recode.rename`
 
 A mix task to rename a function and all their function calls.
@@ -260,7 +264,7 @@ to bring the autocorrect feature to `credo`.
 
 Other differences:
 
-  * `recode` has autocorrection
-  * `credo` has much more checkers
-  * `credo` is faster
-  * `credo` has more features
+* `recode` has autocorrection
+* `credo` has much more checkers
+* `credo` is faster
+* `credo` has more features
