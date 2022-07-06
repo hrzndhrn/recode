@@ -24,9 +24,12 @@ defmodule Recode.IO do
     warn: :orange
   }
 
+  @type chardata :: String.t() | maybe_improper_list(char | chardata, String.t() | [])
+
   @doc """
   Similar `to write/1`, but adds a newline at the end.
   """
+  @spec puts(chardata()) :: :ok
   def puts(chardata) do
     chardata
     |> Enum.map(&colors/1)
@@ -37,6 +40,7 @@ defmodule Recode.IO do
   Formats a chardata-like argument by converting named ANSI sequences into
   actual ANSI codes and writes it to `:stdio`.
   """
+  @spec write(chardata()) :: :ok
   def write(chardata) when is_list(chardata) do
     chardata
     |> Enum.map(&colors/1)

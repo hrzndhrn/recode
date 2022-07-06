@@ -220,7 +220,6 @@ defmodule Recode.AST do
     end
   end
 
-  # {alias :: module(), multi :: [module()], as :: nil | module()}
   @doc """
   Returns the infos from an AST representing an `alias` expression.
 
@@ -247,6 +246,7 @@ defmodule Recode.AST do
       iex> alias_info(ast)
       {Foo, [], Baz}
   """
+  @spec alias_info(Macro.t()) :: {module(), [module()], module() | nil}
   def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}]}) do
     module = Module.concat(aliases)
     {module, [], nil}

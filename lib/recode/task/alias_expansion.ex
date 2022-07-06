@@ -19,6 +19,7 @@ defmodule Recode.Task.AliasExpansion do
   alias Recode.Task.AliasExpansion
   alias Sourceror.Zipper
 
+  @impl Recode.Task
   def run(source, opts) do
     {zipper, issues} =
       source

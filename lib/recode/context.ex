@@ -160,33 +160,54 @@ defmodule Recode.Context do
   end
 
   @doc """
-  Returns `true` if `@doc` has the given `value`.
-
-  Usually used to check if `@doc` is set to false:
-  ```elixir
-  Context.moduledoc?(context, false)
-  ```
+  Returns `true` if `@doc` is available and not set to `@doc false`.
   """
-  @spec doc?(t(), term()) :: boolean()
-  def doc?(%Context{doc: nil}, value), do: is_nil(value)
+  @spec doc?(t()) :: boolean()
+  def doc?(%Context{doc: nil}), do: false
 
-  def doc?(%Context{doc: {_to, doc}}, value) do
-    attribute_value(doc) == value
+  def doc?(%Context{doc: {_to, doc}}) do
+    case attribute_args(doc) do
+      [{_name, _meta, [false]}] -> false
+      _else -> true
+    end
   end
 
   @doc """
-  Returns `true` if `@moduledoc` has the given `value`.
-
-  Usually used to check if `@moduldoc` is set to false:
-  ```elixir
-  Context.moduledoc?(context, false)
-  ```
+  Returns `true` if `@doc false`.
   """
-  @spec moduledoc?(t(), term()) :: boolean()
-  def moduledoc?(%Context{moduledoc: nil}, value), do: is_nil(value)
+  @spec doc?(t(), false) :: boolean()
+  def doc?(%Context{doc: nil}, false), do: false
 
-  def moduledoc?(%Context{moduledoc: moduledoc}, value) do
-    attribute_value(moduledoc) == value
+  def doc?(%Context{doc: {_to, doc}}, false) do
+    case attribute_args(doc) do
+      [{_name, _meta, [false]}] -> true
+      _else -> false
+    end
+  end
+
+  @doc """
+  Returns `true` if `@moduledoc` is available and not set to `@moduledoc false`.
+  """
+  @spec moduledoc?(t()) :: boolean()
+  def moduledoc?(%Context{moduledoc: moduledoc}) do
+    case attribute_args(moduledoc) do
+      nil -> false
+      [{_name, _meta, [false]}] -> false
+      _else -> true
+    end
+  end
+
+  @doc """
+  Returns `true` if `@moduledoc false`.
+  """
+  @spec moduledoc?(t(), false) :: boolean()
+  def moduledoc?(%Context{moduledoc: nil}, false), do: false
+
+  def moduledoc?(%Context{moduledoc: moduledoc}, false) do
+    case attribute_args(moduledoc) do
+      [{_name, _meta, [false]}] -> true
+      _else -> false
+    end
   end
 
   @doc """
@@ -249,7 +270,7 @@ defmodule Recode.Context do
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:import, meta, args}, _} = zipper, context, fun) do
+  defp do_traverse({{:import, meta, args}, _} = zipper, context, fun) when not is_nil(args) do
     imports = get_aliases(args, meta, context)
     context = add_imports(context, imports)
 
@@ -346,14 +367,6 @@ defmodule Recode.Context do
     cont(zipper, context, acc, fun)
   end
 
-  # defp do_traverse({{:import, meta, args}, _zipper_meta} = zipper, context, acc, fun) do
-  #   imports = get_aliases(args, meta)
-  #   context = add_imports(context, imports)
-
-  #   cont(zipper, context, acc, fun)
-  # end
-
-  # TODO
   defp do_traverse({{:import, meta, [arg, opts]}, _zipper_meta} = zipper, context, acc, fun) do
     import = get_alias(arg, context)
     context = add_import(context, {import, meta, opts})
@@ -361,7 +374,8 @@ defmodule Recode.Context do
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:import, meta, args}, _} = zipper, context, acc, fun) do
+  defp do_traverse({{:import, meta, args}, _} = zipper, context, acc, fun)
+       when not is_nil(args) do
     imports = get_aliases(args, meta, context)
     context = add_imports(context, imports)
 
@@ -593,10 +607,7 @@ defmodule Recode.Context do
     Module.concat(module1, module2)
   end
 
-  defp attribute_value(attribute) do
-    {:__block__, _meta, [value]} = attribute_block(attribute)
-    value
-  end
+  defp attribute_args(nil), do: nil
 
-  defp attribute_block({:@, _meta1, [{_name, _meta2, [block]}]}), do: block
+  defp attribute_args({:@, _meta1, [{_name, _meta2, args}]}), do: args
 end

@@ -14,6 +14,7 @@ defmodule Recode.Task.Specs do
   alias Recode.Source
   alias Recode.Task.Specs
 
+  @impl Recode.Task
   def run(source, opts) do
     include = Keyword.get(opts, :only, :all)
     issues = check_specs(source, include)
@@ -41,7 +42,13 @@ defmodule Recode.Task.Specs do
     end
   end
 
-  defp check_spec(_only, %Context{definition: nil}, issues), do: issues
+  defp check_spec(_only, %Context{definition: nil}, issues) do
+    issues
+  end
+
+  defp check_spec(_only, %Context{definition: {{:defmacro, :__using__, _args}, _body}}, issues) do
+    issues
+  end
 
   defp check_spec(:all, context, issues) do
     case Context.spec?(context) do

@@ -23,6 +23,7 @@ defmodule Recode.Task.AliasOrder do
   alias Recode.Task.AliasOrder
   alias Sourceror.Zipper
 
+  @impl Recode.Task
   def run(source, opts) do
     do_run(source, opts[:autocorrect])
   end
