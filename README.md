@@ -1,4 +1,7 @@
 # Recode
+[![Hex.pm: version](https://img.shields.io/hexpm/v/recode.svg?style=flat-square)](https://hex.pm/packages/recode)
+[![GitHub: CI status](https://img.shields.io/github/workflow/status/hrzndhrn/recode/CI?style=flat-square)](https://github.com/hrzndhrn/recode/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/hrzndhrn//blob/main/LICENSE.md)
 
 A linter with autocorrection and a refactoring tool.
 
