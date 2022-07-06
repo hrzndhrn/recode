@@ -15,6 +15,7 @@ defmodule Recode.Issue do
           meta: term()
         }
 
+  @spec new(module(), String.t() | nil, keyword(), term()) :: Issue.t()
   def new(reporter, message, info \\ [], meta \\ nil) do
     line = Keyword.get(info, :line)
     column = Keyword.get(info, :column)

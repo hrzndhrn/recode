@@ -178,6 +178,48 @@ defmodule Recode.ContextTest do
              end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}]\
              """
     end
+
+    test "traveses script with vars named alias, import, etc.." do
+      src = File.read!("test/fixtures/context/vars.exs")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output |> String.split("\n") |> Enum.count() == 221
+    end
+
+    test "traveses module with vars named alias, import, etc.." do
+      src = File.read!("test/fixtures/context/vars.ex")
+
+      output =
+        capture_io(fn ->
+          src
+          |> Sourceror.parse_string!()
+          |> Zipper.zip()
+          |> Context.traverse(fn zipper, context ->
+            context =
+              context
+              |> inc()
+              |> write()
+
+            {zipper, context}
+          end)
+        end)
+
+      assert output |> String.split("\n") |> Enum.count() == 848
+    end
   end
 
   describe "traverse/3" do

@@ -19,6 +19,7 @@ defmodule Recode.Task.SinglePipe do
   alias Recode.Task.SinglePipe
   alias Sourceror.Zipper
 
+  @impl Recode.Task
   def run(source, opts) do
     {zipper, issues} =
       source

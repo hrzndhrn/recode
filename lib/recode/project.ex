@@ -44,6 +44,7 @@ defmodule Recode.Project do
   @doc ~S"""
   Creates a `%Project{}` from the given sources.
   """
+  @spec from_sources([Source.t()]) :: Project.t()
   def from_sources(sources) do
     {sources, paths} =
       Enum.reduce(sources, {%{}, %{}}, fn source, {sources, paths} ->

@@ -27,7 +27,7 @@ defmodule Recode.Config do
     |> read()
   end
 
-  def default(config, :tasks) do
+  defp default(config, :tasks) do
     Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
   end
 end

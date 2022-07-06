@@ -12,6 +12,7 @@ defmodule Recode.Task.TestFileExt do
   alias Recode.Source
   alias Recode.Task.TestFileExt
 
+  @impl Recode.Task
   def run(source, opts) do
     test_file_ext(source, opts[:autocorrect])
   end

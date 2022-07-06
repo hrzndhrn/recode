@@ -12,6 +12,7 @@ defmodule Recode.Task.Format do
   alias Recode.Source
   alias Recode.Task.Format
 
+  @impl Recode.Task
   def run(source, opts) do
     format(source, opts[:autocorrect])
   end

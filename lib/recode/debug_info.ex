@@ -8,6 +8,8 @@ defmodule Recode.DebugInfo do
   alias Recode.Context
   alias Sourceror.Zipper
 
+  @spec expand_mfa(map(), Context.t(), {module() | nil, atom(), non_neg_integer()}) ::
+          {:ok, mfa()} | :error
   def expand_mfa(debug_info, context, {_module, fun, arity} = mfa) do
     with {:ok, definitions} <- Map.fetch(debug_info, :definitions),
          {:ok, block} <- find_block(definitions, context) do

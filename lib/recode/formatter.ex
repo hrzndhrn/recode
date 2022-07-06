@@ -21,6 +21,11 @@ defmodule Recode.Formatter do
               opts :: keyword()
             ) :: any()
 
+  @spec format(
+          type :: :project | :results | :tasks_ready,
+          {Project.t(), config :: keyword()},
+          opts :: keyword()
+        ) :: any()
   def format(:results, {%Project{} = project, config}, opts) do
     verbose = Keyword.fetch!(config, :verbose)
 
@@ -46,6 +51,12 @@ defmodule Recode.Formatter do
     end
   end
 
+  @spec format(
+          type :: :task,
+          {Project.t(), config :: keyword()},
+          {Source.t(), module, keyword()},
+          opts :: keyword()
+        ) :: any()
   def format(:task, {_project, _config}, {_source, _task_module, _task_opts}, _opts) do
     write(".")
   end
