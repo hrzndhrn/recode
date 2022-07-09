@@ -17,7 +17,7 @@ For now, `recode` corrects only a few things:
 * `AliasExpansion` expands multi aliases
 * `AliasOrder` orders aliases alphabetically
 * `Format` runs the Elixir formatter
-* `PipeFunOne` adds `()` to one arrity funciotns in pipes
+* `PipeFunOne` adds `()` to one arity functions in pipes
 * `SinglePipe` corrects single pipes
 * `TestFileExt` renames test file extensions to `*.exs`
 
