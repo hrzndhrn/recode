@@ -260,13 +260,17 @@ Refactored code should be compellable, but it is not guaranteed.
 ## Differences to Credo
 
 `recode` was started as a plugin for `credo`. Unfortunately it was not possible
-because the traversation of the code does not support chaining the code.
+to implement autocorrection as a plugin because the traversation of the code does
+not support changing the code.
 
-Maybe some line of codes from `recode` could be used as inspiration for `credo`
+
+
+Maybe some code lines from `recode` could be used as inspiration for `credo`
 to bring the autocorrect feature to `credo`.
 
 Other differences:
 
+* `recode` requiers Elixir 1.12, `credo` requiers Elixir 1.7
 * `recode` has autocorrection
 * `credo` has much more checkers
 * `credo` is faster
