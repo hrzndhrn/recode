@@ -145,4 +145,49 @@ defmodule Recode.Task.SpecsTest do
 
     assert_no_issues(visible)
   end
+
+  test "reports nothing for macros when macros: false is set" do
+    code = """
+    defmodule Bar do
+      defmacro bar(x) do
+        quote do
+          unquote(x)
+        end
+      end
+    end
+    """
+
+    code |> run_specs() |> assert_no_issues()
+  end
+
+  test "reports issues for macros when macros: true is set" do
+    code = """
+    defmodule Bar do
+      defmacro bar(x) do
+        quote do
+          unquote(x)
+        end
+      end
+    end
+    """
+
+    code |> run_specs(macros: true) |> assert_issues(Specs, 1)
+  end
+
+  test "reports issues for definitions inside quotes" do
+    code = """
+    defmodule Bar do
+      @spec bar(atom()) :: Macro.t()
+      defmacro bar(x) do
+        quote do
+          def unquote(x) do
+            unquote(x)
+          end
+        end
+      end
+    end
+    """
+
+    code |> run_specs(macros: true) |> assert_issues(Specs, 1)
+  end
 end
