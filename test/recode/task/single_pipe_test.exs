@@ -29,6 +29,29 @@ defmodule Recode.Task.SinglePipeTest do
     assert source.code == expected
   end
 
+  test "fixes single pipes with heredoc" do
+    code = """
+    def hello do
+      \"\"\"
+      world
+      \"\"\"
+      |> String.split()
+    end
+    """
+
+    expected = """
+    def hello do
+      String.split(\"\"\"
+      world
+      \"\"\")
+    end
+    """
+
+    source = run(code)
+
+    assert source.code == expected
+  end
+
   test "expands single pipes" do
     code = """
     def fixme(arg) do
