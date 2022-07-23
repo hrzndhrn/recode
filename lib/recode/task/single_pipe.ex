@@ -78,11 +78,13 @@ defmodule Recode.Task.SinglePipe do
     {fun, meta, [arg | args]}
   end
 
-  defp update({:|>, meta, [{fun1, meta1, [arg1 | args1]}, {fun2, meta2, args2}]}) do
-    {:|>, meta,
-     [
-       {:|>, [], [arg1, {fun1, meta1, args1}]},
-       {fun2, meta2, args2}
-     ]}
+  defp update({:|>, _meta1, [{:__block__, _meta2, [arg]}, {fun, meta, args}]}) do
+    {fun, meta, [arg | args]}
   end
+
+  # Single pipes with two function calls are not changed.
+  # e.g. `foo(1) |> bar(2)`
+  # Because we do not want: `bar(2, foo(1))`. Some other check should expand
+  # this to `1 |> foo() |> bar(2)`.
+  defp update(ast), do: ast
 end

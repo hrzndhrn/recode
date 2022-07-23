@@ -13,6 +13,8 @@ defmodule Recode.Task.SinglePipeTest do
       arg |> zoo()
       arg |> zoo(:tiger)
       one() |> two()
+      "" |> String.split()
+      1 |> to_string()
     end
     """
 
@@ -21,6 +23,8 @@ defmodule Recode.Task.SinglePipeTest do
       zoo(arg)
       zoo(arg, :tiger)
       two(one())
+      String.split("")
+      to_string(1)
     end
     """
 
@@ -30,21 +34,29 @@ defmodule Recode.Task.SinglePipeTest do
   end
 
   test "fixes single pipes with heredoc" do
+    # code = """
+    # def hello do
+    #   \"\"\"
+    #   world
+    #   \"\"\"
+    #   |> String.split()
+    # end
+    # """
+
+    # expected = """
+    # def hello do
+    #   String.split(\"\"\"
+    #   world
+    #   \"\"\")
+    # end
+    # """
+
     code = """
-    def hello do
-      \"\"\"
-      world
-      \"\"\"
-      |> String.split()
-    end
+    1 |> to_string()
     """
 
     expected = """
-    def hello do
-      String.split(\"\"\"
-      world
-      \"\"\")
-    end
+    to_string(1)
     """
 
     source = run(code)
@@ -52,7 +64,7 @@ defmodule Recode.Task.SinglePipeTest do
     assert source.code == expected
   end
 
-  test "expands single pipes" do
+  test "does not expands single pipes" do
     code = """
     def fixme(arg) do
       foo(arg) |> zoo()
@@ -60,16 +72,9 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    expected = """
-    def fixme(arg) do
-      arg |> foo() |> zoo()
-      arg |> foo(:animal) |> zoo(:tiger)
-    end
-    """
-
     source = run(code)
 
-    assert source.code == expected
+    assert source.code == code
   end
 
   test "keeps pipes" do
