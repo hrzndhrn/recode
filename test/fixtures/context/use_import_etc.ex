@@ -36,3 +36,8 @@ defmodule Traverse.Foo do
     micky(:entenhausen)
   end
 end
+
+defmodule Traverse.Bar do
+  import :timer
+  require alias Traverse.Pluto
+end
