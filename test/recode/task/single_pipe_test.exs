@@ -77,7 +77,7 @@ defmodule Recode.Task.SinglePipeTest do
     assert source.code == expected
   end
 
-  test "does not expands single pipes" do
+  test "does not expands single pipes with two functions" do
     code = """
     def fixme(arg) do
       foo(arg) |> zoo()
