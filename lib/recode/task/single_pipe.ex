@@ -9,6 +9,12 @@ defmodule Recode.Task.SinglePipe do
       # not preferred
       some_enum |> Enum.reverse()
 
+  `SinglePipe` does not change a single `|>` that starts with a none zero arity
+  function.
+
+      # will not be changed
+      one(:a) |> two()
+
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 

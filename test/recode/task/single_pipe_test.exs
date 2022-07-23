@@ -13,6 +13,7 @@ defmodule Recode.Task.SinglePipeTest do
       arg |> zoo()
       arg |> zoo(:tiger)
       one() |> two()
+      one() |> two(:b)
       "" |> String.split()
       "go go" |> String.split()
       1 |> to_string()
@@ -27,6 +28,7 @@ defmodule Recode.Task.SinglePipeTest do
       zoo(arg)
       zoo(arg, :tiger)
       two(one())
+      two(one(), :b)
       String.split("")
       String.split("go go")
       to_string(1)
@@ -77,11 +79,12 @@ defmodule Recode.Task.SinglePipeTest do
     assert source.code == expected
   end
 
-  test "does not expands single pipes with two functions" do
+  test "does not expands single pipes that starts with a none zero fun" do
     code = """
     def fixme(arg) do
       foo(arg) |> zoo()
       foo(arg, :animal) |> zoo(:tiger)
+      one(:a) |> two()
     end
     """
 
