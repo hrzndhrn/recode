@@ -13,6 +13,13 @@ defmodule Recode.Task.SinglePipeTest do
       arg |> zoo()
       arg |> zoo(:tiger)
       one() |> two()
+      one() |> two(:b)
+      "" |> String.split()
+      "go go" |> String.split()
+      1 |> to_string()
+      :anton |> Foo.bar()
+      [1, 2, 3] |> Enum.map(fn x -> x * x end)
+      %{a: 1, b: 2} |> Enum.map(fn {k, v} -> {k, v + 1} end)
     end
     """
 
@@ -21,6 +28,13 @@ defmodule Recode.Task.SinglePipeTest do
       zoo(arg)
       zoo(arg, :tiger)
       two(one())
+      two(one(), :b)
+      String.split("")
+      String.split("go go")
+      to_string(1)
+      Foo.bar(:anton)
+      Enum.map([1, 2, 3], fn x -> x * x end)
+      Enum.map(%{a: 1, b: 2}, fn {k, v} -> {k, v + 1} end)
     end
     """
 
@@ -29,24 +43,54 @@ defmodule Recode.Task.SinglePipeTest do
     assert source.code == expected
   end
 
-  test "expands single pipes" do
+  test "fixes single pipes with heredoc" do
     code = """
-    def fixme(arg) do
-      foo(arg) |> zoo()
-      foo(arg, :animal) |> zoo(:tiger)
+    def hello do
+      \"\"\"
+      world
+      \"\"\"
+      |> String.split()
+
+      \"\"\"
+      bar
+      \"\"\"
+      |> foo("baz")
+
     end
     """
 
     expected = """
-    def fixme(arg) do
-      arg |> foo() |> zoo()
-      arg |> foo(:animal) |> zoo(:tiger)
+    def hello do
+      String.split(\"\"\"
+      world
+      \"\"\")
+
+      foo(
+        \"\"\"
+        bar
+        \"\"\",
+        "baz"
+      )
     end
     """
 
     source = run(code)
 
     assert source.code == expected
+  end
+
+  test "does not expands single pipes that starts with a none zero fun" do
+    code = """
+    def fixme(arg) do
+      foo(arg) |> zoo()
+      foo(arg, :animal) |> zoo(:tiger)
+      one(:a) |> two()
+    end
+    """
+
+    source = run(code)
+
+    assert source.code == code
   end
 
   test "keeps pipes" do
