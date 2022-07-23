@@ -14,7 +14,11 @@ defmodule Recode.Task.SinglePipeTest do
       arg |> zoo(:tiger)
       one() |> two()
       "" |> String.split()
+      "go go" |> String.split()
       1 |> to_string()
+      :anton |> Foo.bar()
+      [1, 2, 3] |> Enum.map(fn x -> x * x end)
+      %{a: 1, b: 2} |> Enum.map(fn {k, v} -> {k, v + 1} end)
     end
     """
 
@@ -24,7 +28,11 @@ defmodule Recode.Task.SinglePipeTest do
       zoo(arg, :tiger)
       two(one())
       String.split("")
+      String.split("go go")
       to_string(1)
+      Foo.bar(:anton)
+      Enum.map([1, 2, 3], fn x -> x * x end)
+      Enum.map(%{a: 1, b: 2}, fn {k, v} -> {k, v + 1} end)
     end
     """
 
@@ -34,29 +42,34 @@ defmodule Recode.Task.SinglePipeTest do
   end
 
   test "fixes single pipes with heredoc" do
-    # code = """
-    # def hello do
-    #   \"\"\"
-    #   world
-    #   \"\"\"
-    #   |> String.split()
-    # end
-    # """
-
-    # expected = """
-    # def hello do
-    #   String.split(\"\"\"
-    #   world
-    #   \"\"\")
-    # end
-    # """
-
     code = """
-    1 |> to_string()
+    def hello do
+      \"\"\"
+      world
+      \"\"\"
+      |> String.split()
+
+      \"\"\"
+      bar
+      \"\"\"
+      |> foo("baz")
+
+    end
     """
 
     expected = """
-    to_string(1)
+    def hello do
+      String.split(\"\"\"
+      world
+      \"\"\")
+
+      foo(
+        \"\"\"
+        bar
+        \"\"\",
+        "baz"
+      )
+    end
     """
 
     source = run(code)

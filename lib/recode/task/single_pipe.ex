@@ -78,8 +78,12 @@ defmodule Recode.Task.SinglePipe do
     {fun, meta, [arg | args]}
   end
 
-  defp update({:|>, _meta1, [{:__block__, _meta2, [arg]}, {fun, meta, args}]}) do
-    {fun, meta, [arg | args]}
+  defp update({:|>, _meta1, [{:__block__, _meta2, [_arg]} = block, {fun, meta, args}]}) do
+    {fun, meta, [block | args]}
+  end
+
+  defp update({:|>, _meta1, [{:%{}, _meta2, _args} = map, {fun, meta, args}]}) do
+    {fun, meta, [map | args]}
   end
 
   # Single pipes with two function calls are not changed.
