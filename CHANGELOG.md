@@ -3,6 +3,7 @@
 ## 0.1.3 - dev
 
 + Fix `Recode.Task.SinglePipe`.
++ Fix bugs in `Recode.Context`.
 
 ## 0.1.2 - 2022/07/13
 

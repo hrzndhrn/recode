@@ -177,6 +177,21 @@ defmodule Recode.ContextTest do
              {Traverse.Gander, [trailing_comments: [], leading_comments: [], \
              end_of_expression: [newlines: 2, line: 24, column: 38], line: 24, column: 3], nil}]\
              """
+
+      assert output =~ ~r/^189: module:.*Traverse.Timer/m
+      assert output =~ ~r/^189: imports:.*:timer/m
+
+      assert output =~ ~r/^202: module:.*Traverse.RequireAlias/m
+      assert output =~ ~r/^202: aliases:.*Traverse.Pluto.*line: 45, column: 11/m
+      assert output =~ ~r/^202: requirements:.*Traverse.Pluto.*line: 45, column: 3/m
+
+      assert output =~ ~r/^221: module:.*Traverse.RequireAliasAs/m
+      assert output =~ ~r/^221: aliases:.*Traverse.Pluto.*:Foo/m
+      assert output =~ ~r/^221: requirements:.*Traverse.Pluto.*:Foo/m
+
+      assert output =~ ~r/^234: module:.*Traverse.AliasRequire/m
+      assert output =~ ~r/^234: aliases:.*Traverse.Pluto/m
+      assert output =~ ~r/^234: requirements:.*Traverse.Pluto/m
     end
 
     test "traveses script with vars named alias, import, etc.." do
@@ -397,7 +412,15 @@ defmodule Recode.ContextTest do
           {zipper, context, [context | acc]}
         end)
 
-      assert hd(acc) == %Context{
+      contexts =
+        acc
+        |> Enum.group_by(fn
+          %Context{module: nil} -> nil
+          %Context{module: module} -> elem(module, 0)
+        end)
+        |> Enum.map(fn {key, list} -> {key, hd(list)} end)
+
+      assert contexts[Traverse.Foo] == %Context{
                aliases: [
                  {
                    Traverse.Nested.Simple,
@@ -554,6 +577,7 @@ defmodule Recode.ContextTest do
                  [
                    trailing_comments: [],
                    leading_comments: [],
+                   end_of_expression: [newlines: 2, line: 38, column: 4],
                    do: [line: 15, column: 24],
                    end: [line: 38, column: 1],
                    line: 15,
@@ -634,6 +658,162 @@ defmodule Recode.ContextTest do
                  }
                ]
              }
+
+      assert contexts[Traverse.Timer] ==
+               %Context{
+                 aliases: [],
+                 assigns: %{},
+                 definition: nil,
+                 doc: nil,
+                 impl: nil,
+                 imports: [
+                   {:timer, [trailing_comments: [], leading_comments: [], line: 41, column: 3],
+                    nil}
+                 ],
+                 module:
+                   {Traverse.Timer,
+                    [
+                      trailing_comments: [],
+                      leading_comments: [],
+                      end_of_expression: [newlines: 2, line: 42, column: 4],
+                      do: [line: 40, column: 26],
+                      end: [line: 42, column: 1],
+                      line: 40,
+                      column: 1
+                    ]},
+                 moduledoc: nil,
+                 requirements: [],
+                 spec: nil,
+                 usages: []
+               }
+
+      assert contexts[Traverse.RequireAlias] == %Context{
+               aliases: [
+                 {Traverse.Pluto,
+                  [trailing_comments: [], leading_comments: [], line: 45, column: 11], nil}
+               ],
+               assigns: %{},
+               definition: nil,
+               doc: nil,
+               impl: nil,
+               imports: [],
+               module:
+                 {Traverse.RequireAlias,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 2, line: 46, column: 4],
+                    do: [line: 44, column: 33],
+                    end: [line: 46, column: 1],
+                    line: 44,
+                    column: 1
+                  ]},
+               moduledoc: nil,
+               requirements: [
+                 {Traverse.Pluto,
+                  [trailing_comments: [], leading_comments: [], line: 45, column: 3], nil}
+               ],
+               spec: nil,
+               usages: []
+             }
+
+      assert contexts[Traverse.RequireAliasAs] == %Context{
+               aliases: [
+                 {Traverse.Pluto,
+                  [trailing_comments: [], leading_comments: [], line: 49, column: 11],
+                  [
+                    {{:__block__,
+                      [
+                        trailing_comments: [],
+                        leading_comments: [],
+                        format: :keyword,
+                        line: 49,
+                        column: 33
+                      ], [:as]},
+                     {:__aliases__,
+                      [
+                        trailing_comments: [],
+                        leading_comments: [],
+                        last: [line: 49, column: 37],
+                        line: 49,
+                        column: 37
+                      ], [:Foo]}}
+                  ]}
+               ],
+               assigns: %{},
+               definition: nil,
+               doc: nil,
+               impl: nil,
+               imports: [],
+               module:
+                 {Traverse.RequireAliasAs,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    end_of_expression: [newlines: 2, line: 50, column: 4],
+                    do: [line: 48, column: 35],
+                    end: [line: 50, column: 1],
+                    line: 48,
+                    column: 1
+                  ]},
+               moduledoc: nil,
+               requirements: [
+                 {[
+                    {Traverse.Pluto,
+                     [trailing_comments: [], leading_comments: [], line: 49, column: 11],
+                     [
+                       {{:__block__,
+                         [
+                           trailing_comments: [],
+                           leading_comments: [],
+                           format: :keyword,
+                           line: 49,
+                           column: 33
+                         ], [:as]},
+                        {:__aliases__,
+                         [
+                           trailing_comments: [],
+                           leading_comments: [],
+                           last: [line: 49, column: 37],
+                           line: 49,
+                           column: 37
+                         ], [:Foo]}}
+                     ]}
+                  ], [trailing_comments: [], leading_comments: [], line: 49, column: 3], nil}
+               ],
+               spec: nil,
+               usages: []
+             }
+
+      assert contexts[Traverse.AliasRequire] ==
+               %Context{
+                 aliases: [
+                   {Traverse.Pluto,
+                    [trailing_comments: [], leading_comments: [], line: 53, column: 3], nil}
+                 ],
+                 assigns: %{},
+                 definition: nil,
+                 doc: nil,
+                 impl: nil,
+                 imports: [],
+                 module:
+                   {Traverse.AliasRequire,
+                    [
+                      trailing_comments: [],
+                      leading_comments: [],
+                      do: [line: 52, column: 33],
+                      end: [line: 54, column: 1],
+                      line: 52,
+                      column: 1
+                    ]},
+                 moduledoc: nil,
+                 requirements: [
+                   {Traverse.Pluto,
+                    [trailing_comments: [], leading_comments: [], line: 53, column: 9], nil}
+                 ],
+                 spec: nil,
+                 usages: []
+               }
     end
 
     test "collects definitions with when" do
