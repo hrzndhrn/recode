@@ -9,6 +9,12 @@ defmodule Recode.Task.SinglePipe do
       # not preferred
       some_enum |> Enum.reverse()
 
+  `SinglePipe` does not change a single `|>` that starts with a none zero arity
+  function.
+
+      # will not be changed
+      one(:a) |> two()
+
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
@@ -78,11 +84,17 @@ defmodule Recode.Task.SinglePipe do
     {fun, meta, [arg | args]}
   end
 
-  defp update({:|>, meta, [{fun1, meta1, [arg1 | args1]}, {fun2, meta2, args2}]}) do
-    {:|>, meta,
-     [
-       {:|>, [], [arg1, {fun1, meta1, args1}]},
-       {fun2, meta2, args2}
-     ]}
+  defp update({:|>, _meta1, [{:__block__, _meta2, [_arg]} = block, {fun, meta, args}]}) do
+    {fun, meta, [block | args]}
   end
+
+  defp update({:|>, _meta1, [{:%{}, _meta2, _args} = map, {fun, meta, args}]}) do
+    {fun, meta, [map | args]}
+  end
+
+  # Single pipes with two function calls are not changed.
+  # e.g. `foo(1) |> bar(2)`
+  # Because we do not want: `bar(2, foo(1))`. Some other check should expand
+  # this to `1 |> foo() |> bar(2)`.
+  defp update(ast), do: ast
 end

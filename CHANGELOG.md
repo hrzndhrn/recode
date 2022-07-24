@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 - dev
+
++ Fix `Recode.Task.SinglePipe`.
+
 ## 0.1.2 - 2022/07/13
 
 + Add options `:macros` to `Recode.Task.Specs`.
