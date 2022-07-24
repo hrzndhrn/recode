@@ -519,8 +519,28 @@ defmodule Recode.Context do
     _error -> :unknown
   end
 
+  defp get_alias({:__block__, _meta, [name]}, _context) when is_atom(name) do
+    name
+  end
+
   defp get_alias({:unquote, _meta, _args} = expr, _context) do
     expr
+  end
+
+  defp get_alias({:alias, _meta, [args]}, %Context{} = context) do
+    get_alias(args, context)
+  end
+
+  defp get_alias({:alias, meta, args}, %Context{} = context) do
+    get_aliases(args, meta, context)
+  end
+
+  defp get_alias({:require, _meta, [[arg]]}, %Context{} = context) do
+    get_alias(arg, context)
+  end
+
+  defp get_alias({:require, _meta, [arg]}, %Context{} = context) do
+    get_alias(arg, context)
   end
 
   defp get_alias({:__MODULE__, _meta1, _args}, %Context{} = context) do

@@ -37,7 +37,18 @@ defmodule Traverse.Foo do
   end
 end
 
-defmodule Traverse.Bar do
+defmodule Traverse.Timer do
   import :timer
+end
+
+defmodule Traverse.RequireAlias do
   require alias Traverse.Pluto
+end
+
+defmodule Traverse.RequireAliasAs do
+  require alias Traverse.Pluto, as: Foo
+end
+
+defmodule Traverse.AliasRequire do
+  alias require Traverse.Pluto
 end
