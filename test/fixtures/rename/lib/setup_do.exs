@@ -10,6 +10,11 @@ defmodule Rename.FooTest do
   setup do
     baz()
   end
+
+  test "bar" do
+    baz(5)
+    assert baz(6)
+  end
 end
 
 defmodule Rename.BarTest do
@@ -19,5 +24,10 @@ defmodule Rename.BarTest do
   setup do
     x = 5
     baz(x)
+  end
+
+  test "bar" do
+    baz(5)
+    assert baz(6)
   end
 end

@@ -11,10 +11,18 @@ defmodule Recode.DebugInfo do
   @spec expand_mfa(map(), Context.t(), {module() | nil, atom(), non_neg_integer()}) ::
           {:ok, mfa()} | :error
   def expand_mfa(debug_info, context, {_module, fun, arity} = mfa) do
-    with {:ok, definitions} <- Map.fetch(debug_info, :definitions),
-         {:ok, block} <- find_block(definitions, context) do
+    with {:ok, definitions} <- Map.fetch(debug_info, :definitions) do
+      blocks =
+        case find_block(definitions, context) do
+          {:ok, block} ->
+            block
+
+          :error ->
+            get_blocks(definitions)
+        end
+
       expand =
-        block
+        blocks
         |> Zipper.zip()
         |> Zipper.traverse_while(nil, fn zipper, acc ->
           do_expand_mfa(zipper, context, mfa, acc)
@@ -24,6 +32,16 @@ defmodule Recode.DebugInfo do
 
       {:ok, {expand, fun, arity}}
     end
+  end
+
+  defp get_blocks(definitions) do
+    Enum.map(definitions, fn {{_fun, _arity}, _kind, _meta_fun, blocks} ->
+      case blocks do
+        [{_meta, _fun, _opts, {:__block__, _meta_block, blocks}}] -> blocks
+        [{_meta, _fun, _opts, blocks}] -> [blocks]
+        _else -> blocks
+      end
+    end)
   end
 
   defp default(nil, default), do: default
@@ -44,7 +62,7 @@ defmodule Recode.DebugInfo do
        ) do
     Enum.find_value(blocks, fn {meta, _args, _opts, block} ->
       with true <- meta[:line] == meta_def[:line] do
-        {:ok, block}
+        {:ok, [block]}
       end
     end)
   end
@@ -60,14 +78,20 @@ defmodule Recode.DebugInfo do
         _else -> []
       end
 
-    Enum.find_value(blocks, fn {_fun, meta, _args} = block ->
-      with true <- meta[:line] == meta_node[:line] do
-        {:ok, block}
-      end
+    Enum.find_value(blocks, fn
+      {_fun, meta, _args} = block ->
+        with true <- meta[:line] == meta_node[:line] do
+          {:ok, [block]}
+        end
+
+      _else ->
+        false
     end)
   end
 
-  defp do_find_block(_definition, _context), do: false
+  defp do_find_block(_definition, _context) do
+    false
+  end
 
   defp do_expand_mfa(
          {{{:., _meta1, [module, fun]}, _meta2, args}, _zipper_meta} = zipper,
