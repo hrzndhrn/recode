@@ -49,6 +49,24 @@ defmodule Recode.DebugInfo do
     end)
   end
 
+  defp do_find_block(
+         {{_fun, _arity}, _kind, _meta_fun, blocks},
+         %Context{node: {_fun_node, meta_node, _args}}
+       ) do
+    blocks =
+      case blocks do
+        [{_meta, _fun, _opts, {:__block__, _meta_block, blocks}}] -> blocks
+        [{_meta, _fun, _opts, blocks}] -> [blocks]
+        _else -> []
+      end
+
+    Enum.find_value(blocks, fn {_fun, meta, _args} = block ->
+      with true <- meta[:line] == meta_node[:line] do
+        {:ok, block}
+      end
+    end)
+  end
+
   defp do_find_block(_definition, _context), do: false
 
   defp do_expand_mfa(

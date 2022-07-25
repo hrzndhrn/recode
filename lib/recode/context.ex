@@ -32,8 +32,9 @@ defmodule Recode.Context do
       ...>   zipper, context, acc ->
       ...>     {zipper, context, acc}
       ...> end)
-      ...> |> elem(1)
+      ...> |> elem(1) |> Map.put(:node, nil)
       %Context{
+        node: nil,
         aliases: [
           {MyApp.Foo,
            [
@@ -84,6 +85,7 @@ defmodule Recode.Context do
             definition: nil,
             assigns: %{},
             moduledoc: nil,
+            node: nil,
             doc: nil,
             spec: nil,
             impl: nil
@@ -97,6 +99,7 @@ defmodule Recode.Context do
           definition: term(),
           assigns: map(),
           moduledoc: Macro.t() | nil,
+          node: term() | nil,
           doc: {term() | nil, Macro.t()} | nil,
           spec: {term() | nil, Macro.t()} | nil,
           impl: {term() | nil, Macro.t()} | nil
@@ -559,13 +562,13 @@ defmodule Recode.Context do
 
   defp get_aliases([arg, opts], meta, context), do: [{get_alias(arg, context), meta, opts}]
 
-  defp cont(zipper, context, fun) do
-    {zipper, context} = fun.(zipper, context)
+  defp cont({node, _meta} = zipper, context, fun) do
+    {zipper, context} = fun.(zipper, %Context{context | node: node})
     {:cont, zipper, context}
   end
 
-  defp cont(zipper, context, acc, fun) do
-    {zipper, context, acc} = fun.(zipper, context, acc)
+  defp cont({node, _meta} = zipper, context, acc, fun) do
+    {zipper, context, acc} = fun.(zipper, %Context{context | node: node}, acc)
     {:cont, zipper, {context, acc}}
   end
 

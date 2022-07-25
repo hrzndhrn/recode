@@ -55,6 +55,10 @@ defmodule Recode.Task.RenameTest do
     test_rename("use.ex", @opts)
   end
 
+  test "renames function in 'setup do'" do
+    test_rename("setup_do.exs", @opts)
+  end
+
   test "renames function with arity" do
     opts = [from: {Rename.Bar, :baz, 1}, to: %{fun: :bar}]
     test_rename("with_arity.ex", opts)
