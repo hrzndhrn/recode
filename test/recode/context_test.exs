@@ -269,7 +269,115 @@ defmodule Recode.ContextTest do
                     column: 1
                   ]},
                requirements: [],
-               usages: []
+               usages: [],
+               node:
+                 {:defmodule,
+                  [
+                    trailing_comments: [],
+                    leading_comments: [],
+                    do: [line: 1, column: 27],
+                    end: [line: 7, column: 1],
+                    line: 1,
+                    column: 1
+                  ],
+                  [
+                    {:__aliases__,
+                     [
+                       trailing_comments: [],
+                       leading_comments: [],
+                       last: [line: 1, column: 20],
+                       line: 1,
+                       column: 11
+                     ], [:Traverse, :Simple]},
+                    [
+                      {{:__block__,
+                        [trailing_comments: [], leading_comments: [], line: 1, column: 27],
+                        [:do]},
+                       {:__block__, [trailing_comments: [], leading_comments: []],
+                        [
+                          {:def,
+                           [
+                             trailing_comments: [],
+                             leading_comments: [],
+                             end_of_expression: [newlines: 2, line: 4, column: 6],
+                             do: [line: 2, column: 14],
+                             end: [line: 4, column: 3],
+                             line: 2,
+                             column: 3
+                           ],
+                           [
+                             {:foo,
+                              [
+                                trailing_comments: [],
+                                leading_comments: [],
+                                closing: [line: 2, column: 12],
+                                line: 2,
+                                column: 7
+                              ],
+                              [
+                                {:x,
+                                 [
+                                   trailing_comments: [],
+                                   leading_comments: [],
+                                   line: 2,
+                                   column: 11
+                                 ], nil}
+                              ]},
+                             [
+                               {{:__block__,
+                                 [
+                                   trailing_comments: [],
+                                   leading_comments: [],
+                                   line: 2,
+                                   column: 14
+                                 ], [:do]},
+                                {:*, [trailing_comments: [], line: 3, column: 7],
+                                 [
+                                   {:x,
+                                    [
+                                      trailing_comments: [],
+                                      leading_comments: [],
+                                      line: 3,
+                                      column: 5
+                                    ], nil},
+                                   {:__block__,
+                                    [
+                                      trailing_comments: [],
+                                      leading_comments: [],
+                                      token: "2",
+                                      line: 3,
+                                      column: 9
+                                    ], [2]}
+                                 ]}}
+                             ]
+                           ]},
+                          {:def,
+                           [trailing_comments: [], leading_comments: [], line: 6, column: 3],
+                           [
+                             {:baz,
+                              [trailing_comments: [], leading_comments: [], line: 6, column: 7],
+                              nil},
+                             [
+                               {{:__block__,
+                                 [
+                                   trailing_comments: [],
+                                   leading_comments: [],
+                                   format: :keyword,
+                                   line: 6,
+                                   column: 12
+                                 ], [:do]},
+                                {:__block__,
+                                 [
+                                   trailing_comments: [],
+                                   leading_comments: [],
+                                   line: 6,
+                                   column: 16
+                                 ], [:baz]}}
+                             ]
+                           ]}
+                        ]}}
+                    ]
+                  ]}
              }
 
       assert %{
@@ -421,6 +529,7 @@ defmodule Recode.ContextTest do
         |> Enum.map(fn {key, list} -> {key, hd(list)} end)
 
       assert contexts[Traverse.Foo] == %Context{
+               node: :entenhausen,
                aliases: [
                  {
                    Traverse.Nested.Simple,
@@ -661,6 +770,7 @@ defmodule Recode.ContextTest do
 
       assert contexts[Traverse.Timer] ==
                %Context{
+                 node: :timer,
                  aliases: [],
                  assigns: %{},
                  definition: nil,
@@ -688,6 +798,7 @@ defmodule Recode.ContextTest do
                }
 
       assert contexts[Traverse.RequireAlias] == %Context{
+               node: :Pluto,
                aliases: [
                  {Traverse.Pluto,
                   [trailing_comments: [], leading_comments: [], line: 45, column: 11], nil}
@@ -718,6 +829,7 @@ defmodule Recode.ContextTest do
              }
 
       assert contexts[Traverse.RequireAliasAs] == %Context{
+               node: :Foo,
                aliases: [
                  {Traverse.Pluto,
                   [trailing_comments: [], leading_comments: [], line: 49, column: 11],
@@ -787,6 +899,7 @@ defmodule Recode.ContextTest do
 
       assert contexts[Traverse.AliasRequire] ==
                %Context{
+                 node: :Pluto,
                  aliases: [
                    {Traverse.Pluto,
                     [trailing_comments: [], leading_comments: [], line: 53, column: 3], nil}

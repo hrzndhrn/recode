@@ -77,6 +77,28 @@ defmodule Recode.Task.Rename do
     {zipper, context}
   end
 
+  defp rename({{:import, _meta, [alias, _import_opts]}, _zipper_meta} = zipper, context, opts) do
+    case AST.aliases_concat(alias) == elem(opts[:from], 0) do
+      true ->
+        zipper = update_import_only(zipper, opts)
+        {zipper, context}
+
+      false ->
+        {zipper, context}
+    end
+  end
+
+  defp rename({{:&, _meta, _args} = ast, _zipper_meta} = zipper, context, opts) do
+    case rename?(:capture, ast, context, opts) do
+      false ->
+        {zipper, context}
+
+      true ->
+        zipper = update_capture(zipper, opts[:to])
+        {zipper, context}
+    end
+  end
+
   defp rename({{fun, _meta, _args} = ast, _zipper_meta} = zipper, context, opts)
        when is_atom(fun) do
     case rename?(:call, ast, context, opts) do
@@ -96,7 +118,7 @@ defmodule Recode.Task.Rename do
          context,
          opts
        ) do
-    case rename?(:dot, ast, context, opts) do
+    case rename?(:dot_call, ast, context, opts) do
       false ->
         {zipper, context}
 
@@ -161,7 +183,37 @@ defmodule Recode.Task.Rename do
     false
   end
 
-  defp rename?(:dot, ast, context, opts) do
+  defp rename?(
+         :capture,
+         {:&, _meta, [{:/, _meta2, [{fun, _meta3, nil}, {:__block__, _meta4, [arity]}]}]},
+         context,
+         opts
+       ) do
+    from = opts[:from]
+    mfa = {nil, fun, arity}
+
+    match?(mfa, from) && rename?(:debug, mfa, context, opts)
+  end
+
+  defp rename?(
+         :capture,
+         {:&, _meta, [{:/, _meta2, [dot_fun, {:__block__, _meta4, [arity]}]}]},
+         context,
+         opts
+       ) do
+    {{:., _meta1, [{:__aliases__, _meta2, alias}, fun]}, _meta3, []} = dot_fun
+    module = Module.concat(alias)
+    from = opts[:from]
+    mfa = {module, fun, arity}
+
+    match?(mfa, from) && rename?(:debug, mfa, context, opts)
+  end
+
+  defp rename?(:capture, _ast, _context, _from) do
+    false
+  end
+
+  defp rename?(:dot_call, ast, context, opts) do
     mfa = AST.mfa(ast)
     from = opts[:from]
 
@@ -207,6 +259,10 @@ defmodule Recode.Task.Rename do
 
   defp match?({module, fun, _arity}, {module, fun, nil}), do: true
 
+  defp match?({nil, fun, _arity}, {_module, fun, nil}), do: true
+
+  defp match?({nil, fun, arity}, {_module, fun, arity}), do: true
+
   defp match?(_mfa1, _mfa2), do: false
 
   defp update_definition({ast, _meta} = zipper, %{fun: name}) do
@@ -226,6 +282,48 @@ defmodule Recode.Task.Rename do
 
   defp update_dot_call({ast, _meta} = zipper, %{fun: name}) do
     ast = AST.update_dot_call(ast, name: name)
+    Zipper.replace(zipper, ast)
+  end
+
+  defp update_import_only({{:import, meta, [alias, import_opts]}, _zipper_meta} = zipper, opts) do
+    updated_opts =
+      Enum.map(import_opts, fn {key, value} ->
+        case AST.get_value(key) do
+          :only -> {key, update_import_only(value, opts)}
+          _else -> {key, value}
+        end
+      end)
+
+    Zipper.replace(zipper, {:import, meta, [alias, updated_opts]})
+  end
+
+  defp update_import_only(ast, opts) do
+    {_module, fun, arity} = opts[:from]
+
+    updated =
+      ast
+      |> AST.get_value()
+      |> Enum.map(fn {key_ast, value_ast} ->
+        key = AST.get_value(key_ast)
+        value = AST.get_value(value_ast)
+
+        case {fun, arity, key, value} do
+          {fun, nil, fun, arity} ->
+            {AST.put_value(key_ast, opts[:to].fun), AST.put_value(value_ast, arity)}
+
+          {fun, arity, fun, arity} ->
+            {AST.put_value(key_ast, opts[:to].fun), AST.put_value(value_ast, arity)}
+
+          _else ->
+            {key_ast, value_ast}
+        end
+      end)
+
+    AST.put_value(ast, updated)
+  end
+
+  defp update_capture({{:&, _meta, _args} = ast, _zipper_meta} = zipper, to) do
+    ast = AST.update_capture(ast, name: to.fun)
     Zipper.replace(zipper, ast)
   end
 end

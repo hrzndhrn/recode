@@ -39,6 +39,10 @@ defmodule Recode.Task.RenameTest do
     test_rename("other_definition.ex", @opts)
   end
 
+  test "renames captures" do
+    test_rename("capture.ex", @opts)
+  end
+
   test "renames imported function" do
     test_rename("import.ex", @opts)
   end
@@ -53,6 +57,10 @@ defmodule Recode.Task.RenameTest do
 
   test "renames function aliased via use" do
     test_rename("use.ex", @opts)
+  end
+
+  test "renames function in 'setup do'" do
+    test_rename("setup_do.exs", @opts)
   end
 
   test "renames function with arity" do
