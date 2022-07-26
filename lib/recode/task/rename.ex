@@ -287,8 +287,7 @@ defmodule Recode.Task.Rename do
 
   defp update_import_only({{:import, meta, [alias, import_opts]}, _zipper_meta} = zipper, opts) do
     updated_opts =
-      import_opts
-      |> Enum.map(fn {key, value} ->
+      Enum.map(import_opts, fn {key, value} ->
         case AST.get_value(key) do
           :only -> {key, update_import_only(value, opts)}
           _else -> {key, value}
