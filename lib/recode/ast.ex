@@ -281,7 +281,7 @@ defmodule Recode.AST do
   @doc """
   Converts AST representing a name to a string.
 
-  This function suppresses the prfix `"Elixir."`.
+  This function suppresses the prefix `"Elixir."`.
 
   ## Examples
 
@@ -300,5 +300,67 @@ defmodule Recode.AST do
     with "Elixir." <> name <- to_string(atom) do
       name
     end
+  end
+
+  @doc """
+  Returns the value from a `:__block__` with a single argument.
+
+  ## Examples
+
+      iex> "[1, 2]"
+      ...> |> Sourceror.parse_string!()
+      ...> |> get_value()
+      ...> |> Enum.map(&get_value/1)
+      [1, 2]
+  """
+  @spec get_value({:__block__, Recode.meta(), [term()]}) :: term
+  def get_value({:__block__, _meta, [value]}), do: value
+
+  @doc """
+  Puts the given `value` in the `:__block__` AST.
+
+  ## Examples
+
+      iex> "[1, 2]"
+      ...> |> Sourceror.parse_string!()
+      ...> |> get_value()
+      ...> |> Enum.map(fn ast -> put_value(ast, "0") end)
+      ...> |> Enum.map(&get_value/1)
+      ["0", "0"]
+  """
+  @spec put_value({:__block__, Recode.meta(), [term()]}, term()) ::
+          {:__block__, Recode.meta(), [term()]}
+  def put_value({:__block__, meta, [_value]}, value), do: {:__block__, meta, [value]}
+
+  @doc """
+  Updates the function name of a capture.
+  """
+  @spec update_capture(Macro.t(), name: atom()) :: Macro.t()
+  def update_capture(
+        {:&, meta1, [{:/, meta2, [{_name, meta3, nil}, {:__block__, meta4, [arity]}]}]},
+        name: name
+      ) do
+    {:&, meta1, [{:/, meta2, [{name, meta3, nil}, {:__block__, meta4, [arity]}]}]}
+  end
+
+  def update_capture(
+        {:&, meta1,
+         [
+           {:/, meta2,
+            [
+              {{:., meta3, [{:__aliases__, meta4, alias}, _name]}, meta5, []},
+              {:__block__, meta6, [arity]}
+            ]}
+         ]},
+        name: name
+      ) do
+    {:&, meta1,
+     [
+       {:/, meta2,
+        [
+          {{:., meta3, [{:__aliases__, meta4, alias}, name]}, meta5, []},
+          {:__block__, meta6, [arity]}
+        ]}
+     ]}
   end
 end

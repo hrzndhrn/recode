@@ -24,8 +24,8 @@ defmodule Recode.DebugInfo do
       expand =
         blocks
         |> Zipper.zip()
-        |> Zipper.traverse_while(nil, fn zipper, acc ->
-          do_expand_mfa(zipper, context, mfa, acc)
+        |> Zipper.traverse_while(nil, fn zipper, _acc ->
+          do_expand_mfa(zipper, mfa)
         end)
         |> elem(1)
         |> default(Context.module(context))
@@ -95,9 +95,7 @@ defmodule Recode.DebugInfo do
 
   defp do_expand_mfa(
          {{{:., _meta1, [module, fun]}, _meta2, args}, _zipper_meta} = zipper,
-         _context,
-         mfa,
-         nil
+         mfa
        ) do
     case expand?({module, fun, length(args)}, mfa) do
       true -> {:halt, zipper, module}
@@ -105,7 +103,18 @@ defmodule Recode.DebugInfo do
     end
   end
 
-  defp do_expand_mfa(zipper, _context, _mfa, nil) do
+  defp do_expand_mfa(
+         {{:&, _meta1, [{:/, _meta2, [{{:., _meta3, [module, fun]}, _meta4, _args}, arity]}]},
+          _zipper_meta} = zipper,
+         mfa
+       ) do
+    case expand?({module, fun, arity}, mfa) do
+      true -> {:halt, zipper, module}
+      false -> {:cont, zipper, nil}
+    end
+  end
+
+  defp do_expand_mfa(zipper, _mfa) do
     {:cont, zipper, nil}
   end
 

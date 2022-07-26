@@ -17,3 +17,11 @@ defmodule Rename.Foo do
     x
   end
 end
+
+defmodule Rename.FooFoo do
+  import Rename.Bar, only: [baz: 0, baz: 1]
+
+  def foofoo do
+    baz() |> baz() |> List.wrap()
+  end
+end
