@@ -313,7 +313,7 @@ defmodule Recode.AST do
       ...> |> Enum.map(&get_value/1)
       [1, 2]
   """
-  @spec get_value({:__block__, Recode.meta(), [term()]}) :: term
+  @spec get_value(Macro.t()) :: term
   def get_value({:__block__, _meta, [value]}), do: value
 
   @doc """
@@ -328,8 +328,7 @@ defmodule Recode.AST do
       ...> |> Enum.map(&get_value/1)
       ["0", "0"]
   """
-  @spec put_value({:__block__, Recode.meta(), [term()]}, term()) ::
-          {:__block__, Recode.meta(), [term()]}
+  @spec put_value(Macro.t(), term()) :: Macro.t()
   def put_value({:__block__, meta, [_value]}, value), do: {:__block__, meta, [value]}
 
   @doc """
