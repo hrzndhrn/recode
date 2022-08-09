@@ -19,9 +19,10 @@ defmodule Recode.Task.Oneliner do
     Source.update(source, SinglePipe, code: zipper)
   end
 
-  defp oneliner({{:def, meta, _args} = ast, _zipper_meta} = zipper) do
-    ast = put_line(ast, meta[:line])
-    Zipper.replace(zipper, ast)
+  defp oneliner({{def, meta, [args | rest]}, _zipper_meta} = zipper)
+       when def in [:def, :defp, :defmacro, :defmacrop] do
+    args = put_line(args, meta[:line])
+    Zipper.replace(zipper, {:def, meta, [args | rest]})
   end
 
   defp oneliner({{name, meta, args}, _zipper_meta} = zipper) do
