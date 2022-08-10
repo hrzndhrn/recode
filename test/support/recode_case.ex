@@ -53,4 +53,8 @@ defmodule RecodeCase do
   def run_task({task, opts}, config) do
     Runner.run({task, opts}, config)
   end
+
+  def formated?(code) do
+    String.trim(code) == code |> Code.format_string!() |> IO.iodata_to_binary()
+  end
 end

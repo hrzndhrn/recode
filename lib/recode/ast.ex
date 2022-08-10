@@ -1,7 +1,89 @@
 defmodule Recode.AST do
   @moduledoc """
-  This module provides functions to manipulate the AST.
+  This module provides functions to get informations from the AST and to
+  manipulate the AST.
+
+  For convenience the functions also accepts a `Sourcerer.Zipper.zipper()`
+
   """
+
+  @type ast :: Macro.t()
+  @type zipper :: Sourceror.Zipper.zipper()
+
+  alias Sourceror.Zipper
+
+  @doc """
+  TODO: add doc
+
+  ## Examples
+
+      iex> ":atom" |> Code.string_to_quoted!() |> atom?()
+      true
+
+      iex> ast = Sourceror.parse_string!(":atom")
+      iex> atom?(ast)
+      true
+      iex> ast |> Sourceror.Zipper.zip() |> atom?()
+      true
+
+      iex> Sourceror.parse_string!("42") |> atom?()
+      false
+  """
+  @spec atom?(ast() | zipper()) :: boolean()
+  def atom?({ast, _zipper_meat}), do: atom?(ast)
+
+  def atom?(atom) when is_atom(atom), do: true
+
+  def atom?({:__block__, _meta, [atom]}) when is_atom(atom), do: true
+
+  def atom?(_ast), do: false
+
+  @doc """
+  TODO: add doc
+  """
+  @spec multiline?(ast() | zipper() | keyword()) :: boolean()
+  def multiline?({ast, _zipper_meta}), do: multiline?(ast)
+
+  def multiline?({_expr, meta, _args}), do: multiline?(meta)
+
+  def multiline?(meta) when is_list(meta) do
+    with true <- Keyword.has_key?(meta, :closing) do
+      meta[:line] < meta[:closing][:line]
+    end
+  end
+
+  def to_same_line({_expr, meta, _args} = ast) do
+    start_line = meta[:line]
+
+    end_line =
+      case Keyword.has_key?(meta, :closing) do
+        true -> meta[:closing][:line]
+        false -> start_line
+      end
+
+    ast
+    |> Zipper.zip()
+    |> Zipper.traverse_while(fn
+      {{expr, meta, args}, _zipper_meta} = zipper ->
+        if meta[:line] >= start_line and meta[:line] <= end_line do
+          meta = to_same_line(meta, start_line)
+          {:cont, Zipper.replace(zipper, {expr, meta, args})}
+        else
+          {:halt, zipper}
+        end
+
+      zipper ->
+        {:cont, zipper}
+    end)
+    |> elem(0)
+  end
+
+  defp to_same_line(meta, line) when is_list(meta) do
+    meta
+    |> Keyword.delete(:newlines)
+    |> Keyword.put(:line, line)
+    |> Keyword.put(:closing, line: line)
+  end
 
   @doc """
   Updates the AST representing a definition.

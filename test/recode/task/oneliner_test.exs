@@ -18,8 +18,13 @@ defmodule Recode.Task.SinglePipeTest do
     %{foo: 42}
     """
 
+    %{
+      foo: 42
+    }
+
     source = run(code)
 
+    assert formated?(code)
     assert source.code == expected
   end
 
@@ -48,6 +53,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
+    assert formated?(code)
     assert source.code == code
   end
 
@@ -66,17 +72,37 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "formats multiline and" do
+    code = """
+    true and
+      false and
+      x
+    """
+
+    expected = """
+    true and false and x
+    """
+
+    source = run(code)
+
+    assert formated?(code)
     assert source.code == expected
   end
 
   test "formats def" do
-
     code = """
     def foo(
-      x,
-      y
-    ) do
-      {x, y}
+          x,
+          y
+        ) do
+      {
+        x,
+        y
+      }
     end
     """
 
@@ -88,6 +114,31 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "formats defp with when" do
+    code = """
+    defp foo(
+           x,
+           y
+         )
+         when is_integer(x) and
+                is_integer(y) do
+      {x, y}
+    end
+    """
+
+    expected = """
+    defp foo(x, y) when is_integer(x) and is_integer(y) do
+      {x, y}
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
     assert source.code == expected
   end
 end
