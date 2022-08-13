@@ -31,8 +31,13 @@ defmodule Recode.Runner.Impl do
   end
 
   defp run_tasks(tasks, project, config) do
-    Enum.reduce(tasks, project, fn {module, opts}, project ->
-      run_task(project, config, module, opts)
+    tasks
+    |> filter(Keyword.get(config, :task, :all))
+    |> Enum.reduce(project, fn {module, opts}, project ->
+      case Keyword.get(opts, :skip, false) do
+        false -> run_task(project, config, module, opts)
+        true -> project
+      end
     end)
   end
 
@@ -48,6 +53,18 @@ defmodule Recode.Runner.Impl do
           _project = format(project, :task, config, {source, module, opts})
           module.run(source, opts)
       end
+    end)
+  end
+
+  defp filter(tasks, :all), do: tasks
+
+  defp filter(tasks, task) do
+    tasks
+    |> Enum.filter(fn {module, _opts} ->
+      module |> inspect() |> String.ends_with?(".#{task}")
+    end)
+    |> Enum.map(fn {module, opts} ->
+      {module, Keyword.delete(opts, :skip)}
     end)
   end
 

@@ -35,7 +35,13 @@ defmodule Mix.Tasks.Recode do
   alias Recode.Project
   alias Recode.Runner
 
-  @opts strict: [autocorrect: :boolean, dry: :boolean, verbose: :boolean, config: :string]
+  @opts strict: [
+          autocorrect: :boolean,
+          dry: :boolean,
+          verbose: :boolean,
+          config: :string,
+          task: :string
+        ]
 
   @impl Mix.Task
   @spec run(list()) :: no_return()

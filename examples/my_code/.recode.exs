@@ -1,9 +1,7 @@
-alias Recode.Task
-
 [
   # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
   autocorrect: true,
-  # With "--dry" no changes will be writen to the files.
+  # With "--dry" no changes will be written to the files.
   # Can also be set/reset with "--dry"/"--no-dry".
   # If dry is true then verbose is also active.
   dry: false,
@@ -12,11 +10,12 @@ alias Recode.Task
   inputs: ["{config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
-    {Task.AliasExpansion, []},
-    {Task.AliasOrder, []},
-    {Task.PipeFunOne, []},
-    {Task.SinglePipe, []},
-    {Task.Specs, [only: :visible]},
-    {Task.TestFileExt, []}
+    {Recode.Task.AliasExpansion, []},
+    {Recode.Task.AliasOrder, []},
+    {Recode.Task.PipeFunOne, []},
+    {Recode.Task.SinglePipe, []},
+    {Recode.Task.Specs, only: :visible, exclude: "test/**/*.{ex,exs}"},
+    {Recode.Task.TestFileExt, []},
+    {Recode.Task.SameLine, skip: true}
   ]
 ]
