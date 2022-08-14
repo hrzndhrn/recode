@@ -46,6 +46,6 @@ defmodule Recode.Task.SameLine do
     opts
     |> Keyword.update(:skip, [], fn skip -> List.wrap(skip) end)
     |> Keyword.update(:ignore, [], fn ignore -> List.wrap(ignore) end)
-    |> Keyword.validate!([:skip, :ignore])
+    |> Keyword.validate!([:skip, :ignore, :autocorrect])
   end
 end
