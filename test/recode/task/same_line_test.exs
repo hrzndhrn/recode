@@ -3,8 +3,8 @@ defmodule Recode.Task.SameLineTest do
 
   alias Recode.Task.SameLine
 
-  defp run(code) do
-    code |> source() |> run_task({SameLine, []})
+  defp run(code, opts \\ []) do
+    code |> source() |> run_task({SameLine, opts})
   end
 
   test "formats maps" do
@@ -180,6 +180,173 @@ defmodule Recode.Task.SameLineTest do
     """
 
     source = run(code)
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "keeps with" do
+    code = """
+    with {:ok, a} <- foo(x),
+         {:ok, b} <- bar(x) do
+      {a, b}
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == code
+  end
+
+  test "formats with clauses" do
+    code = """
+    with {:ok, a} <-
+           foo(x),
+         {:ok, b} <-
+           bar(x) do
+      {a, b}
+    end
+    """
+
+    expected = """
+    with {:ok, a} <- foo(x),
+         {:ok, b} <- bar(x) do
+      {a, b}
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "keeps case" do
+    code = """
+    case x do
+      :foo -> {:foo, x}
+      :bar -> {:bar, x}
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == code
+  end
+
+  test "formats case clauses" do
+    code = """
+    case x do
+      :foo ->
+        {:foo, x}
+
+      :bar ->
+        {:bar, x}
+    end
+    """
+
+    expected = """
+    case x do
+      :foo -> {:foo, x}
+      :bar -> {:bar, x}
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "formats anonymous functions" do
+    code = """
+    fn x ->
+      {:ok, x}
+    end
+    """
+
+    expected = """
+    fn x -> {:ok, x} end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "keeps fn with pattern matching" do
+    code = ~S"""
+    fn
+      {:x, x} -> inspect("x = #{x}")
+      {:y, y} -> inspect("y = #{y}")
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == code
+  end
+
+  test "formats fn without skip and ignore" do
+    code = """
+    fn
+      x ->
+        {
+          :ok,
+          x
+        }
+    end
+    """
+
+    expected = """
+    fn x -> {:ok, x} end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "keeps fn with skip" do
+    code = """
+    fn
+      x ->
+        {
+          :ok,
+          x
+        }
+    end
+    """
+
+    source = run(code, skip: [:fn])
+
+    assert formated?(code)
+    assert source.code == code
+  end
+
+  test "keeps fn with ignore" do
+    code = """
+    fn
+      x ->
+        {
+          :ok,
+          x
+        }
+    end
+    """
+
+    expected = """
+    fn
+      x -> {:ok, x}
+    end
+    """
+
+    source = run(code, ignore: [:fn])
 
     assert formated?(code)
     assert source.code == expected

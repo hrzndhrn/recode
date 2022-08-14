@@ -51,7 +51,25 @@ defmodule Recode.AST do
 
   def atom?(_ast), do: false
 
-  @operators [:+, :-, :*, :/, :and, :->, :"=>"]
+  @operators [
+    :"=>",
+    :&&&,
+    :&&,
+    :*,
+    :+,
+    :-,
+    :->,
+    :/,
+    :<-,
+    :=,
+    :==,
+    :and,
+    :in,
+    :not,
+    :or,
+    :||,
+    :|||
+  ]
 
   def foo(x)
       when is_integer(x) do

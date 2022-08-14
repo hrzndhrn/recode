@@ -34,9 +34,9 @@ defmodule Recode.Runner.Impl do
     tasks
     |> filter(Keyword.get(config, :task, :all))
     |> Enum.reduce(project, fn {module, opts}, project ->
-      case Keyword.get(opts, :skip, false) do
-        false -> run_task(project, config, module, opts)
-        true -> project
+      case Keyword.get(opts, :run, true) do
+        true -> run_task(project, config, module, opts)
+        false -> project
       end
     end)
   end
@@ -64,7 +64,7 @@ defmodule Recode.Runner.Impl do
       module |> inspect() |> String.ends_with?(".#{task}")
     end)
     |> Enum.map(fn {module, opts} ->
-      {module, Keyword.delete(opts, :skip)}
+      {module, Keyword.delete(opts, :run)}
     end)
   end
 
@@ -94,7 +94,6 @@ defmodule Recode.Runner.Impl do
   defp tasks(config) do
     config
     |> Keyword.fetch!(:tasks)
-    |> tasks(:skip)
     |> tasks(:exclude)
     |> tasks(:correct_first)
     |> tasks(:filter, config)
@@ -118,10 +117,6 @@ defmodule Recode.Runner.Impl do
 
       {task, config}
     end)
-  end
-
-  defp tasks(tasks, :skip) do
-    Enum.reject(tasks, fn {_task, config} -> config == :skip end)
   end
 
   defp tasks(tasks, :correct_first) do

@@ -18,6 +18,6 @@ alias Recode.Task
     {Task.SinglePipe, []},
     {Task.Specs, [only: :visible, exclude: "test/**/*.{ex,exs}"]},
     {Task.TestFileExt, []},
-    {Task.SameLine, []}
+    {Task.SameLine, [run: false]}
   ]
 ]
