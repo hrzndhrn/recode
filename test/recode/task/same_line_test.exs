@@ -351,4 +351,101 @@ defmodule Recode.Task.SameLineTest do
     assert formated?(code)
     assert source.code == expected
   end
+
+  test "inlines assert_raise" do
+    code = """
+    test "my test" do
+      x = %{
+        foo: :fail
+      }
+
+      assert_raise RuntimeError, fn ->
+        do_some(%{
+          x: x,
+          y: :foo
+        })
+      end
+    end
+    """
+
+    expected = """
+    test "my test" do
+      x = %{foo: :fail}
+
+      assert_raise RuntimeError, fn -> do_some(%{x: x, y: :foo}) end
+    end
+    """
+
+    source = run(code)
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "ignore fn" do
+    code = """
+    test "my test" do
+      x = %{
+        foo: :fail
+      }
+
+      assert_raise RuntimeError, fn ->
+        do_some(%{
+          x: x,
+          y: :foo
+        })
+      end
+    end
+    """
+
+    expected = """
+    test "my test" do
+      x = %{foo: :fail}
+
+      assert_raise RuntimeError, fn ->
+        do_some(%{x: x, y: :foo})
+      end
+    end
+    """
+
+    source = run(code, ignore: [:fn])
+
+    assert formated?(code)
+    assert source.code == expected
+  end
+
+  test "skip assert_raise" do
+    code = """
+    test "my test" do
+      x = %{
+        foo: :fail
+      }
+
+      assert_raise RuntimeError, fn ->
+        do_some(%{
+          x: x,
+          y: :foo
+        })
+      end
+    end
+    """
+
+    expected = """
+    test "my test" do
+      x = %{foo: :fail}
+
+      assert_raise RuntimeError, fn ->
+        do_some(%{
+          x: x,
+          y: :foo
+        })
+      end
+    end
+    """
+
+    source = run(code, skip: [:assert_raise])
+
+    assert formated?(code)
+    assert source.code == expected
+  end
 end
