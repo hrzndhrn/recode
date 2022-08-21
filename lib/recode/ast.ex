@@ -1,37 +1,245 @@
 defmodule Recode.AST do
   @moduledoc """
-  This module provides functions to manipulate the AST.
+  This module provides functions to get informations from the AST and to
+  manipulate the AST.
+
+  Most of the functions in this module require an AST with additional
+  informations. This information is provided by `Sourceror` or
+  `Code.string_to_quoted/2` with the options
+  ```elixir
+  [
+    columns: true,
+    literal_encoder: &{:ok, {:__block__, &2, [&1]}},
+    token_metadata: true,
+    unescape: false
+  ]
+  ```
+  See also [Formatting considerations](https://hexdocs.pm/elixir/Code.html#quoted_to_algebra/2-formatting-considerations)
+  in the docs for `Code.quoted_to_algebra/2`.
+
+  This module provides `literal?` functions that are also work with encoded
+  literals generate by `literal_encoder: %{:ok, {:__block__, &2, [&1]}}`.
+  For an example see `atom?/1`.
   """
 
+  alias Sourceror.Zipper
+
   @doc """
+  Returns `true` if the given AST represents an atom.
+
+  ## Examples
+
+      iex> ":atom" |> Code.string_to_quoted!() |> atom?()
+      true
+
+      iex> ":atom" |> Sourceror.parse_string!() |> atom?()
+      true
+
+      iex> "42" |> Sourceror.parse_string!() |> atom?()
+      false
+
+      iex> ast = Code.string_to_quoted!(
+      ...>   ":a", literal_encoder: &{:ok, {:__block__, &2, [&1]}})
+      {:__block__, [line: 1], [:a]}
+      iex> atom?(ast)
+      true
+  """
+  @spec atom?(Macro.t()) :: boolean()
+  def atom?(atom) when is_atom(atom), do: true
+
+  def atom?({:__block__, _meta, [atom]}) when is_atom(atom), do: true
+
+  def atom?(_ast), do: false
+
+  @operators [
+    :"=>",
+    :&&&,
+    :&&,
+    :*,
+    :+,
+    :-,
+    :->,
+    :/,
+    :<-,
+    :=,
+    :==,
+    :and,
+    :in,
+    :not,
+    :or,
+    :||,
+    :|||
+  ]
+
+  def foo(x)
+      when is_integer(x) do
+    {:foo, x}
+  end
+
+  @doc ~S'''
+  Returns `true` when the given `ast` represents an expression that spans over
+  multiple lines.
+
+  `multiline?` does not pay attention to do blocks.
+
+  ## Examples
+
+      iex> """
+      ...> def foo(x)
+      ...>     when is_integer(x) do
+      ...>   {:foo, x}
+      ...> end
+      ...> """
+      ...> |> Sourceror.parse_string!() |> multiline?()
+      true
+
+      iex> """
+      ...> def foo(x) when is_integer(x) do
+      ...>   {:foo, x}
+      ...> end
+      ...> """
+      ...> |> Sourceror.parse_string!() |> multiline?()
+      false
+
+      iex> """
+      ...> {
+      ...>   x,
+      ...>   y
+      ...> }
+      ...> """
+      ...> |> Sourceror.parse_string!() |> multiline?()
+      true
+
+      iex> """
+      ...> {x, y}
+      ...> """
+      ...> |> Sourceror.parse_string!() |> multiline?()
+      false
+  '''
+  @spec multiline?(Macro.t() | Macro.metadata()) :: boolean()
+  def multiline?({op, _meta, [left, right]}) when op in @operators do
+    last_line(right) > first_line(left)
+  end
+
+  def multiline?({_expr, meta, _args}), do: multiline?(meta)
+
+  def multiline?(meta) when is_list(meta) do
+    case {Keyword.has_key?(meta, :closing), Keyword.has_key?(meta, :do)} do
+      {true, false} -> meta[:line] < meta[:closing][:line]
+      {false, true} -> meta[:line] < meta[:do][:line]
+      _else -> false
+    end
+  end
+
+  def to_same_line({op, _meta, [left, right]} = ast) when op in @operators do
+    to_same_line(ast, first_line(left), last_line(right))
+  end
+
+  def to_same_line({_expr, meta, _args} = ast) do
+    begin_line = meta[:line]
+
+    end_line =
+      case {Keyword.has_key?(meta, :closing), Keyword.has_key?(meta, :do)} do
+        {true, false} -> meta[:closing][:line]
+        {false, true} -> meta[:do][:line]
+        _fallback -> begin_line
+      end
+
+    to_same_line(ast, begin_line, end_line)
+  end
+
+  defp to_same_line(meta, line) when is_list(meta) do
+    meta =
+      meta
+      |> Keyword.delete(:newlines)
+      |> Keyword.put(:line, line)
+
+    cond do
+      Keyword.has_key?(meta, :closing) -> Keyword.put(meta, :closing, line: line)
+      Keyword.has_key?(meta, :do) -> Keyword.put(meta, :do, line: line)
+      true -> meta
+    end
+  end
+
+  defp to_same_line(ast, begin_line, end_line) do
+    ast
+    |> Zipper.zip()
+    |> Zipper.traverse_while(fn
+      {{expr, meta, args}, _zipper_meta} = zipper ->
+        if meta[:line] >= begin_line and meta[:line] <= end_line do
+          meta = to_same_line(meta, begin_line)
+          {:cont, Zipper.replace(zipper, {expr, meta, args})}
+        else
+          {:halt, zipper}
+        end
+
+      zipper ->
+        {:cont, zipper}
+    end)
+    |> Zipper.node()
+  end
+
+  @doc ~S'''
+  Returns the line in which the given AST starts.
+
+  Note: The AST must be constructed by `Sourceror` or with the `Code` module and
+  the options `columns: true, token_metadata: true`.
+
+  ## Examples
+
+      iex> code = """
+      ...> 1 +
+      ...>   2 -
+      ...>   3
+      ...> """
+      iex> code |> Sourceror.parse_string!() |> first_line()
+      1
+      iex> code |> Sourceror.parse_string!() |> last_line()
+      3
+      iex> code
+      ...> |> Code.string_to_quoted!(
+      ...>   columns: true,
+      ...>   token_metadata: true,
+      ...>   literal_encoder: &{:ok, {:__block__, &2, [&1]}})
+      ...> |> last_line()
+      3
+
+  '''
+  def first_line(ast), do: get_line_by(ast, &min/2)
+
+  def last_line(ast), do: get_line_by(ast, &max/2)
+
+  defp get_line_by(ast, fun) do
+    ast
+    |> Zipper.zip()
+    |> Zipper.traverse_while(nil, fn
+      {{_name, meta, _args}, _zipper_meta} = zipper, acc ->
+        line = meta[:line]
+
+        case acc do
+          nil -> {:cont, zipper, line}
+          _line -> {:cont, zipper, fun.(acc, line)}
+        end
+
+      zipper, acc ->
+        {:cont, zipper, acc}
+    end)
+    |> elem(1)
+  end
+
+  @doc ~S'''
   Updates the AST representing a definition.
 
   The keyword list `updates` can have the keys `name`, `meta` and `args`.
 
   ## Examples
 
-      iex> ast = quote do
-      ...>   def foo(x), do: x
-      ...> end
-      iex> update_definition(ast, name: :bar)
-      {:def, [context: Recode.ASTTest, import: Kernel],
-       [
-         {:bar, [context: Recode.ASTTest], [{:x, [], Recode.ASTTest}]},
-         [do: {:x, [], Recode.ASTTest}]
-       ]}
-      iex> update_definition(ast, meta: [])
-      {:def, [],
-       [
-         {:foo, [context: Recode.ASTTest], [{:x, [], Recode.ASTTest}]},
-         [do: {:x, [], Recode.ASTTest}]
-       ]}
-      iex> update_definition(ast, args: [{:y, [], Recode.ASTTest}], meta: [])
-      {:def, [],
-       [
-         {:foo, [context: Recode.ASTTest], [{:y, [], Recode.ASTTest}]},
-         [do: {:x, [], Recode.ASTTest}]
-       ]}
-  """
+      iex> ast = Sourceror.parse_string!("def foo(x), do: x")
+      iex> ast |> update_definition(name: :bar) |> Macro.to_string()
+      "def bar(x), do: x"
+      iex> ast |> update_definition(args: [{:y, [], nil}]) |> Macro.to_string()
+      "def foo(y), do: x"
+  '''
   @spec update_definition(Macro.t(), updates :: keyword()) :: Macro.t()
   def update_definition(
         {:def, meta, [{:when, meta1, [{name, meta2, args}, expr1]}, expr2]},
@@ -66,14 +274,12 @@ defmodule Recode.AST do
       {:@, [context: Recode.ASTTest, import: Kernel],
        [
          {:spec, [context: Recode.ASTTest],
-          [{:"::", [], [{:foo, [], [{:integer, [], []}]}, {:integer, [], []}]}]}
+          [{:"::", [], [{:foo, [context: Recode.ASTTest, import: Recode.AST], [{:integer, [], []}]}, {:integer, [], []}]}]}
        ]}
-      iex> update_spec(ast, meta: [], name: :bar, return: {:term, [], []})
-      {:@, [],
-       [
-         {:spec, [context: Recode.ASTTest],
-          [{:"::", [], [{:bar, [], [{:integer, [], []}]}, {:term, [], []}]}]}
-       ]}
+      iex> ast
+      ...> |> update_spec(name: :bar, return: {:term, [], []})
+      ...> |> Macro.to_string()
+      "@spec bar(integer()) :: term()"
   """
   @spec update_spec(Macro.t(), updates :: keyword()) :: Macro.t()
   def update_spec(
@@ -147,11 +353,12 @@ defmodule Recode.AST do
 
   ## Examples
 
-      iex> ast = quote do
+      iex> quote do
       ...>   foo(x)
       ...> end
-      iex> update_call(ast, name: :bar)
-      {:bar, [], [{:x, [], Recode.ASTTest}]}
+      ...> |> update_call(name: :bar)
+      ...> |> Macro.to_string()
+      "bar(x)"
   """
   @spec update_call(Macro.t(), updates :: keyword()) :: Macro.t()
   def update_call({name, meta, args}, updates) do

@@ -12,16 +12,12 @@ jobs:
     strategy:
       matrix:
         elixir:
-          - '1.12.3'
           - '1.13.4'
         otp:
           - '22.3'
           - '23.3'
           - '24.3'
           - '25.0'
-        exclude:
-          - elixir: '1.12.3'
-            otp: '25.0'
     steps:
       - name: Checkout
         uses: actions/checkout@v3

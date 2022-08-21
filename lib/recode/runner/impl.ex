@@ -31,8 +31,13 @@ defmodule Recode.Runner.Impl do
   end
 
   defp run_tasks(tasks, project, config) do
-    Enum.reduce(tasks, project, fn {module, opts}, project ->
-      run_task(project, config, module, opts)
+    tasks
+    |> filter(Keyword.get(config, :task, :all))
+    |> Enum.reduce(project, fn {module, opts}, project ->
+      case Keyword.get(opts, :active, true) do
+        true -> run_task(project, config, module, Keyword.delete(opts, :active))
+        false -> project
+      end
     end)
   end
 
@@ -48,6 +53,18 @@ defmodule Recode.Runner.Impl do
           _project = format(project, :task, config, {source, module, opts})
           module.run(source, opts)
       end
+    end)
+  end
+
+  defp filter(tasks, :all), do: tasks
+
+  defp filter(tasks, task) do
+    tasks
+    |> Enum.filter(fn {module, _opts} ->
+      module |> inspect() |> String.ends_with?(".#{task}")
+    end)
+    |> Enum.map(fn {module, opts} ->
+      {module, Keyword.delete(opts, :active)}
     end)
   end
 
@@ -77,7 +94,6 @@ defmodule Recode.Runner.Impl do
   defp tasks(config) do
     config
     |> Keyword.fetch!(:tasks)
-    |> tasks(:skip)
     |> tasks(:exclude)
     |> tasks(:correct_first)
     |> tasks(:filter, config)
@@ -103,10 +119,6 @@ defmodule Recode.Runner.Impl do
     end)
   end
 
-  defp tasks(tasks, :skip) do
-    Enum.reject(tasks, fn {_task, config} -> config == :skip end)
-  end
-
   defp tasks(tasks, :correct_first) do
     groups =
       Enum.group_by(tasks, fn {task, _opts} ->
@@ -124,7 +136,14 @@ defmodule Recode.Runner.Impl do
 
   defp update_opts(tasks, config) do
     Enum.map(tasks, fn {task, opts} ->
-      opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
+      task_config = Keyword.get(opts, :config, [])
+      active = Keyword.get(opts, :active, true)
+
+      opts =
+        task_config
+        |> Keyword.put_new(:autocorrect, config[:autocorrect])
+        |> Keyword.put_new(:active, active)
+
       {task, opts}
     end)
   end

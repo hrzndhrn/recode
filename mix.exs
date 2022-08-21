@@ -8,7 +8,7 @@ defmodule Recode.MixProject do
     [
       app: :recode,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.13",
       name: "Recode",
       description: description(),
       docs: docs(),
@@ -46,6 +46,9 @@ defmodule Recode.MixProject do
           Recode.Task.SinglePipe,
           Recode.Task.Specs,
           Recode.Task.TestFileExt
+        ],
+        "Format task": [
+          Recode.Task.SameLine
         ],
         "Refactoring tasks": [
           Recode.Task.Rename

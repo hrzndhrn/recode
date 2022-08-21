@@ -3,7 +3,7 @@ alias Recode.Task
 [
   # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
   autocorrect: true,
-  # With "--dry" no changes will be writen to the files.
+  # With "--dry" no changes will be written to the files.
   # Can also be set/reset with "--dry"/"--no-dry".
   # If dry is true then verbose is also active.
   dry: false,
@@ -16,7 +16,8 @@ alias Recode.Task
     {Task.AliasOrder, []},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
-    {Task.Specs, [only: :visible]},
-    {Task.TestFileExt, []}
+    {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
+    {Task.TestFileExt, []},
+    {Task.SameLine, active: false}
   ]
 ]

@@ -26,6 +26,9 @@ defmodule Mix.Tasks.Recode do
 
     * `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
       Overwrites the corresponding value in the configuration.
+
+    * `--task`, specifies the task to use. With this option, the task is used
+      even if it is specified as `active:  false` in the configuration.
   """
 
   use Mix.Task
@@ -35,7 +38,13 @@ defmodule Mix.Tasks.Recode do
   alias Recode.Project
   alias Recode.Runner
 
-  @opts strict: [autocorrect: :boolean, dry: :boolean, verbose: :boolean, config: :string]
+  @opts strict: [
+          autocorrect: :boolean,
+          dry: :boolean,
+          verbose: :boolean,
+          config: :string,
+          task: :string
+        ]
 
   @impl Mix.Task
   @spec run(list()) :: no_return()

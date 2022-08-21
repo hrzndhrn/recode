@@ -2,10 +2,14 @@ defmodule Recode.Runner.ImplTest do
   use ExUnit.Case
 
   import ExUnit.CaptureIO
+  import Mox
 
   alias Recode.Project
   alias Recode.Runner.Impl, as: Runner
   alias Recode.Task.SinglePipe
+  alias Recode.TaskMock
+
+  setup :verify_on_exit!
 
   setup_all context do
     cwd = File.cwd!()
@@ -32,6 +36,55 @@ defmodule Recode.Runner.ImplTest do
 
       capture_io(fn ->
         assert %Project{} = Runner.run(config)
+      end)
+    end
+
+    test "runs task with the right config", %{config: config} do
+      TaskMock
+      |> expect(:run, fn source, config ->
+        assert config == [autocorrect: true]
+        source
+      end)
+      |> expect(:config, fn :correct -> true end)
+
+      config = Keyword.put(config, :tasks, [{TaskMock, []}])
+
+      capture_io(fn ->
+        assert Runner.run(config)
+      end)
+    end
+
+    test "runs task with the right aditional config", %{config: config} do
+      TaskMock
+      |> expect(:run, fn source, config ->
+        assert config == [autocorrect: true, foo: :bar]
+        source
+      end)
+      |> expect(:config, fn :correct -> true end)
+
+      config = Keyword.put(config, :tasks, [{TaskMock, config: [foo: :bar]}])
+
+      capture_io(fn ->
+        assert Runner.run(config)
+      end)
+    end
+
+    test "does not run task with active: false", %{config: config} do
+      TaskMock
+      |> expect(:run, fn source, config ->
+        assert config == [autocorrect: true, foo: :bar]
+        source
+      end)
+      |> expect(:config, 2, fn :correct -> true end)
+
+      config =
+        Keyword.put(config, :tasks, [
+          {TaskMock, config: [foo: :bar]},
+          {TaskMock, active: false, config: [foo: :none]}
+        ])
+
+      capture_io(fn ->
+        assert Runner.run(config)
       end)
     end
   end
