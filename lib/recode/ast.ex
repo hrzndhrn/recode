@@ -25,7 +25,7 @@ defmodule Recode.AST do
   alias Sourceror.Zipper
 
   @doc """
-  TODO: add doc
+  Returns `true` if the given AST represents an atom.
 
   ## Examples
 

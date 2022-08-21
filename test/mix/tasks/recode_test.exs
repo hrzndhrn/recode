@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.RecodeTest do
   use RecodeCase
 
-  import(ExUnit.CaptureIO)
+  import ExUnit.CaptureIO
   import Mox
 
   alias Mix.Tasks

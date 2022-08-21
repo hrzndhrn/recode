@@ -34,8 +34,8 @@ defmodule Recode.Runner.Impl do
     tasks
     |> filter(Keyword.get(config, :task, :all))
     |> Enum.reduce(project, fn {module, opts}, project ->
-      case Keyword.get(opts, :run, true) do
-        true -> run_task(project, config, module, opts)
+      case Keyword.get(opts, :active, true) do
+        true -> run_task(project, config, module, Keyword.delete(opts, :active))
         false -> project
       end
     end)
@@ -64,7 +64,7 @@ defmodule Recode.Runner.Impl do
       module |> inspect() |> String.ends_with?(".#{task}")
     end)
     |> Enum.map(fn {module, opts} ->
-      {module, Keyword.delete(opts, :run)}
+      {module, Keyword.delete(opts, :active)}
     end)
   end
 
@@ -136,7 +136,14 @@ defmodule Recode.Runner.Impl do
 
   defp update_opts(tasks, config) do
     Enum.map(tasks, fn {task, opts} ->
-      opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
+      task_config = Keyword.get(opts, :config, [])
+      active = Keyword.get(opts, :active, true)
+
+      opts =
+        task_config
+        |> Keyword.put_new(:autocorrect, config[:autocorrect])
+        |> Keyword.put_new(:active, active)
+
       {task, opts}
     end)
   end

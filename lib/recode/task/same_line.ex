@@ -1,6 +1,36 @@
 defmodule Recode.Task.SameLine do
   @moduledoc """
-  TODO: Add doc
+  The `SmeLine` task writes multiline expressions into one line if they do not
+  exceed the maximum line length.
+
+  ## Options
+
+    * `:skip` - specifies expressions to skip.
+    * `:ignore` - specifies expressions to ignore.
+
+  ## Examples
+
+  The following code is not changed by the Elixir Formatter.
+  ```Elixir
+  fn
+    x ->
+      {
+        :ok,
+        x
+      }
+  end
+  ```
+  The `SameLine` task rewrite this to
+  ```Elixir
+  fn x -> {:ok, x} end
+  ```
+  and with the option `[ignore: :fn]` to
+  ```Elixir
+  fn
+    x -> {:ok, x}
+  end
+  ```
+  and with the option `skip: :fn` the code keeps unchanged.
   """
 
   use Recode.Task, correct: true, check: false

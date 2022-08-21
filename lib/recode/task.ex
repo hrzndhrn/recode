@@ -15,6 +15,8 @@ defmodule Recode.Task do
   """
   @callback config(key :: :check | :correct | :refactor) :: boolean
 
+  @optional_callbacks config: 1
+
   defmacro __using__(opts) do
     quote do
       @behaviour Recode.Task
@@ -32,8 +34,6 @@ defmodule Recode.Task do
       def config(key) when key in [:check, :correct, :refactor] do
         Map.fetch!(@opts, key)
       end
-
-      defoverridable config: 1
     end
   end
 end

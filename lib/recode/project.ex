@@ -278,6 +278,7 @@ defmodule Recode.Project do
     map(project, sources, fun, opts)
   rescue
     error ->
+      if is_exception(error, ExUnit.AssertionError), do: reraise(error, __STACKTRACE__)
       Logger.error(Exception.format(:error, error, __STACKTRACE__))
       map(project, sources, fun, opts)
   end
