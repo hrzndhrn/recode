@@ -1,6 +1,16 @@
 # Changelog
 
-## 0.1.3 - dev
+## 0.2.0 - 2022/08/21
+
++ Refactor config.
++ Add `Recode.Task.SameLine`.
++ Add flag `--task` to `mix recode`.
+
+## 0.1.3 - 2022/07/26
+
++ Fix `Recode.Task.Rename`
+
+## 0.1.3 - 2022/07/24
 
 + Fix `Recode.Task.SinglePipe`.
 + Fix bugs in `Recode.Context`.

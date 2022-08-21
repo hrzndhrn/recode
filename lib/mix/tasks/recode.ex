@@ -53,6 +53,7 @@ defmodule Mix.Tasks.Recode do
 
     opts
     |> config!()
+    |> validate_config!()
     |> Keyword.merge(opts)
     |> update(:verbose)
     |> update(:locals_without_parens)
@@ -85,6 +86,19 @@ defmodule Mix.Tasks.Recode do
       {:ok, config} -> config
       {:error, :not_found} -> Mix.raise("Config file not found")
     end
+  end
+
+  defp validate_config!(config) do
+    cmp =
+      config
+      |> Keyword.get(:version, "0.1.0")
+      |> Version.compare("0.2.0")
+
+    if cmp == :lt do
+      Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
+    end
+
+    config
   end
 
   defp update(opts, :verbose) do
