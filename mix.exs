@@ -48,7 +48,7 @@ defmodule Recode.MixProject do
           Recode.Task.TestFileExt
         ],
         "Format task": [
-          Recode.Task.SameLine,
+          Recode.Task.SameLine
         ],
         "Refactoring tasks": [
           Recode.Task.Rename
