@@ -8,7 +8,7 @@ defmodule Recode.MixProject do
     [
       app: :recode,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.13",
       name: "Recode",
       description: description(),
       docs: docs(),
