@@ -558,4 +558,39 @@ defmodule Recode.AST do
         ]}
      ]}
   end
+
+  def gen(:use, module, []) do
+    module = split(module)
+    {:use, [], [{:__aliases__, [], module}]}
+  end
+
+  def gen(:use, module, opts) do
+    module = split(module)
+    opts = gen(:keyword, opts)
+
+    {:use, [], [{:__aliases__, [], module}, opts]}
+  end
+
+  def gen(:keyword, keyword) do
+    Enum.map(keyword, fn {key, value} -> {literal(key, format: :keyword), literal(value)} end)
+  end
+
+  def literal(literal, meta \\ [])
+
+  def literal(literal, meta) when is_atom(literal) do
+    {:__block__, meta, [literal]}
+  end
+
+  def literal(literal, meta) do
+    meta = Keyword.put_new(meta, :token, to_string(literal))
+    {:__block__, meta, [literal]}
+  end
+
+  def split(module) do
+    module |> Module.split() |> Enum.map(&String.to_existing_atom/1)
+  end
+
+  def module_attribute_name({:@, _meta1, [{name, _meta2, _args} | _rest]}) do
+    name
+  end
 end

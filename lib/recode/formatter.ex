@@ -133,6 +133,10 @@ defmodule Recode.Formatter do
     ])
   end
 
+  def format_code_update(source) do
+    [] |> format_code_update(source, nil, Source.updated?(source)) |> write()
+  end
+
   defp format_code_update(output, _source, _opts, false), do: output
 
   defp format_code_update(output, source, _opts, true) do
