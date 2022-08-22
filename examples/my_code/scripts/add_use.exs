@@ -1,3 +1,5 @@
+# A little demo for a task to add `use ...` to an existing module.
+# Run with: mix run scripts/add_use.exs
 alias Recode.AST
 alias Recode.Formatter
 alias Recode.Project
