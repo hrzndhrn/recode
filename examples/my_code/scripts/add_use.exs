@@ -27,7 +27,7 @@ defmodule AddUse do
       # return the root AST
       |> Zipper.root()
 
-    Source.update(source, AdUse, ast: ast)
+    Source.update(source, __MODULE__, ast: ast)
   end
 
   defp insert(zipper, ast) do
@@ -59,8 +59,10 @@ source =
 
 project = Project.update(project, source)
 
-Formatter.format_code_update(source)
-IO.puts("\n" <> Source.code(source))
+config = [verbose: true]
+Formatter.format(:project, {project, config}, [])
+Formatter.format(:results, {project, config}, [])
+IO.puts("The new code:" <> Source.code(source))
 
 # If we want to write the changes to disk
 # Project.save(project)
