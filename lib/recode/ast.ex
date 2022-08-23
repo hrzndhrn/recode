@@ -470,14 +470,8 @@ defmodule Recode.AST do
       Alpha.Bravo
   """
   @spec aliases_concat({:__aliases__, Macro.metadata(), [atom()]}) :: module()
-  def aliases_concat({:__aliases__, _meta, [Elixir | aliases]}) do
-    IO.inspect(aliases)
-    Module.concat(aliases) |> IO.inspect()
-  end
-
   def aliases_concat({:__aliases__, _meta, aliases}) do
-    IO.inspect(aliases)
-    Module.concat(aliases) |> IO.inspect()
+    Module.concat(aliases)
   end
 
   @doc """

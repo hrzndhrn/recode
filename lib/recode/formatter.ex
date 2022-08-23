@@ -114,10 +114,12 @@ defmodule Recode.Formatter do
   defp format_file(output, _source, _opts, false), do: output
 
   defp format_file(output, source, _opts, true) do
+    file = with nil <- Source.path(source), do: Source.path(source, 1)
+
     Enum.concat(output, [
       :file,
       reverse(),
-      " File: #{source.path || "no file"} ",
+      " File: #{file || "no file"} ",
       reverse_off(),
       "\n"
     ])
