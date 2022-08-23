@@ -45,7 +45,8 @@ defmodule Recode.MixProject do
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
           Recode.Task.Specs,
-          Recode.Task.TestFileExt
+          Recode.Task.TestFileExt,
+          Recode.Task.UnusedVariable
         ],
         "Format task": [
           Recode.Task.SameLine
