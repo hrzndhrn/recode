@@ -117,4 +117,13 @@ defmodule Recode.Traverse do
       :error -> raise "TODO: raise an usefull error"
     end
   end
+
+  def collect(zipper, name) do
+    zipper
+    |> Zipper.traverse([], fn
+      {{^name, _meta, _args}, _zipper_meta} = zipper, acc -> {zipper, [zipper | acc]}
+      zipper, acc -> {zipper, acc}
+    end)
+    |> elem(1)
+  end
 end
