@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 - 2022/08/28
+
++ Rename `Recode.Taks.SameLine` to `Recode.Task.EnforceLineLength`.
+
 ## 0.2.0 - 2022/08/21
 
 + Refactor config.

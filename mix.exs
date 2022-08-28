@@ -1,7 +1,7 @@
 defmodule Recode.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
   @source_url "https://github.com/hrzndhrn/recode"
 
   def project do
@@ -48,7 +48,7 @@ defmodule Recode.MixProject do
           Recode.Task.TestFileExt
         ],
         "Format task": [
-          Recode.Task.SameLine
+          Recode.Task.EnforceLineLength
         ],
         "Refactoring tasks": [
           Recode.Task.Rename

@@ -73,7 +73,7 @@ alias Recode.Task
     {Task.SinglePipe, []},
     {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
     {Task.TestFileExt, []},
-    {Task.SameLine, active: false}
+    {Task.EnforceLineLength, active: false}
   ]
 ]
 ```

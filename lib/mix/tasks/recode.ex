@@ -38,6 +38,10 @@ defmodule Mix.Tasks.Recode do
   alias Recode.Project
   alias Recode.Runner
 
+  # The minimum version of the config to run recode. This version marks the last
+  # breaking change for handle the config.
+  @config_min_version "0.3.0"
+
   @opts strict: [
           autocorrect: :boolean,
           dry: :boolean,
@@ -92,7 +96,7 @@ defmodule Mix.Tasks.Recode do
     cmp =
       config
       |> Keyword.get(:version, "0.1.0")
-      |> Version.compare("0.2.0")
+      |> Version.compare(@config_min_version)
 
     if cmp == :lt do
       Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
