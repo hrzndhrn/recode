@@ -30,6 +30,17 @@ defmodule Mix.Tasks.RecodeTest do
     assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "--dry"])) == :normal
   end
 
+  test "mix recode --config priv/config.exs -" do
+    expect(RunnerMock, :run, fn config ->
+      assert Keyword.keyword?(config)
+      assert config[:inputs] == "-"
+
+      ":test" |> source() |> project()
+    end)
+
+    assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "-"])) == :normal
+  end
+
   test "mix recode raises exception for unknown config file" do
     assert_raise Mix.Error, "Config file not found", fn ->
       Tasks.Recode.run(["--config", "priv/no_config.exs"])

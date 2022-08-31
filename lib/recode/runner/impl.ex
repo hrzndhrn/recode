@@ -4,6 +4,7 @@ defmodule Recode.Runner.Impl do
   @behaviour Recode.Runner
 
   alias Recode.Project
+  alias Recode.Source
 
   @impl true
   def run(config) do
@@ -88,7 +89,15 @@ defmodule Recode.Runner.Impl do
   end
 
   defp project(config) do
-    config |> Keyword.fetch!(:inputs) |> List.wrap() |> Project.new()
+    inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
+
+    if inputs == ["-"] do
+      stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
+
+      stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
+    else
+      Project.new(inputs)
+    end
   end
 
   defp tasks(config) do
