@@ -24,8 +24,12 @@ defmodule Recode.Task.TestFileExt do
     end
   end
 
-  defp update_path(path) do
+  defp update_path(path) when is_binary(path) do
     String.replace(path, ~r/_test\.ex$/, "_test.exs")
+  end
+
+  defp update_path(nil) do
+    nil
   end
 
   defp update_source(source, path, true) do
