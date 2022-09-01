@@ -5,8 +5,8 @@ defmodule Recode.Formatter do
 
   import Recode.IO
 
-  alias Recode.Project
-  alias Recode.Source
+  alias Rewrite.Project
+  alias Rewrite.Source
 
   @callback format(
               type :: :project | :results | :tasks_ready,

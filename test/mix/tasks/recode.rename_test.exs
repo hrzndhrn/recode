@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Recode.RenameTest do
   test "mix recode.rename Rename.Bar.baz bar" do
     expect(RunnerMock, :run, fn {task, opts}, config ->
       assert task == Recode.Task.Rename
-      assert opts == [from: {Elixir.Rename.Bar, :baz, 5}, to: %{fun: :bar}]
+      assert opts == [config: [from: {Elixir.Rename.Bar, :baz, 5}, to: %{fun: :bar}]]
       assert config[:inputs] == ["{config,lib,test}/**/*.{ex,exs}"]
     end)
 
@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Recode.RenameTest do
 
     expect(RunnerMock, :run, fn {task, opts}, config ->
       assert task == Recode.Task.Rename
-      assert opts == [from: {Elixir.Rename.Bar, :baz, 5}, to: %{fun: :bar}]
+      assert opts == [config: [from: {Elixir.Rename.Bar, :baz, 5}, to: %{fun: :bar}]]
       assert config[:inputs] == ["{config,lib,test}/**/*.{ex,exs}"]
     end)
 

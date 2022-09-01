@@ -3,8 +3,8 @@ defmodule Recode.Runner.Impl do
 
   @behaviour Recode.Runner
 
-  alias Recode.Project
   alias Recode.Source
+  alias Rewrite.Project
 
   @impl true
   def run(config) do
@@ -21,6 +21,7 @@ defmodule Recode.Runner.Impl do
       |> format(:project, config)
 
     tasks
+    |> update_opts(config)
     |> run_tasks(project, config)
     |> format(:tasks_ready, config)
     |> format(:results, config)
@@ -106,7 +107,6 @@ defmodule Recode.Runner.Impl do
     |> tasks(:exclude)
     |> tasks(:correct_first)
     |> tasks(:filter, config)
-    |> update_opts(config)
   end
 
   defp tasks(tasks, :filter, config) do

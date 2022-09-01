@@ -3,7 +3,7 @@ defmodule Recode.Task do
   The behaviour for a `recode` task.
   """
 
-  alias Recode.Source
+  alias Rewrite.Source
 
   @doc """
   Applies a task with the given `source` and `opts`.

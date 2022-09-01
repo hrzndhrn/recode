@@ -7,7 +7,8 @@ defmodule Recode.Context do
   The following example shows the `%Context{}` for the definition of
   `MyApp.Bar.bar/1`.
 
-      iex> alias Recode.{Source, Context}
+      iex> alias Rewrite.Source
+      ...> alias Recode.Context
       ...> """
       ...> defmodule MyApp.Foo do
       ...>   def foo, do: :foo

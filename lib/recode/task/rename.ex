@@ -12,8 +12,8 @@ defmodule Recode.Task.Rename do
   alias Recode.AST
   alias Recode.Context
   alias Recode.DebugInfo
-  alias Recode.Source
   alias Recode.Task.Rename
+  alias Rewrite.Source
   alias Sourceror.Zipper
 
   @impl Recode.Task

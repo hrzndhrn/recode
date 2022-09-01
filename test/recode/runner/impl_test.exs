@@ -4,10 +4,10 @@ defmodule Recode.Runner.ImplTest do
   import ExUnit.CaptureIO
   import Mox
 
-  alias Recode.Project
   alias Recode.Runner.Impl, as: Runner
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
+  alias Rewrite.Project
 
   setup :verify_on_exit!
 

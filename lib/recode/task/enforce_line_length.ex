@@ -36,8 +36,8 @@ defmodule Recode.Task.EnforceLineLength do
   use Recode.Task, correct: true, check: false
 
   alias Recode.AST
-  alias Recode.Source
   alias Recode.Task.EnforceLineLength
+  alias Rewrite.Source
   alias Sourceror.Zipper
 
   @impl Recode.Task

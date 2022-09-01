@@ -4,10 +4,10 @@ defmodule Recode.FormatterTest do
   import ExUnit.CaptureIO
 
   alias Recode.Formatter
-  alias Recode.Issue
-  alias Recode.Project
-  alias Recode.Source
   alias Recode.Task.Format
+  alias Rewrite.Issue
+  alias Rewrite.Project
+  alias Rewrite.Source
 
   @config verbose: true
   @opts []
