@@ -59,7 +59,7 @@ defmodule Mix.Tasks.Recode do
     opts = opts!(opts)
 
     opts
-    |> config!()
+    |>     config!()
     |> validate_config!()
     |> Keyword.merge(opts)
     |> update(:verbose)
