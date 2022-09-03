@@ -34,4 +34,11 @@ defmodule Recode.Task.TestFileExtTest do
 
     assert_no_issues(source)
   end
+
+  test "reports no issue when nofile" do
+    path = nil
+    source = run(path)
+
+    assert_no_issues(source)
+  end
 end

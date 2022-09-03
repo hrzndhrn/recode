@@ -69,6 +69,20 @@ defmodule Recode.Runner.ImplTest do
       end)
     end
 
+    test "runs task with input from stdin", %{config: config} do
+      config = Keyword.merge(config, inputs: "-", tasks: [{TaskMock, []}])
+      code = ":foo |> bar()"
+
+      TaskMock
+      |> expect(:run, fn source, _config ->
+        assert source.code == code
+        source
+      end)
+      |> expect(:config, fn :correct -> true end)
+
+      capture_io(code, fn -> assert Runner.run(config) end)
+    end
+
     test "does not run task with active: false", %{config: config} do
       TaskMock
       |> expect(:run, fn source, config ->

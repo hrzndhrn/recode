@@ -10,6 +10,8 @@ defmodule Mix.Tasks.Recode do
 
   Without a `wildcard` argument the `inputs` value from the config is used.
 
+  If `inputs` value is `-`, then the input is read from stdin.
+
   Without the option `--config file` the config file `.recode.exs` is used. A
   default `.recode.exs` can be generated with `mix recode.gen.config`.
 
