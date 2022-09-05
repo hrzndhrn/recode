@@ -3,6 +3,7 @@
 ## 0.4.0 - dev
 
 + Add option `-` to `mix recode` to read from stdin.
++ Add `Recode.Task.UnusedVariable`
 
 ## 0.3.0 - 2022/08/28
 
