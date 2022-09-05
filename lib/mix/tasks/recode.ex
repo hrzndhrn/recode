@@ -5,10 +5,11 @@ defmodule Mix.Tasks.Recode do
   #{@shortdoc}.
 
   ```shell
-  > mix recode [options] [wildcard]
+  > mix recode [options] [inputs]
   ```
 
-  Without a `wildcard` argument the `inputs` value from the config is used.
+  Without a `inputs` argument the `inputs` value from the config is used. The
+  `inputs` argument accepts a wildcard.
 
   If `inputs` value is `-`, then the input is read from stdin.
 

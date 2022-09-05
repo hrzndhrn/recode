@@ -1,7 +1,7 @@
 alias Recode.Task
 
 [
-  version: "0.2.0",
+  version: "0.3.0",
   # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
@@ -19,6 +19,6 @@ alias Recode.Task
     {Task.SinglePipe, []},
     {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
     {Task.TestFileExt, []},
-    {Task.SameLine, active: false}
+    {Task.EnforceLineLength, active: false}
   ]
 ]

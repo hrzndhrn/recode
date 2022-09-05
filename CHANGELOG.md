@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 - dev
+
++ Add option `-` to `mix recode` to read from stdin.
+
 ## 0.3.0 - 2022/08/28
 
 + Rename `Recode.Taks.SameLine` to `Recode.Task.EnforceLineLength`.
