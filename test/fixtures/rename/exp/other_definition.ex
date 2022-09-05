@@ -1,3 +1,7 @@
+defmodule Rename.Bar do
+  def bar(x), do: {:baz, x}
+end
+
 defmodule Rename.Foo do
   alias Rename.Bar
 

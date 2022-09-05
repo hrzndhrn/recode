@@ -519,21 +519,13 @@ defmodule Recode.Source do
       ...>      def bar, do: :bar
       ...>   end
       ...>   """
-      iex> bar |> Source.from_string() |> Source.debug_info(Bar)
-      {:ok,
-       %{
-         attributes: [],
-         compile_opts: [],
-         definitions: [{{:bar, 0}, :def, [line: 2], [{[line: 2], [], [], :bar}]}],
-         deprecated: [],
-         file: "nofile",
-         is_behaviour: false,
-         line: 1,
-         module: Bar,
-         relative_file: "nofile",
-         struct: nil,
-         unreachable: []
-       }}
+      iex> {:ok, dbg} = bar |> Source.from_string() |> Source.debug_info(Bar)
+      iex> dbg.module
+      Bar
+      iex> dbg.relative_file
+      "nofile"
+      iex> dbg.definitions
+      [{{:bar, 0}, :def, [line: 2], [{[line: 2], [], [], :bar}]}]
   '''
   @spec debug_info(t(), module()) :: {:ok, term()} | {:error, term()}
   def debug_info(%Source{modules: modules, code: code, path: path} = source, module) do

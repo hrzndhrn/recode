@@ -271,10 +271,10 @@ defmodule Recode.AST do
       iex> ast = quote do
       ...>   @spec foo(integer()) :: integer()
       ...> end
-      {:@, [context: Recode.ASTTest, import: Kernel],
+      {:@, [context: Recode.ASTTest, imports: [{1, Kernel}]],
        [
          {:spec, [context: Recode.ASTTest],
-          [{:"::", [], [{:foo, [context: Recode.ASTTest, import: Recode.AST], [{:integer, [], []}]}, {:integer, [], []}]}]}
+          [{:"::", [], [{:foo, [context: Recode.ASTTest, imports: [{1, Recode.AST}]], [{:integer, [], []}]}, {:integer, [], []}]}]}
        ]}
       iex> ast
       ...> |> update_spec(name: :bar, return: {:term, [], []})
