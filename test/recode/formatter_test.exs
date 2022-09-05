@@ -55,11 +55,11 @@ defmodule Recode.FormatterTest do
               File: no file
              Updates: 1
              Changed by: test
-             001   |defmodule Foo do
-             002 - |  def bar, do: :foo
-             002 + |  def foo, do: :foo
-             003   |end
-             004   |
+             1 1   |defmodule Foo do
+             2   - |  def bar, do: :foo
+               2 + |  def foo, do: :foo
+             3 3   |end
+             4 4   |
 
              """
     end
@@ -127,7 +127,7 @@ defmodule Recode.FormatterTest do
 
       output = strip_esc_seq(output)
 
-      assert output =~ "...   |"
+      assert output =~ "...|"
     end
 
     test "formats results for a project with moved source" do

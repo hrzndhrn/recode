@@ -86,8 +86,8 @@ defmodule Recode.MixProject do
   defp deps do
     [
       {:beam_file, "~> 0.3"},
-      {:bunt, "~> 0.2.0"},
-      {:rewrite, path: "../rewrite"},
+      {:bunt, "~> 0.2"},
+      {:rewrite, "~> 0.1"},
       {:sourceror, "~> 0.11"},
       # {:sourceror, path: "../../forks/sourceror"},
       # dev/test

@@ -3,7 +3,7 @@ defmodule Recode.Runner.Impl do
 
   @behaviour Recode.Runner
 
-  alias Recode.Source
+  alias Rewrite.Source
   alias Rewrite.Project
 
   @impl true
@@ -97,7 +97,7 @@ defmodule Recode.Runner.Impl do
 
       stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
     else
-      Project.new(inputs)
+      Project.read!(inputs)
     end
   end
 
