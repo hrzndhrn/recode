@@ -5,6 +5,7 @@ defmodule Recode.Formatter do
 
   import Recode.IO
 
+  alias IO.ANSI
   alias Rewrite.Project
   alias Rewrite.Source
 
@@ -124,6 +125,7 @@ defmodule Recode.Formatter do
     Enum.concat([
       output,
       changed_by(source),
+      [ANSI.reset()],
       [source |> Source.diff(iodata: true) |> IO.iodata_to_binary()]
     ])
   end

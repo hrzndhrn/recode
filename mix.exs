@@ -38,18 +38,16 @@ defmodule Recode.MixProject do
       source_ref: "v#{@version}",
       formatters: ["html"],
       groups_for_modules: [
-        "Linter tasks": [
+        Tasks: [
           Recode.Task.AliasExpansion,
           Recode.Task.AliasOrder,
+          Recode.Task.EnforceLineLength,
           Recode.Task.Format,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
           Recode.Task.Specs,
           Recode.Task.TestFileExt,
           Recode.Task.UnusedVariable
-        ],
-        "Format task": [
-          Recode.Task.EnforceLineLength
         ],
         "Refactoring tasks": [
           Recode.Task.Rename
