@@ -124,7 +124,7 @@ defmodule Recode.Formatter do
     Enum.concat([
       output,
       changed_by(source),
-      [Source.diff(source, iodata: true) |> IO.iodata_to_binary()]
+      [source |> Source.diff(iodata: true) |> IO.iodata_to_binary()]
     ])
   end
 

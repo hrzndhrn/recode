@@ -3,8 +3,8 @@ defmodule Recode.Runner.Impl do
 
   @behaviour Recode.Runner
 
-  alias Rewrite.Source
   alias Rewrite.Project
+  alias Rewrite.Source
 
   @impl true
   def run(config) do
