@@ -154,6 +154,7 @@ defmodule Recode.FormatterTest do
              Updates: 1
              Changed by: test
              Moved from: foo.ex
+
              """
     end
 
