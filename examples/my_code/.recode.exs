@@ -13,6 +13,7 @@ alias Recode.Task
   inputs: ["{config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
+    {MyCode.RaiseTask, []},
     {Task.AliasExpansion, []},
     {Task.AliasOrder, []},
     {Task.PipeFunOne, []},

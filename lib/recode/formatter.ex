@@ -114,7 +114,7 @@ defmodule Recode.Formatter do
     Enum.concat([
       output,
       changed_by(source),
-      ["Moved from: #{Source.path(source, 1)}"]
+      ["Moved from: #{Source.path(source, 1)}\n"]
     ])
   end
 
@@ -161,6 +161,10 @@ defmodule Recode.Formatter do
       true ->
         false
     end
+  end
+
+  defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual) do
+    [:warn, "Execution of the #{meta[:task]} task failed."]
   end
 
   defp format_issue(issue, version, actual) do

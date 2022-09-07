@@ -189,6 +189,33 @@ defmodule Recode.FormatterTest do
              """
     end
 
+    test "formats results for a project with Recode.Runner issues" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source =
+        code
+        |> Source.from_string()
+        |> Source.add_issue(Issue.new(Recode.Runner, task: Test, error: :error))
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:results, {project, @config}, @opts)
+        end)
+
+      output = strip_esc_seq(output)
+
+      assert output == """
+              File: no file
+             Execution of the Elixir.Test task failed.
+             """
+    end
+
     test "formats project infos" do
       code = """
       defmodule Foo do

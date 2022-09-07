@@ -58,6 +58,8 @@ defmodule Mix.Tasks.Recode do
   def run(opts) do
     opts = opts!(opts)
 
+    Mix.Task.run("compile")
+
     opts
     |> config!()
     |> validate_config!()

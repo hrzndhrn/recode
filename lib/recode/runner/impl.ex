@@ -3,6 +3,7 @@ defmodule Recode.Runner.Impl do
 
   @behaviour Recode.Runner
 
+  alias Rewrite.Issue
   alias Rewrite.Project
   alias Rewrite.Source
 
@@ -43,19 +44,26 @@ defmodule Recode.Runner.Impl do
     end)
   end
 
-  defp run_task(%Project{} = project, config, module, opts) do
+  defp run_task(project, config, module, opts) do
     Project.map(project, fn source ->
-      exclude = Keyword.get(opts, :exclude, [])
-
-      case source.path in exclude do
-        true ->
-          source
-
-        false ->
-          _project = format(project, :task, config, {source, module, opts})
-          module.run(source, opts)
-      end
+      run_task(source, project, config, module, opts)
     end)
+  end
+
+  defp run_task(source, project, config, module, opts) do
+    exclude = Keyword.get(opts, :exclude, [])
+
+    case source.path in exclude do
+      true ->
+        source
+
+      false ->
+        _project = format(project, :task, config, {source, module, opts})
+        module.run(source, opts)
+    end
+  rescue
+    error ->
+      Source.add_issue(source, Issue.new(Recode.Runner, task: module, error: error))
   end
 
   defp filter(tasks, :all), do: tasks
