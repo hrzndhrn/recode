@@ -32,6 +32,20 @@ defmodule Recode.Task.PipeFunOneTest do
       assert source.code == expected
     end
 
+    test "adds parenthes in single pipe" do
+      code = """
+      a |> IO.inspect
+      """
+
+      expected = """
+      a |> IO.inspect()
+      """
+
+      source = run(code)
+
+      assert source.code == expected
+    end
+
     test "reports issue" do
       code = """
       def foo(arg) do
@@ -61,5 +75,43 @@ defmodule Recode.Task.PipeFunOneTest do
 
       assert_no_issues(source)
     end
+  end
+
+  test "keeps code when |> is not used as pipe operator" do
+    code = """
+    defmodule Foo do
+      defmacro a |> b do
+        a |> IO.inspect
+
+        fun = fn {x, pos}, acc ->
+          Macro.pipe(acc, x, pos)
+        end
+
+        :lists.foldl(fun, left, Macro.unpipe(right))
+      end
+
+      defdelegate left |> right, to: Bar
+    end
+    """
+
+    expected = """
+    defmodule Foo do
+      defmacro a |> b do
+        a |> IO.inspect()
+
+        fun = fn {x, pos}, acc ->
+          Macro.pipe(acc, x, pos)
+        end
+
+        :lists.foldl(fun, left, Macro.unpipe(right))
+      end
+
+      defdelegate left |> right, to: Bar
+    end
+    """
+
+    source = run(code)
+
+    assert source.code == expected
   end
 end

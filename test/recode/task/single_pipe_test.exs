@@ -163,4 +163,42 @@ defmodule Recode.Task.SinglePipeTest do
 
     assert_issues(source, SinglePipe, 2)
   end
+
+  test "keeps |> when not used as pipe operator" do
+    code = """
+    defmodule Foo do
+      defmacro a |> b do
+        a |> IO.inspect()
+
+        fun = fn {x, pos}, acc ->
+          Macro.pipe(acc, x, pos)
+        end
+
+        :lists.foldl(fun, left, Macro.unpipe(right))
+      end
+
+      defdelegate left |> right, to: Bar
+    end
+    """
+
+    expected = """
+    defmodule Foo do
+      defmacro a |> b do
+        IO.inspect(a)
+
+        fun = fn {x, pos}, acc ->
+          Macro.pipe(acc, x, pos)
+        end
+
+        :lists.foldl(fun, left, Macro.unpipe(right))
+      end
+
+      defdelegate left |> right, to: Bar
+    end
+    """
+
+    source = run(code)
+
+    assert source.code == expected
+  end
 end

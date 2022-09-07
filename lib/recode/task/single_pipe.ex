@@ -25,6 +25,8 @@ defmodule Recode.Task.SinglePipe do
   alias Recode.Task.SinglePipe
   alias Sourceror.Zipper
 
+  @defs [:def, :defp, :defmacro, :defmacrop, :defdelegate]
+
   @impl Recode.Task
   def run(source, opts) do
     {zipper, issues} =
@@ -43,6 +45,11 @@ defmodule Recode.Task.SinglePipe do
     end
   end
 
+  defp single_pipe({{def, _meta, _args}, _zipper_mea} = zipper, issues, _autocorrect)
+       when def in @defs do
+    {Zipper.next(zipper), issues}
+  end
+
   defp single_pipe(
          {{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper,
          issues,
@@ -51,7 +58,7 @@ defmodule Recode.Task.SinglePipe do
     {skip(zipper), issues}
   end
 
-  defp single_pipe({{:|>, _meta, _ast}, _zipper_meta} = zipper, issues, true) do
+  defp single_pipe({{:|>, _meta, ast}, _zipper_meta} = zipper, issues, true) do
     zipper = zipper |> Zipper.update(&update/1) |> skip()
 
     {zipper, issues}

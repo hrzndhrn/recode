@@ -18,6 +18,8 @@ defmodule Recode.Task.PipeFunOne do
   alias Recode.Task.PipeFunOne
   alias Sourceror.Zipper
 
+  @defs [:def, :defp, :defmacro, :defmacrop, :defdelegate]
+
   @impl Recode.Task
   def run(source, opts) do
     {zipper, issues} =
@@ -31,6 +33,11 @@ defmodule Recode.Task.PipeFunOne do
       true -> Source.update(source, PipeFunOne, code: zipper)
       false -> Source.add_issues(source, issues)
     end
+  end
+
+  defp pipe_fun_one({{def, _meta, _args}, _zipper_mea} = zipper, issues, _autocorrect)
+       when def in @defs do
+    {Zipper.next(zipper), issues}
   end
 
   defp pipe_fun_one({{:|>, _meta, _tree}, _zipper_meta} = zipper, issues, true) do
@@ -59,6 +66,10 @@ defmodule Recode.Task.PipeFunOne do
 
   defp update({name, meta, nil}) do
     {name, meta, []}
+  end
+
+  defp update({name, meta, []}) do
+    {name, Keyword.delete(meta, :no_parens), []}
   end
 
   defp update(tree), do: tree
