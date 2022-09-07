@@ -58,7 +58,7 @@ defmodule Recode.Task.SinglePipe do
     {skip(zipper), issues}
   end
 
-  defp single_pipe({{:|>, _meta, ast}, _zipper_meta} = zipper, issues, true) do
+  defp single_pipe({{:|>, _meta, _ast}, _zipper_meta} = zipper, issues, true) do
     zipper = zipper |> Zipper.update(&update/1) |> skip()
 
     {zipper, issues}

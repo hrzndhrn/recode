@@ -58,7 +58,11 @@ defmodule Recode.Task.PipeFunOne do
 
   defp pipe_fun_one(zipper, issues, _autocorrect), do: {zipper, issues}
 
-  defp issue?({:|>, _meta1, [_a, {_name, _meta2, args}]}), do: args == nil
+  defp issue?({:|>, _meta1, [_a, {_name, _meta2, nil}]}), do: true
+
+  defp issue?({:|>, _meta1, [_a, {_name, meta, []}]}), do: Keyword.get(meta, :no_parens, false)
+
+  defp issue?(_ast), do: false
 
   defp update({:|>, meta, [a, b]}) do
     {:|>, meta, [a, update(b)]}

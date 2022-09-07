@@ -61,6 +61,18 @@ defmodule Recode.Task.PipeFunOneTest do
       assert_issue(source, PipeFunOne)
     end
 
+    test "reports issue for single pipe" do
+      code = """
+      def foo(arg) do
+        arg |> IO.inspect
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_issue(source, PipeFunOne)
+    end
+
     test "reports no issue" do
       code = """
       def foo(arg) do
