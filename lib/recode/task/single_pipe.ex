@@ -20,8 +20,8 @@ defmodule Recode.Task.SinglePipe do
 
   use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Task.SinglePipe
-  alias Rewrite.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 

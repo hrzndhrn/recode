@@ -18,8 +18,8 @@ defmodule Recode.Task.AliasOrder do
   use Recode.Task, correct: true, check: true
 
   alias Recode.AST
+  alias Recode.Issue
   alias Recode.Task.AliasOrder
-  alias Rewrite.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 

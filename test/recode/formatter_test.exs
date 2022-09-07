@@ -4,8 +4,8 @@ defmodule Recode.FormatterTest do
   import ExUnit.CaptureIO
 
   alias Recode.Formatter
+  alias Recode.Issue
   alias Recode.Task.Format
-  alias Rewrite.Issue
   alias Rewrite.Project
   alias Rewrite.Source
 

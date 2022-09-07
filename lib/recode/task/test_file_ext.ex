@@ -8,8 +8,8 @@ defmodule Recode.Task.TestFileExt do
 
   use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Task.TestFileExt
-  alias Rewrite.Issue
   alias Rewrite.Source
 
   @impl Recode.Task

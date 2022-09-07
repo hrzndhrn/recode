@@ -7,9 +7,9 @@ defmodule Recode.Task.Format do
 
   use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Task.Format
   alias Rewrite.DotFormatter
-  alias Rewrite.Issue
   alias Rewrite.Source
 
   @impl Recode.Task

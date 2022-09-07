@@ -3,7 +3,7 @@ defmodule Recode.Runner.Impl do
 
   @behaviour Recode.Runner
 
-  alias Rewrite.Issue
+  alias Recode.Issue
   alias Rewrite.Project
   alias Rewrite.Source
 

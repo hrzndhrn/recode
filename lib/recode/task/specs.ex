@@ -11,8 +11,8 @@ defmodule Recode.Task.Specs do
   use Recode.Task, check: true
 
   alias Recode.Context
+  alias Recode.Issue
   alias Recode.Task.Specs
-  alias Rewrite.Issue
   alias Rewrite.Source
 
   @impl Recode.Task

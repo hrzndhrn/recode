@@ -5,7 +5,7 @@ defmodule Recode.Task.UnusedVariable do
 
   use Recode.Task, correct: true, check: true
 
-  alias Rewrite.Issue
+  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 

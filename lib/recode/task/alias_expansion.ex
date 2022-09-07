@@ -14,8 +14,8 @@ defmodule Recode.Task.AliasExpansion do
 
   use Recode.Task, correct: true, check: true
 
+  alias Recode.Issue
   alias Recode.Task.AliasExpansion
-  alias Rewrite.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
