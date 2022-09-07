@@ -166,7 +166,7 @@ defmodule Recode.Formatter do
   end
 
   defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual) do
-    [:warn, "Execution of the #{meta[:task]} task failed."]
+    [:warn, "Execution of the #{inspect(meta[:task])} task failed."]
   end
 
   defp format_issue(issue, version, actual) do

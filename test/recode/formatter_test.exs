@@ -213,7 +213,7 @@ defmodule Recode.FormatterTest do
 
       assert output == """
               File: no file
-             Execution of the Elixir.Test task failed.
+             Execution of the Test task failed.
              """
     end
 
