@@ -8,6 +8,8 @@
 + Update `Recode.Task.PipeFunOne`. Some false positives are fixed.
 + The modules `Recode.Project`, `Recode.Source`, and etc moving to the package
   [`rewrite`](https://github.com/hrzndhrn/rewrite).
++ Catch exceptions raised in tasks and output a  warning for each exception.
+
 
 ## 0.3.0 - 2022/08/28
 
