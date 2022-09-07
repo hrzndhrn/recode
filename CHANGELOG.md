@@ -6,6 +6,8 @@
 + Add `Recode.Task.UnusedVariable`.
 + Update `Recode.Task.SinglePipe`. Some false positives are fixed.
 + Update `Recode.Task.PipeFunOne`. Some false positives are fixed.
++ The modules `Recode.Project`, `Recode.Source`, and etc moving to the package
+  [`rewrite`](https://github.com/hrzndhrn/rewrite).
 
 ## 0.3.0 - 2022/08/28
 
