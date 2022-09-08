@@ -14,6 +14,7 @@ defmodule Recode.Task.Specs do
   alias Recode.Issue
   alias Recode.Task.Specs
   alias Rewrite.Source
+  alias Sourceror.Zipper
 
   @impl Recode.Task
   def run(source, opts) do
@@ -27,7 +28,8 @@ defmodule Recode.Task.Specs do
 
   defp check_specs(source, opts) do
     source
-    |> Source.zipper()
+    |> Source.ast()
+    |> Zipper.zip()
     |> Context.traverse({[], nil}, fn zipper, context, acc ->
       check_specs(zipper, context, acc, opts)
     end)

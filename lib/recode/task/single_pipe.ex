@@ -31,14 +31,15 @@ defmodule Recode.Task.SinglePipe do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.zipper()
+      |> Source.ast()
+      |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
         single_pipe(zipper, issues, opts[:autocorrect])
       end)
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, SinglePipe, code: zipper)
+        Source.update(source, SinglePipe, ast: Zipper.root(zipper))
 
       false ->
         Source.add_issues(source, issues)

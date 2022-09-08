@@ -23,7 +23,8 @@ defmodule Recode.Context do
       ...> end
       ...> """
       ...> |> Source.from_string()
-      ...> |> Source.zipper()
+      ...> |> Source.ast()
+      ...> |> Zipper.zip()
       ...> |> Context.traverse(nil, fn
       ...>   zipper, context, nil ->
       ...>     case context.definition do

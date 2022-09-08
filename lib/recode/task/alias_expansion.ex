@@ -23,14 +23,15 @@ defmodule Recode.Task.AliasExpansion do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.zipper()
+      |> Source.ast()
+      |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
         expand_alias(zipper, issues, opts[:autocorrect])
       end)
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, AliasExpansion, code: zipper)
+        Source.update(source, AliasExpansion, ast: Zipper.root(zipper))
 
       false ->
         Source.add_issues(source, issues)

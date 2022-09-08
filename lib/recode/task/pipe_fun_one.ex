@@ -24,13 +24,14 @@ defmodule Recode.Task.PipeFunOne do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.zipper()
+      |> Source.ast()
+      |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
         pipe_fun_one(zipper, issues, opts[:autocorrect])
       end)
 
     case opts[:autocorrect] do
-      true -> Source.update(source, PipeFunOne, code: zipper)
+      true -> Source.update(source, PipeFunOne, ast: Zipper.root(zipper))
       false -> Source.add_issues(source, issues)
     end
   end
