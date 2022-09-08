@@ -9,8 +9,8 @@ defmodule Recode.Task.TestFileExt do
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue
-  alias Recode.Source
   alias Recode.Task.TestFileExt
+  alias Rewrite.Source
 
   @impl Recode.Task
   def run(source, opts) do

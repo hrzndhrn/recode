@@ -3,9 +3,9 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
-  alias Recode.Project
   alias Recode.Runner
-  alias Recode.Source
+  alias Rewrite.Project
+  alias Rewrite.Source
 
   using do
     quote do

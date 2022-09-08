@@ -53,7 +53,7 @@ defmodule Mix.Tasks.Recode.Rename do
 
     :ok = prepare(config)
 
-    Runner.run({Rename, args}, config)
+    Runner.run({Rename, config: args}, config)
   end
 
   defp config!(opts) do

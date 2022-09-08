@@ -38,18 +38,16 @@ defmodule Recode.MixProject do
       source_ref: "v#{@version}",
       formatters: ["html"],
       groups_for_modules: [
-        "Linter tasks": [
+        Tasks: [
           Recode.Task.AliasExpansion,
           Recode.Task.AliasOrder,
+          Recode.Task.EnforceLineLength,
           Recode.Task.Format,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
           Recode.Task.Specs,
           Recode.Task.TestFileExt,
           Recode.Task.UnusedVariable
-        ],
-        "Format task": [
-          Recode.Task.EnforceLineLength
         ],
         "Refactoring tasks": [
           Recode.Task.Rename
@@ -85,10 +83,9 @@ defmodule Recode.MixProject do
 
   defp deps do
     [
-      {:beam_file, "~> 0.3"},
-      {:bunt, "~> 0.2.0"},
-      {:sourceror, "~> 0.11"},
-      # {:sourceror, path: "../../forks/sourceror"},
+      {:bunt, "~> 0.2"},
+      # {:rewrite, "~> 0.2"},
+      {:rewrite, github: "hrzndhrn/rewrite"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},

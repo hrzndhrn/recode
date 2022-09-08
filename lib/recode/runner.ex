@@ -1,8 +1,8 @@
 defmodule Recode.Runner do
   @moduledoc false
 
-  alias Recode.Project
   alias Recode.Runner
+  alias Rewrite.Project
 
   @type config :: keyword()
   @type opts :: keyword()

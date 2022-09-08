@@ -5,9 +5,9 @@ defmodule Recode.FormatterTest do
 
   alias Recode.Formatter
   alias Recode.Issue
-  alias Recode.Project
-  alias Recode.Source
   alias Recode.Task.Format
+  alias Rewrite.Project
+  alias Rewrite.Source
 
   @config verbose: true
   @opts []
@@ -55,11 +55,11 @@ defmodule Recode.FormatterTest do
               File: no file
              Updates: 1
              Changed by: test
-             001   |defmodule Foo do
-             002 - |  def bar, do: :foo
-             002 + |  def foo, do: :foo
-             003   |end
-             004   |
+             1 1   |defmodule Foo do
+             2   - |  def bar, do: :foo
+               2 + |  def foo, do: :foo
+             3 3   |end
+             4 4   |
 
              """
     end
@@ -127,7 +127,7 @@ defmodule Recode.FormatterTest do
 
       output = strip_esc_seq(output)
 
-      assert output =~ "...   |"
+      assert output =~ "...|"
     end
 
     test "formats results for a project with moved source" do
@@ -154,6 +154,7 @@ defmodule Recode.FormatterTest do
              Updates: 1
              Changed by: test
              Moved from: foo.ex
+
              """
     end
 
@@ -186,6 +187,33 @@ defmodule Recode.FormatterTest do
              [foo 1/2] do not do this
              [bar 2/3] no no no
 
+             """
+    end
+
+    test "formats results for a project with Recode.Runner issues" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source =
+        code
+        |> Source.from_string()
+        |> Source.add_issue(Issue.new(Recode.Runner, task: Test, error: :error))
+
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:results, {project, @config}, @opts)
+        end)
+
+      output = strip_esc_seq(output)
+
+      assert output == """
+              File: no file
+             Execution of the Test task failed.
              """
     end
 

@@ -14,8 +14,8 @@ defmodule Recode.Task.PipeFunOne do
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue
-  alias Recode.Source
   alias Recode.Task.PipeFunOne
+  alias Rewrite.Source
   alias Sourceror.Zipper
 
   @defs [:def, :defp, :defmacro, :defmacrop, :defdelegate]

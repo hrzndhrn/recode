@@ -56,6 +56,7 @@ This mix task generates the config file `.recode.exs`.
 alias Recode.Task
 
 [
+  version: "0.3.0",
   # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
@@ -64,16 +65,21 @@ alias Recode.Task
   dry: false,
   # Can also be set/reset with "--verbose"/"--no-verbose".
   verbose: false,
+  # Can be overwriten by calling `mix recode "lib/**/*.ex"`.
   inputs: ["{config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
+    # Tasks could be added by a tuple of the tasks module name and an options
+    # keyword list. A task can be deactived by `active: false`. The execution of
+    # a deactivated task can be forced by calling `mix recode --task ModuleName`.
     {Task.AliasExpansion, []},
     {Task.AliasOrder, []},
+    {Task.EnforceLineLength, active: false},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
     {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
     {Task.TestFileExt, []},
-    {Task.EnforceLineLength, active: false}
+    {Task.UnusedVariable, active: false}
   ]
 ]
 ```
@@ -86,87 +92,100 @@ the update of the files and shows all changes in the console.
 ```
 > cd examples/my_code
 > mix recode --dry
-Found 11 files, including 2 scripts.
-.............................................................................
+Found 13 files, including 2 scripts.
+...........................................................................................
  File: lib/my_code.ex
 [Specs 15/3] Functions should have a @spec type specification.
 
  File: lib/my_code/alias_expansion.ex
 Updates: 1
 Changed by: AliasExpansion
-001   |defmodule MyCode.AliasExpansion do
-002 - |  alias MyCode.{PipeFunOne, SinglePipe}
-002 + |  alias MyCode.PipeFunOne
-003 + |  alias MyCode.SinglePipe
-004   |
-005   |  def foo(x) do
+1 1   |defmodule MyCode.AliasExpansion do
+2   - |  alias MyCode.{PipeFunOne, SinglePipe}
+  2 + |  alias MyCode.PipeFunOne
+  3 + |  alias MyCode.SinglePipe
+3 4   |
+4 5   |  def foo(x) do
+   ...|
 [Specs 5/3] Functions should have a @spec type specification.
 
  File: lib/my_code/alias_order.ex
 Updates: 2
 Changed by: AliasOrder, AliasExpansion
-012   |
-013   |defmodule Mycode.AliasOrder do
-014 - |  alias MyCode.SinglePipe
-014 + |  alias MyCode.Echo
-015 + |  alias MyCode.Foxtrot
-016   |  alias MyCode.PipeFunOne
-017 - |  alias MyCode.{Foxtrot, Echo}
-017 + |  alias MyCode.SinglePipe
-018   |
-019   |  @doc false
+     ...|
+12 12   |
+13 13   |defmodule Mycode.AliasOrder do
+14    - |  alias MyCode.SinglePipe
+   14 + |  alias MyCode.Echo
+   15 + |  alias MyCode.Foxtrot
+15 16   |  alias MyCode.PipeFunOne
+16    - |  alias MyCode.{Foxtrot, Echo}
+   17 + |  alias MyCode.SinglePipe
+17 18   |
+18 19   |  @doc false
+     ...|
 
  File: lib/my_code/fun.ex
 Updates: 1
 Changed by: Format
-002   |  @moduledoc false
-003   |
-004 - |
-005 - |
-006 - |
-007 - |
-008 - |
-004   |  def noop(x), do: x
-005   |end
+     ...|
+ 2  2   |  @moduledoc false
+ 3  3   |
+ 4    - |
+ 5    - |
+ 6    - |
+ 7    - |
+ 8    - |
+ 9  4   |  def noop(x), do: x
+10  5   |end
+     ...|
 
  File: lib/my_code/multi.ex
 Updates: 2
 Changed by: SinglePipe, PipeFunOne
-007   |
-008   |  def pipe(x) do
-009 - |    x |> double |> double()
-009 + |    x |> double() |> double()
-010   |  end
-011   |
-012   |  def single(x) do
-013 - |    x |> double()
-013 + |    double(x)
-014   |  end
-015   |
+     ...|
+ 7  7   |
+ 8  8   |  def pipe(x) do
+ 9    - |    x |> double |> double()
+    9 + |    x |> double() |> double()
+10 10   |  end
+11 11   |
+12 12   |  def single(x) do
+13    - |    x |> double()
+   13 + |    double(x)
+14 14   |  end
+15 15   |
+     ...|
 
  File: lib/my_code/pipe_fun_one.ex
 Updates: 1
 Changed by: PipeFunOne
-005   |
-006   |  def pipe(x) do
-007 - |    x |> double |> double()
-007 + |    x |> double() |> double()
-008   |  end
-009   |end
+     ...|
+ 5  5   |
+ 6  6   |  def pipe(x) do
+ 7    - |    x |> double |> double()
+    7 + |    x |> double() |> double()
+ 8  8   |  end
+ 9  9   |end
+     ...|
+
+ File: lib/my_code/same_line.ex
+[Specs 2/3] Functions should have a @spec type specification.
 
  File: lib/my_code/singel_pipe.ex
 Updates: 1
 Changed by: SinglePipe
-005   |
-006   |  def single_pipe(x) do
-007 - |    x |> double()
-007 + |    double(x)
-008   |  end
-009   |
-010 - |  def reverse(a), do: a |> Enum.reverse()
-010 + |  def reverse(a), do: Enum.reverse(a)
-011   |end
-012   |
+     ...|
+ 5  5   |
+ 6  6   |  def single_pipe(x) do
+ 7    - |    x |> double()
+    7 + |    double(x)
+ 8  8   |  end
+ 9  9   |
+10    - |  def reverse(a), do: a |> Enum.reverse()
+   10 + |  def reverse(a), do: Enum.reverse(a)
+11 11   |end
+12 12   |
 
  File: test/my_code_test.exs
 Updates: 1

@@ -37,9 +37,9 @@ defmodule Mix.Tasks.Recode do
   use Mix.Task
 
   alias Recode.Config
-  alias Recode.DotFormatter
-  alias Recode.Project
   alias Recode.Runner
+  alias Rewrite.DotFormatter
+  alias Rewrite.Project
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
@@ -58,6 +58,8 @@ defmodule Mix.Tasks.Recode do
   def run(opts) do
     opts = opts!(opts)
 
+    Mix.Task.run("compile")
+
     opts
     |> config!()
     |> validate_config!()
@@ -68,8 +70,8 @@ defmodule Mix.Tasks.Recode do
     |> output()
   end
 
-  @spec output(map()) :: no_return()
-  defp output(%{inputs: []}) do
+  @spec output(Project.t()) :: no_return()
+  defp output(%Project{sources: sources}) when map_size(sources) == 0 do
     Mix.raise("No sources found")
   end
 

@@ -7,10 +7,10 @@ defmodule Recode.Task.Format do
 
   use Recode.Task, correct: true, check: true
 
-  alias Recode.DotFormatter
   alias Recode.Issue
-  alias Recode.Source
   alias Recode.Task.Format
+  alias Rewrite.DotFormatter
+  alias Rewrite.Source
 
   @impl Recode.Task
   def run(source, opts) do

@@ -21,8 +21,8 @@ defmodule Recode.Task.SinglePipe do
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue
-  alias Recode.Source
   alias Recode.Task.SinglePipe
+  alias Rewrite.Source
   alias Sourceror.Zipper
 
   @defs [:def, :defp, :defmacro, :defmacrop, :defdelegate]

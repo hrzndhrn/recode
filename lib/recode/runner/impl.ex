@@ -3,8 +3,9 @@ defmodule Recode.Runner.Impl do
 
   @behaviour Recode.Runner
 
-  alias Recode.Project
-  alias Recode.Source
+  alias Recode.Issue
+  alias Rewrite.Project
+  alias Rewrite.Source
 
   @impl true
   def run(config) do
@@ -21,6 +22,7 @@ defmodule Recode.Runner.Impl do
       |> format(:project, config)
 
     tasks
+    |> update_opts(config)
     |> run_tasks(project, config)
     |> format(:tasks_ready, config)
     |> format(:results, config)
@@ -42,19 +44,26 @@ defmodule Recode.Runner.Impl do
     end)
   end
 
-  defp run_task(%Project{} = project, config, module, opts) do
+  defp run_task(project, config, module, opts) do
     Project.map(project, fn source ->
-      exclude = Keyword.get(opts, :exclude, [])
-
-      case source.path in exclude do
-        true ->
-          source
-
-        false ->
-          _project = format(project, :task, config, {source, module, opts})
-          module.run(source, opts)
-      end
+      run_task(source, project, config, module, opts)
     end)
+  end
+
+  defp run_task(source, project, config, module, opts) do
+    exclude = Keyword.get(opts, :exclude, [])
+
+    case source.path in exclude do
+      true ->
+        source
+
+      false ->
+        _project = format(project, :task, config, {source, module, opts})
+        module.run(source, opts)
+    end
+  rescue
+    error ->
+      Source.add_issue(source, Issue.new(Recode.Runner, task: module, error: error))
   end
 
   defp filter(tasks, :all), do: tasks
@@ -96,7 +105,7 @@ defmodule Recode.Runner.Impl do
 
       stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
     else
-      Project.new(inputs)
+      Project.read!(inputs)
     end
   end
 
@@ -106,7 +115,6 @@ defmodule Recode.Runner.Impl do
     |> tasks(:exclude)
     |> tasks(:correct_first)
     |> tasks(:filter, config)
-    |> update_opts(config)
   end
 
   defp tasks(tasks, :filter, config) do

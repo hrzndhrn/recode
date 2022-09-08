@@ -12,8 +12,8 @@ defmodule Recode.Task.Specs do
 
   alias Recode.Context
   alias Recode.Issue
-  alias Recode.Source
   alias Recode.Task.Specs
+  alias Rewrite.Source
 
   @impl Recode.Task
   def run(source, opts) do

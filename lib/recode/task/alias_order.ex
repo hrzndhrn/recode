@@ -19,8 +19,8 @@ defmodule Recode.Task.AliasOrder do
 
   alias Recode.AST
   alias Recode.Issue
-  alias Recode.Source
   alias Recode.Task.AliasOrder
+  alias Rewrite.Source
   alias Sourceror.Zipper
 
   @impl Recode.Task

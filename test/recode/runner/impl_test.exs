@@ -4,10 +4,10 @@ defmodule Recode.Runner.ImplTest do
   import ExUnit.CaptureIO
   import Mox
 
-  alias Recode.Project
   alias Recode.Runner.Impl, as: Runner
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
+  alias Rewrite.Project
 
   setup :verify_on_exit!
 
@@ -99,6 +99,23 @@ defmodule Recode.Runner.ImplTest do
 
       capture_io(fn ->
         assert Runner.run(config)
+      end)
+    end
+
+    test "runs task throwing exception", %{config: config} do
+      TaskMock
+      |> expect(:run, fn _source, _config ->
+        raise "ups"
+      end)
+      |> expect(:config, fn :correct -> true end)
+
+      config = Keyword.put(config, :tasks, [{TaskMock, []}])
+
+      capture_io(fn ->
+        assert project = Runner.run(config)
+        assert [source] = Project.sources(project)
+        assert [{1, issue}] = source.issues
+        assert issue.reporter == Recode.Runner
       end)
     end
   end

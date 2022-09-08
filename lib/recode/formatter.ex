@@ -5,8 +5,9 @@ defmodule Recode.Formatter do
 
   import Recode.IO
 
-  alias Recode.Project
-  alias Recode.Source
+  alias IO.ANSI
+  alias Rewrite.Project
+  alias Rewrite.Source
 
   @callback format(
               type :: :project | :results | :tasks_ready,
@@ -114,7 +115,7 @@ defmodule Recode.Formatter do
     Enum.concat([
       output,
       changed_by(source),
-      ["Moved from: #{Source.path(source, 1)}"]
+      ["Moved from: #{Source.path(source, 1)}\n"]
     ])
   end
 
@@ -124,7 +125,8 @@ defmodule Recode.Formatter do
     Enum.concat([
       output,
       changed_by(source),
-      diff(Source.code(source), Source.code(source, 1))
+      [ANSI.reset()],
+      [source |> Source.diff(iodata: true) |> IO.iodata_to_binary()]
     ])
   end
 
@@ -161,6 +163,10 @@ defmodule Recode.Formatter do
       true ->
         false
     end
+  end
+
+  defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual) do
+    [:warn, "Execution of the #{inspect(meta[:task])} task failed."]
   end
 
   defp format_issue(issue, version, actual) do
@@ -202,80 +208,5 @@ defmodule Recode.Formatter do
     by = Enum.map(updates, fn {_key, by, _value} -> module(by) end)
 
     [:info, ~s|Changed by: #{Enum.join(by, ", ")}\n|]
-  end
-
-  defp diff(code, code), do: []
-
-  defp diff(new, old) do
-    new = String.split(new, "\n")
-    old = String.split(old, "\n")
-
-    old
-    |> List.myers_difference(new)
-    |> diff_to_iodata()
-  end
-
-  defp diff_to_iodata(diff, line_num \\ 0, iodata \\ [])
-
-  defp diff_to_iodata([], _line_num, iodata), do: iodata |> Enum.reverse() |> List.flatten()
-
-  defp diff_to_iodata([{:eq, lines} | diff], 0, iodata) do
-    {skip, lines} = Enum.split(lines, -2)
-
-    diff_to_iodata([{:equal, lines} | diff], length(skip), iodata)
-  end
-
-  defp diff_to_iodata([{:eq, lines}], line_num, iodata) do
-    io_lines = lines |> Enum.take(2) |> code_lines(line_num, :equal)
-    line_num = line_num + length(lines)
-
-    diff_to_iodata([], line_num, [io_lines | iodata])
-  end
-
-  defp diff_to_iodata([{:eq, lines} | diff], line_num, iodata) do
-    case length(lines) > 5 do
-      true ->
-        io_lines = lines |> Enum.take(2) |> code_lines(line_num, :equal)
-        line_num = line_num + length(lines)
-        diff_to_iodata(diff, line_num, [line_num(:skip), io_lines | iodata])
-
-      false ->
-        diff_to_iodata([{:equal, lines} | diff], line_num, iodata)
-    end
-  end
-
-  defp diff_to_iodata([{kind, lines} | diff], line_num, iodata) do
-    io_lines = code_lines(lines, line_num, kind)
-
-    line_num =
-      case kind do
-        :del -> line_num
-        _kind -> line_num + length(lines)
-      end
-
-    diff_to_iodata(diff, line_num, [io_lines | iodata])
-  end
-
-  defp code_lines(lines, line_num, kind, iodata \\ [])
-
-  defp code_lines([], _line_num, _kine, iodata), do: Enum.reverse(iodata)
-
-  defp code_lines([line | lines], line_num, kind, iodata) do
-    line_num = line_num + 1
-    line = [:line_num, "#{line_num(line_num, kind)}", kind, "#{line}\n"]
-    code_lines(lines, line_num, kind, [line | iodata])
-  end
-
-  defp line_num(:skip), do: [:line_num, "...   |\n"]
-
-  defp line_num(num, kind) do
-    kind =
-      case kind do
-        :del -> " - "
-        :ins -> " + "
-        _else -> "   "
-      end
-
-    String.pad_leading("#{num}#{kind}|", 7, "0")
   end
 end
