@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 - 2022/09/07
+## 0.4.0 - dev
 
 + Add option `-` to `mix recode` to read from stdin.
 + Add `Recode.Task.UnusedVariable`.
@@ -9,6 +9,9 @@
 + The modules `Recode.Project`, `Recode.Source`, and etc moving to the package
   [`rewrite`](https://github.com/hrzndhrn/rewrite).
 + Catch exceptions raised in tasks and output a  warning for each exception.
++ Remove `mix` task `recode.rename`. `Recode` gets a focus on linting and
+  autocorrection with this change. The refactoring functionality will move to
+  another package.
 
 
 ## 0.3.0 - 2022/08/28

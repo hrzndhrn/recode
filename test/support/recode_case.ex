@@ -3,7 +3,6 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
-  alias Recode.Runner
   alias Rewrite.Project
   alias Rewrite.Source
 
@@ -48,10 +47,6 @@ defmodule RecodeCase do
 
   def run_task(%Source{} = source, {task, opts}) do
     task.run(source, opts)
-  end
-
-  def run_task({task, opts}, config) do
-    Runner.run({task, opts}, config)
   end
 
   def formated?(code) do

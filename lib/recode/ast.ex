@@ -71,11 +71,6 @@ defmodule Recode.AST do
     :|||
   ]
 
-  def foo(x)
-      when is_integer(x) do
-    {:foo, x}
-  end
-
   @doc ~S'''
   Returns `true` when the given `ast` represents an expression that spans over
   multiple lines.
