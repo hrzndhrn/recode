@@ -84,9 +84,8 @@ defmodule Recode.MixProject do
   defp deps do
     [
       {:bunt, "~> 0.2"},
-      # {:rewrite, "~> 0.1"},
-      # {:rewrite, path: "../rewrite"},
-      {:rewrite, github: "hrzndhrn/rewrite", branch: "remove-issue"},
+      # {:rewrite, "~> 0.2"},
+      {:rewrite, github: "hrzndhrn/rewrite"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
