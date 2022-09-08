@@ -48,9 +48,6 @@ defmodule Recode.MixProject do
           Recode.Task.Specs,
           Recode.Task.TestFileExt,
           Recode.Task.UnusedVariable
-        ],
-        "Refactoring tasks": [
-          Recode.Task.Rename
         ]
       ]
     ]

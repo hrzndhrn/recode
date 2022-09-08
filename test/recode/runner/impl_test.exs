@@ -119,18 +119,4 @@ defmodule Recode.Runner.ImplTest do
       end)
     end
   end
-
-  describe "run/2" do
-    test "runs one task", %{config: config} do
-      capture_io(fn ->
-        assert %Project{} = Runner.run({SinglePipe, []}, config)
-      end)
-    end
-
-    test "runs two tasks", %{config: config} do
-      capture_io(fn ->
-        assert %Project{} = Runner.run([{SinglePipe, []}, {SinglePipe, []}], config)
-      end)
-    end
-  end
 end

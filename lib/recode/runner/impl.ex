@@ -14,8 +14,7 @@ defmodule Recode.Runner.Impl do
     |> run(config)
   end
 
-  @impl true
-  def run(tasks, config) when is_list(tasks) do
+  defp run(tasks, config) when is_list(tasks) do
     project =
       config
       |> project()
@@ -27,10 +26,6 @@ defmodule Recode.Runner.Impl do
     |> format(:tasks_ready, config)
     |> format(:results, config)
     |> tap(fn project -> write(project, config) end)
-  end
-
-  def run({module, opts}, config) do
-    run([{module, opts}], config)
   end
 
   defp run_tasks(tasks, project, config) do

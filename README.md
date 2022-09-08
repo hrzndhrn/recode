@@ -24,20 +24,34 @@ For now, `recode` corrects only a few things:
 It is also possible to run `recode` in a none-autocorect mode to just lint your
 code.
 
-There is also one mix task for code refactoring. The task `mix recode.rename`
-renames a function and all their function calls.
-
 ## Installation
 
 The package can be installed by adding `recode` to your list of dependencies
 in `mix.exs`:
 
 ```elixir
-def deps do
-  [
-    {:recode, "~> 0.1"}
-  ]
-end
+  def deps do
+    [
+      {:recode, "~> 0.3", only: :dev}
+    ]
+  end
+```
+
+`Recode` requires Elixir 1.13.0 or higher. If you add `recode` to a project that
+supports lower Elixir versions you could add recode as following:
+```elixir
+  def deps do
+    [
+      # your deps
+    ] ++ recode()
+  end
+
+  defp recode() do
+    case Version.match?(System.version(), "~> 1.13") do
+      true -> [{:recode, "~> 0.3", only: :dev]}]
+      false -> []
+    end
+  end
 ```
 
 Documentation can be found at [https://hexdocs.pm/recode](https://hexdocs.pm/recode).
@@ -231,52 +245,6 @@ Found 11 files, including 2 scripts.
 [TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 ```
 
-### `mix recode.rename`
-
-A mix task to rename a function and all their function calls.
-
-```
-> cd examples/my_code
-> mix recode.rename --dry MyCode.SinglePipe.double dbl
-Found 11 files, including 2 scripts.
-...........
- File: lib/my_code/alias_expansion.ex
-Updates: 1
-Changed by: Rename
-003   |
-004   |  def foo(x) do
-005 - |    SinglePipe.double(x) + PipeFunOne.double(x)
-005 + |    SinglePipe.dbl(x) + PipeFunOne.double(x)
-006   |  end
-007   |end
-
- File: lib/my_code/alias_order.ex
-Updates: 1
-Changed by: Rename
-018   |  @doc false
-019   |  def foo do
-020 - |    {SinglePipe.double(2), PipeFunOne.double(3)}
-020 + |    {SinglePipe.dbl(2), PipeFunOne.double(3)}
-021   |  end
-022   |
-
- File: lib/my_code/singel_pipe.ex
-Updates: 1
-Changed by: Rename
-002   |  @moduledoc false
-003   |
-004 - |  def double(x), do: x + x
-004 + |  def dbl(x), do: x + x
-005   |
-006   |  def single_pipe(x) do
-007 - |    x |> double()
-007 + |    x |> dbl()
-008   |  end
-009   |
-```
-
-Refactored code should be compellable, but it is not guaranteed.
-
 ## Differences to Credo
 
 `recode` was started as a plugin for `credo`. Unfortunately it was not possible
@@ -290,7 +258,7 @@ to bring the autocorrect feature to `credo`.
 
 Other differences:
 
-* `recode` requiers Elixir 1.12, `credo` requiers Elixir 1.7
+* `recode` requiers Elixir 1.13, `credo` requiers Elixir 1.7
 * `recode` has autocorrection
 * `credo` has much more checkers
 * `credo` is faster
