@@ -1,7 +1,7 @@
 defmodule Recode.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.4.0"
   @source_url "https://github.com/hrzndhrn/recode"
 
   def project do
@@ -81,8 +81,7 @@ defmodule Recode.MixProject do
   defp deps do
     [
       {:bunt, "~> 0.2"},
-      # {:rewrite, "~> 0.2"},
-      {:rewrite, github: "hrzndhrn/rewrite"},
+      {:rewrite, "~> 0.2"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},

@@ -102,10 +102,12 @@ defmodule Recode.Formatter do
   defp format_created(output, _source, _opts, false), do: output
 
   defp format_created(output, source, _opts, true) do
-    owner = case Source.owner(source) do
-      Rewrite -> ""
+    owner =
+      case Source.owner(source) do
+        Rewrite -> ""
         module -> ", created by #{inspect(module)}"
       end
+
     Enum.concat(output, [:info, "New file", "#{owner}\n"])
   end
 
