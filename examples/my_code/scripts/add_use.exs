@@ -2,8 +2,8 @@
 # Run with: mix run scripts/add_use.exs
 alias Recode.AST
 alias Recode.Formatter
-alias Recode.Project
-alias Recode.Source
+alias Rewrite.Project
+alias Rewrite.Source
 alias Recode.Traverse
 alias Sourceror.Zipper
 
@@ -18,8 +18,9 @@ defmodule AddUse do
 
     ast =
       source
+      |> Source.ast()
       # get a zipper from the source
-      |> Source.zipper()
+      |> Zipper.zip()
       # move to the right moudle (the source could contain multiple modules)
       |> Traverse.to_defmodule!(opts[:module])
       # insert the new code after current position or after @moduledoc
@@ -47,14 +48,14 @@ defmodule AddUse do
   end
 end
 
-project = "{config,lib,test}/**/*.{ex,exs}" |> Path.wildcard() |> Project.new()
+project = "{config,lib,test}/**/*.{ex,exs}" |> Path.wildcard() |> Project.read!()
 
 module = MyCode.Happy
 use = {Foo.Bar, baz: 2}
 
 source =
   project
-  |> Project.module!(module)
+  |> Project.source_by_module!(module)
   |> AddUse.run(module: module, use: use)
 
 project = Project.update(project, source)

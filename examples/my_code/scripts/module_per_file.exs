@@ -2,8 +2,8 @@
 
 alias Recode.AST
 alias Recode.Formatter
-alias Recode.Project
-alias Recode.Source
+alias Rewrite.Project
+alias Rewrite.Source
 alias Recode.Traverse
 alias Sourceror.Zipper
 
@@ -15,7 +15,8 @@ defmodule ModulePerFile do
   @impl Recode.Task
   def run(source, _opts) do
     source
-    |> Source.zipper()
+    |> Source.ast()
+    |> Zipper.zip()
     |> Traverse.collect(:defmodule)
     |> update(source)
   end
@@ -36,7 +37,7 @@ defmodule ModulePerFile do
   end
 end
 
-project = "{config,lib,test}/**/*.{ex,exs}" |> Path.wildcard() |> Project.new()
+project = "{config,lib,test}/**/*.{ex,exs}" |> Path.wildcard() |> Project.read!()
 
 path = "lib/my_code/two_modules.ex"
 
