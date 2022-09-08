@@ -73,10 +73,12 @@ defmodule Recode.Formatter do
     issues? = Source.has_issues?(source, :all)
     code_updated? = Source.updated?(source, :code) and verbose
     path_updated? = Source.updated?(source, :path) and verbose
+    created? = Source.created?(source) and verbose
     updated? = code_updated? or path_updated?
 
     []
-    |> format_file(source, opts, issues? or updated?)
+    |> format_file(source, opts, issues? or updated? or created?)
+    |> format_created(source, opts, created?)
     |> format_updates(source, opts, updated?)
     |> format_path_update(source, opts, path_updated?)
     |> format_code_update(source, opts, code_updated?)
@@ -95,6 +97,16 @@ defmodule Recode.Formatter do
 
   defp format_updates(output, source, _opts, true) do
     Enum.concat(output, [:info, "Updates: #{Source.version(source) - 1}\n"])
+  end
+
+  defp format_created(output, _source, _opts, false), do: output
+
+  defp format_created(output, source, _opts, true) do
+    owner = case Source.owner(source) do
+      Rewrite -> ""
+        module -> ", created by #{inspect(module)}"
+      end
+    Enum.concat(output, [:info, "New file", "#{owner}\n"])
   end
 
   defp format_file(output, _source, _opts, false), do: output

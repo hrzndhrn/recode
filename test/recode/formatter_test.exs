@@ -20,7 +20,7 @@ defmodule Recode.FormatterTest do
       end
       """
 
-      source = Source.from_string(code)
+      source = from_string(code)
 
       project = Project.from_sources([source])
 
@@ -41,7 +41,7 @@ defmodule Recode.FormatterTest do
 
       source =
         code
-        |> Source.from_string()
+        |> from_string()
         |> Source.update(:test, code: String.replace(code, "bar", "foo"))
 
       project = Project.from_sources([source])
@@ -73,7 +73,7 @@ defmodule Recode.FormatterTest do
 
       source =
         code
-        |> Source.from_string()
+        |> from_string()
         |> Source.update(:test, code: String.replace(code, "bar", "foo"))
         |> Source.update(:test, code: code)
 
@@ -115,7 +115,7 @@ defmodule Recode.FormatterTest do
 
       source =
         code
-        |> Source.from_string()
+        |> from_string()
         |> Source.update(:test, code: String.replace(code, "bar", "foo"))
 
       project = Project.from_sources([source])
@@ -139,7 +139,7 @@ defmodule Recode.FormatterTest do
 
       source =
         code
-        |> Source.from_string("foo.ex")
+        |> from_string(path: "foo.ex")
         |> Source.update(:test, path: "bar.ex")
 
       project = Project.from_sources([source])
@@ -158,6 +158,48 @@ defmodule Recode.FormatterTest do
              """
     end
 
+    test "formats results for a project with created source" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source = from_string(code, path: "foo.ex", from: :string)
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:results, {project, @config}, @opts)
+        end)
+
+      assert strip_esc_seq(output) == """
+              File: foo.ex
+             New file
+             """
+    end
+
+    test "formats results for a project with created source by Test" do
+      code = """
+      defmodule Foo do
+        def bar, do: :foo
+      end
+      """
+
+      source = from_string(code, path: "foo.ex", from: :string, owner: Test)
+      project = Project.from_sources([source])
+
+      output =
+        capture_io(fn ->
+          Formatter.format(:results, {project, @config}, @opts)
+        end)
+
+      assert strip_esc_seq(output) == """
+              File: foo.ex
+             New file, created by Test
+             """
+    end
+
     test "formats results for a project with issues" do
       code = """
       defmodule Foo do
@@ -167,7 +209,7 @@ defmodule Recode.FormatterTest do
 
       source =
         code
-        |> Source.from_string()
+        |> from_string()
         |> Source.add_issues([
           Issue.new(:foo, "do not do this", line: 1, column: 2),
           Issue.new(:bar, "no no no", line: 2, column: 3)
@@ -199,7 +241,7 @@ defmodule Recode.FormatterTest do
 
       source =
         code
-        |> Source.from_string()
+        |> from_string()
         |> Source.add_issue(Issue.new(Recode.Runner, task: Test, error: :error))
 
       project = Project.from_sources([source])
@@ -224,7 +266,7 @@ defmodule Recode.FormatterTest do
       end
       """
 
-      source = Source.from_string(code)
+      source = from_string(code)
 
       project = Project.from_sources([source])
 
@@ -248,7 +290,7 @@ defmodule Recode.FormatterTest do
       end
       """
 
-      source = Source.from_string(code)
+      source = from_string(code)
 
       project = Project.from_sources([source])
 
@@ -269,7 +311,7 @@ defmodule Recode.FormatterTest do
       end
       """
 
-      source = Source.from_string(code)
+      source = from_string(code)
 
       project = Project.from_sources([source])
 
@@ -287,5 +329,15 @@ defmodule Recode.FormatterTest do
     |> String.replace(~r/\e[^m]+m/, "")
     |> String.split("\n")
     |> Enum.map_join("\n", &String.trim_trailing/1)
+  end
+
+  defp from_string(string, opts \\ []) do
+    source = Source.from_string(string)
+
+    opts = Keyword.put_new(opts, :from, :file)
+
+    Enum.reduce(opts, source, fn {key, value}, source ->
+      Map.put(source, key, value)
+    end)
   end
 end
