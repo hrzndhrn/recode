@@ -176,6 +176,7 @@ defmodule Recode.FormatterTest do
       assert strip_esc_seq(output) == """
               File: foo.ex
              New file
+
              """
     end
 
@@ -197,6 +198,7 @@ defmodule Recode.FormatterTest do
       assert strip_esc_seq(output) == """
               File: foo.ex
              New file, created by Test
+
              """
     end
 

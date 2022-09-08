@@ -83,7 +83,7 @@ defmodule Recode.Formatter do
     |> format_path_update(source, opts, path_updated?)
     |> format_code_update(source, opts, code_updated?)
     |> format_issues(source, opts, issues?)
-    |> newline(issues? or updated?)
+    |> newline(issues? or updated? or created?)
     |> write()
   end
 
