@@ -19,7 +19,8 @@ alias Recode.Task
     # a deactivated task can be forced by calling `mix recode --task ModuleName`.
     {Task.AliasExpansion, []},
     {Task.AliasOrder, []},
-    {Task.EnforceLineLength, active: false},
+    {Task.EnforceLineLength, []},
+    {Task.KeysOrder, []},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
     {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
