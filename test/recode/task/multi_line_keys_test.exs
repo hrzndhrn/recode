@@ -8,7 +8,6 @@ defmodule Recode.Task.MultiLineKeysTest do
   end
 
   describe "keyword lists" do
-    @tag :wip
     test "multilines" do
       code = """
       [name: "Watson", car: [maker: "Ford"], home: [city: "Porto Alegre", country: "Brazil"]]
@@ -30,22 +29,22 @@ defmodule Recode.Task.MultiLineKeysTest do
       assert run(code).code == expected
     end
 
-    @tag :wipa
     test "keyword list as function parameter" do
       code = """
       build_list(3, :person, name: "Watson", age: 12, state: "RS")
       """
 
-      # expected = """
-      # build(
-      #   :person,
-      #   name: "Watson",
-      #   age: 12,
-      #   state: "RS"
-      # )
-      # """
+      expected = """
+      build_list(
+        3,
+        :person,
+        name: "Watson",
+        age: 12,
+        state: "RS"
+      )
+      """
 
-      assert run(code).code |> IO.puts() # == expected
+      assert run(code).code == expected
     end
   end
 
@@ -71,11 +70,11 @@ defmodule Recode.Task.MultiLineKeysTest do
 
     test "does not update when single line map contains only one key" do
       code = """
-      %{name: "John Titor"}
+      %{name: "Watson"}
       """
 
       expected = """
-      %{name: "John Titor"}
+      %{name: "Watson"}
       """
 
       assert run(code).code == expected
@@ -85,8 +84,8 @@ defmodule Recode.Task.MultiLineKeysTest do
       code = """
       some_function = fn value ->
         %{
-          name: "John Titor",
-          company: "IBM"
+          name: "Watson",
+          age: 90
         }
       end
       """
@@ -94,8 +93,8 @@ defmodule Recode.Task.MultiLineKeysTest do
       expected = """
       some_function = fn value ->
         %{
-          name: "John Titor",
-          company: "IBM"
+          name: "Watson",
+          age: 90
         }
       end
       """

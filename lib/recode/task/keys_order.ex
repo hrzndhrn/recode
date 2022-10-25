@@ -1,4 +1,5 @@
 defmodule Recode.Task.KeysOrder do
+  @moduledoc false
   use Recode.Task, correct: true, check: false
 
   alias Recode.Task.KeysOrder
@@ -30,8 +31,8 @@ defmodule Recode.Task.KeysOrder do
 
   defp order_keys(values) when is_list(values) do
     Enum.sort_by(values, fn
-      {{:__block__, _, [key]}, _value} -> to_string(key)
-      _ -> false
+      {{:__block__, _meta, [key]}, _value} -> to_string(key)
+      _other -> false
     end)
   end
 
@@ -40,8 +41,8 @@ defmodule Recode.Task.KeysOrder do
       ast
       |> Zipper.children()
       |> Enum.sort_by(fn
-        {{:__block__, _, [key]}, _value} -> to_string(key)
-        _ -> false
+        {{:__block__, _meta, [key]}, _value} -> to_string(key)
+        _other -> false
       end)
 
     {:%{}, meta, sorted_keys}

@@ -1,4 +1,5 @@
 defmodule Recode.Task.MultiLineKeys do
+  @moduledoc false
   use Recode.Task, correct: true, check: false
 
   alias Recode.AST
@@ -28,8 +29,7 @@ defmodule Recode.Task.MultiLineKeys do
   end
 
   defp traverse({values, _zipper_meta} = zipper) when is_list(values) do
-    {_, meta, _} = zipper |> Zipper.up() |> Zipper.node()
-
+    {_up_op, meta, _up_ast} = zipper |> Zipper.up() |> Zipper.node()
 
     if AST.multiline?(meta) do
       zipper
