@@ -21,6 +21,7 @@ alias Recode.Task
     {Task.AliasOrder, []},
     {Task.EnforceLineLength, []},
     {Task.KeysOrder, []},
+    {Task.MultiLineKeys, []},
     {Task.PipeFunOne, []},
     {Task.SinglePipe, []},
     {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
