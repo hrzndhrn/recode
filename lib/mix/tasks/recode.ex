@@ -47,10 +47,11 @@ defmodule Mix.Tasks.Recode do
 
   @opts strict: [
           autocorrect: :boolean,
-          dry: :boolean,
-          verbose: :boolean,
           config: :string,
-          task: :string
+          dry: :boolean,
+          task: :string,
+          verbose: :boolean,
+          working_dir: :string
         ]
 
   @impl Mix.Task
@@ -66,6 +67,7 @@ defmodule Mix.Tasks.Recode do
     |> Keyword.merge(opts)
     |> update(:verbose)
     |> update(:locals_without_parens)
+    |> update(:working_dir)
     |> Runner.run()
     |> output()
   end
@@ -119,5 +121,11 @@ defmodule Mix.Tasks.Recode do
 
   defp update(opts, :locals_without_parens) do
     Keyword.put(opts, :locals_without_parens, DotFormatter.locals_without_parens())
+  end
+
+  defp update(opts, :working_dir) do
+    working_dir = Keyword.get(opts, :working_dir, ".")
+    File.cd!(working_dir)
+    opts
   end
 end
