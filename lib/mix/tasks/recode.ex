@@ -85,8 +85,7 @@ defmodule Mix.Tasks.Recode do
   defp opts!(opts) do
     case OptionParser.parse!(opts, @opts) do
       {opts, []} -> opts
-      {opts, [inputs]} -> Keyword.put(opts, :inputs, inputs)
-      {_opts, args} -> Mix.raise("#{inspect(args)} : Unknown")
+      {opts, inputs} -> Keyword.put(opts, :inputs, inputs)
     end
   end
 
