@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.4.0 - dev
+## 0.4.1 - 2022/11/05
+
++ Remove unnecessary compile call
++ Fix handling of multiple input files
+
+## 0.4.0 - 2022/09/09
 
 + Add option `-` to `mix recode` to read from stdin.
 + Add `Recode.Task.UnusedVariable`.
