@@ -114,10 +114,12 @@ defmodule Recode.Formatter do
   defp format_file(output, _source, _opts, false), do: output
 
   defp format_file(output, source, _opts, true) do
+    file = with nil <- Source.path(source), do: Source.path(source, 1)
+
     Enum.concat(output, [
       :file,
       reverse(),
-      " File: #{source.path || "no file"} ",
+      " File: #{file || "no file"} ",
       reverse_off(),
       "\n"
     ])
@@ -131,6 +133,10 @@ defmodule Recode.Formatter do
       changed_by(source),
       ["Moved from: #{Source.path(source, 1)}\n"]
     ])
+  end
+
+  def format_code_update(source) do
+    [] |> format_code_update(source, nil, Source.updated?(source)) |> write()
   end
 
   defp format_code_update(output, _source, _opts, false), do: output
