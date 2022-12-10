@@ -1,12 +1,12 @@
 defmodule Recode.ConfigTest do
   use ExUnit.Case
 
+  import GlobEx.Sigils
+
   alias Mix.Project
   alias Recode.Config
   alias Recode.Formatter
   alias Recode.Task
-
-  import GlobEx.Sigils
 
   describe "read/1" do
     test "reads config" do
