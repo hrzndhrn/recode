@@ -11,7 +11,7 @@ defmodule Recode.Runner.Impl do
   def run(config) do
     config
     |> tasks()
-    |> run(config)
+    |> run(update_config(config))
   end
 
   defp run(tasks, config) when is_list(tasks) do
@@ -32,23 +32,14 @@ defmodule Recode.Runner.Impl do
     tasks
     |> filter(Keyword.get(config, :task, :all))
     |> Enum.reduce(project, fn {module, opts}, project ->
-      case Keyword.get(opts, :active, true) do
-        true -> run_task(project, config, module, Keyword.delete(opts, :active))
-        false -> project
-      end
-    end)
-  end
-
-  defp run_task(project, config, module, opts) do
-    Project.map(project, fn source ->
-      run_task(source, project, config, module, opts)
+      Project.map(project, fn source ->
+        run_task(source, project, config, module, opts)
+      end)
     end)
   end
 
   defp run_task(source, project, config, module, opts) do
-    exclude = Keyword.get(opts, :exclude, [])
-
-    case source.path in exclude do
+    case exclude?(module, source, config) do
       true ->
         source
 
@@ -59,6 +50,12 @@ defmodule Recode.Runner.Impl do
   rescue
     error ->
       Source.add_issue(source, Issue.new(Recode.Runner, task: module, error: error))
+  end
+
+  defp exclude?(task, source, config) do
+    config
+    |> config(task, :exclude)
+    |> Enum.any?(fn glob -> GlobEx.match?(glob, source.path) end)
   end
 
   defp filter(tasks, :all), do: tasks
@@ -104,31 +101,33 @@ defmodule Recode.Runner.Impl do
     end
   end
 
+  defp config(config, task) do
+    config
+    |> Keyword.fetch!(:tasks)
+    |> Keyword.fetch!(task)
+  end
+
+  defp config(config, task, key) do
+    config |> config(task) |> Keyword.fetch!(key)
+  end
+
   defp tasks(config) do
     config
     |> Keyword.fetch!(:tasks)
-    |> tasks(:exclude)
+    |> tasks(:active)
     |> tasks(:correct_first)
-    |> tasks(:filter, config)
+    |> tasks(:autocorrect, config[:autocorrect])
   end
 
-  defp tasks(tasks, :filter, config) do
-    case config[:autocorrect] do
+  defp tasks(tasks, :autocorrect, autocorrect) do
+    case autocorrect do
       false -> Enum.filter(tasks, fn {task, _opts} -> task.config(:check) end)
       true -> tasks
     end
   end
 
-  defp tasks(tasks, :exclude) do
-    Enum.map(tasks, fn {task, config} ->
-      config =
-        case Keyword.has_key?(config, :exclude) do
-          false -> config
-          true -> expand_exclude(config)
-        end
-
-      {task, config}
-    end)
+  defp tasks(tasks, :active) do
+    Enum.filter(tasks, fn {_task, config} -> Keyword.get(config, :active, true) end)
   end
 
   defp tasks(tasks, :correct_first) do
@@ -140,21 +139,29 @@ defmodule Recode.Runner.Impl do
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
   end
 
-  defp expand_exclude(config) do
-    Keyword.update!(config, :exclude, fn exclude ->
-      exclude |> List.wrap() |> Enum.flat_map(&Path.wildcard/1)
+  defp update_config(config) do
+    Keyword.update!(config, :tasks, fn tasks -> update_config(tasks, :exclude) end)
+  end
+
+  defp update_config(tasks, :exclude) do
+    Enum.map(tasks, fn {task, config} ->
+      config = Keyword.update(config, :exclude, [], &compile_globs/1)
+
+      {task, config}
     end)
   end
 
-  defp update_opts(tasks, config) do
-    Enum.map(tasks, fn {task, opts} ->
-      task_config = Keyword.get(opts, :config, [])
-      active = Keyword.get(opts, :active, true)
+  defp compile_globs(exclude) do
+    exclude
+    |> List.wrap()
+    |> Enum.map(fn exclude -> GlobEx.compile!(exclude, match_dot: true) end)
+  end
 
-      opts =
-        task_config
-        |> Keyword.put_new(:autocorrect, config[:autocorrect])
-        |> Keyword.put_new(:active, active)
+  defp update_opts(tasks, config) do
+    Enum.map(tasks, fn {task, task_config} ->
+      opts = Keyword.get(task_config, :config, [])
+
+      opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
 
       {task, opts}
     end)

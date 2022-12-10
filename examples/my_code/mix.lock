@@ -1,9 +1,9 @@
 %{
-  "beam_file": {:hex, :beam_file, "0.3.3", "5c603683bdd4c964ce6c5f61b1042cf450bd50b16055ea054e7049a9cedd3663", [:mix], [], "hexpm", "cce43810eefafb79b0dcf1b783e718e8dd7441d70028fcd47ad5246e2a261a9e"},
   "bunt": {:hex, :bunt, "0.2.1", "e2d4792f7bc0ced7583ab54922808919518d0e57ee162901a16a1b6664ef3b14", [:mix], [], "hexpm", "a330bfb4245239787b15005e66ae6845c9cd524a288f0d141c148b02603777a5"},
   "credo": {:hex, :credo, "1.6.7", "323f5734350fd23a456f2688b9430e7d517afb313fbd38671b8a4449798a7854", [:mix], [{:bunt, "~> 0.2.1", [hex: :bunt, repo: "hexpm", optional: false]}, {:file_system, "~> 0.2.8", [hex: :file_system, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "41e110bfb007f7eda7f897c10bf019ceab9a0b269ce79f015d54b0dcf4fc7dd3"},
   "file_system": {:hex, :file_system, "0.2.10", "fb082005a9cd1711c05b5248710f8826b02d7d1784e7c3451f9c1231d4fc162d", [:mix], [], "hexpm", "41195edbfb562a593726eda3b3e8b103a309b733ad25f3d642ba49696bf715dc"},
-  "jason": {:hex, :jason, "1.3.0", "fa6b82a934feb176263ad2df0dbd91bf633d4a46ebfdffea0c8ae82953714946", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "53fc1f51255390e0ec7e50f9cb41e751c260d065dcba2bf0d08dc51a4002c2ac"},
-  "rewrite": {:git, "https://github.com/hrzndhrn/rewrite.git", "545bbd5c91311a2d3c2d3025c50a22acf72e1288", []},
+  "glob_ex": {:hex, :glob_ex, "0.1.1", "dc652ac17aeab97392da3beb73ff24f4e4de061b717ca7e75818e869e5acd104", [:mix], [], "hexpm", "d27bc551f9fd92b96c7bad687aba1a7cd5eeaaec7170c55add227f395f89e3af"},
+  "jason": {:hex, :jason, "1.4.0", "e855647bc964a44e2f67df589ccf49105ae039d4179db7f6271dfd3843dc27e6", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "79a3791085b2a0f743ca04cec0f7be26443738779d09302e01318f97bdb82121"},
+  "rewrite": {:hex, :rewrite, "0.3.0", "9678d9af86ed8db4d790c6e3e960f36d2b5125a2d06ccd610087a98980c03886", [:mix], [{:glob_ex, "~> 0.1", [hex: :glob_ex, repo: "hexpm", optional: false]}, {:sourceror, "~> 0.11", [hex: :sourceror, repo: "hexpm", optional: false]}], "hexpm", "1741f16162f9b24291db6a3a9d115bdc30042996f2d4188003c417ebce244cfb"},
   "sourceror": {:hex, :sourceror, "0.11.2", "549ce48be666421ac60cfb7f59c8752e0d393baa0b14d06271d3f6a8c1b027ab", [:mix], [], "hexpm", "9ab659118896a36be6eec68ff7b0674cba372fc8e210b1e9dc8cf2b55bb70dfb"},
 }

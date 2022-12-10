@@ -13,7 +13,13 @@ defmodule Recode.Config do
   def read(path) when is_binary(path) do
     case File.exists?(path) do
       true ->
-        config = path |> Code.eval_file() |> elem(0) |> default(:tasks)
+        config =
+          path
+          |> Code.eval_file()
+          |> elem(0)
+          |> default(:tasks)
+          |> update(:inputs)
+
         {:ok, config}
 
       false ->
@@ -29,5 +35,11 @@ defmodule Recode.Config do
 
   defp default(config, :tasks) do
     Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
+  end
+
+  defp update(config, :inputs) do
+    Keyword.update(config, :inputs, [], fn inputs ->
+      inputs |> List.wrap() |> Enum.map(fn input -> GlobEx.compile!(input) end)
+    end)
   end
 end
