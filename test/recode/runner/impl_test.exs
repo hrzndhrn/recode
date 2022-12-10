@@ -85,11 +85,11 @@ defmodule Recode.Runner.ImplTest do
 
     test "does not run task with active: false", %{config: config} do
       TaskMock
-      |> expect(:run, fn source, config ->
+      |> expect(:run, 2, fn source, config ->
         assert config == [autocorrect: true, foo: :bar]
         source
       end)
-      |> expect(:config, 2, fn :correct -> true end)
+      |> expect(:config, 1, fn :correct -> true end)
 
       config =
         Keyword.put(config, :tasks, [
@@ -102,18 +102,40 @@ defmodule Recode.Runner.ImplTest do
       end)
     end
 
+    test "does not run task for excluded files", %{config: config} do
+      TaskMock
+      |> expect(:run, 1, fn source, config ->
+        assert config == [autocorrect: true, foo: :bar]
+        source
+      end)
+      |> expect(:config, 1, fn :correct -> true end)
+
+      config =
+        Keyword.put(config, :tasks, [
+          {TaskMock, exclude: "**/*.exs", config: [foo: :bar]}
+        ])
+
+      io =
+        capture_io(fn ->
+          assert Runner.run(config)
+        end)
+
+      # one dot per file
+      assert io =~ ~r/\n\.\n/
+    end
+
     test "runs task throwing exception", %{config: config} do
       TaskMock
-      |> expect(:run, fn _source, _config ->
+      |> expect(:run, 2, fn _source, _config ->
         raise "ups"
       end)
-      |> expect(:config, fn :correct -> true end)
+      |> expect(:config, 1, fn :correct -> true end)
 
       config = Keyword.put(config, :tasks, [{TaskMock, []}])
 
       capture_io(fn ->
         assert project = Runner.run(config)
-        assert [source] = Project.sources(project)
+        assert [source, _rest] = Project.sources(project)
         assert [{1, issue}] = source.issues
         assert issue.reporter == Recode.Runner
       end)

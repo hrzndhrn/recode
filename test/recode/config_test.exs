@@ -1,20 +1,36 @@
 defmodule Recode.ConfigTest do
   use ExUnit.Case
 
+  import GlobEx.Sigils
+
   alias Mix.Project
   alias Recode.Config
-  alias Recode.Task.Format
+  alias Recode.Formatter
+  alias Recode.Task
 
   describe "read/1" do
     test "reads config" do
-      config =
-        "priv/config.exs"
-        |> File.read!()
-        |> Code.eval_string()
-        |> elem(0)
-        |> Keyword.update!(:tasks, fn tasks -> [{Format, []} | tasks] end)
-
-      assert Config.read("priv/config.exs") == {:ok, config}
+      assert Config.read("priv/config.exs") ==
+               {:ok,
+                [
+                  version: "0.4.1",
+                  autocorrect: true,
+                  dry: false,
+                  verbose: false,
+                  inputs: [~g|{config,lib,test}/**/*.{ex,exs}|],
+                  formatter: {Formatter, []},
+                  tasks: [
+                    {Task.Format, []},
+                    {Task.AliasExpansion, []},
+                    {Task.AliasOrder, []},
+                    {Task.EnforceLineLength, [active: false]},
+                    {Task.PipeFunOne, []},
+                    {Task.SinglePipe, []},
+                    {Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
+                    {Task.TestFileExt, []},
+                    {Task.UnusedVariable, [active: false]}
+                  ]
+                ]}
     end
 
     test "returns an error tuple for a missing config file" do

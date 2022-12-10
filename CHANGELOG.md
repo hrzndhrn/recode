@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 - 2022/12/10
+
++ Fixing file exclusion.
+
 ## 0.4.1 - 2022/11/05
 
 + Remove unnecessary compile call
