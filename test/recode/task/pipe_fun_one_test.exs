@@ -29,7 +29,7 @@ defmodule Recode.Task.PipeFunOneTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "adds parenthes in single pipe" do
@@ -43,7 +43,7 @@ defmodule Recode.Task.PipeFunOneTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "reports issue" do
@@ -124,6 +124,6 @@ defmodule Recode.Task.PipeFunOneTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 end

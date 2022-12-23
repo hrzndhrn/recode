@@ -31,7 +31,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "expands aliases keeps newline" do
@@ -59,7 +59,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "expands aliases with with comments" do
@@ -89,7 +89,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "expands long aliases" do
@@ -113,7 +113,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "expands aliases with __MODULE__" do
@@ -140,7 +140,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "keeps the code as it is" do
@@ -153,7 +153,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == code
+      assert_code(source == code)
     end
 
     test "keeps the code as it is with __MODULE__" do
@@ -166,7 +166,7 @@ defmodule Recode.Task.AliasExapnasionTest do
 
       source = run(code)
 
-      assert_code source == code
+      assert_code(source == code)
     end
 
     test "reports no issues" do

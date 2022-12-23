@@ -32,13 +32,28 @@ defmodule RecodeCase do
            """
   end
 
+  @deprecated "use refute_issues/1"
   def assert_no_issues(%Source{issues: issues}) do
     assert issues == [], "Expected no issues, got #{inspect(issues, pretty: true)}"
   end
 
+  defmacro refute_issues(source) do
+    quote bind_quoted: [source: source] do
+      assert Enum.empty?(source.issues),
+             "Expected no issues, got #{inspect(source.issues, pretty: true)}"
+    end
+  end
+
+  @deprecated "use assert_code/2"
   defmacro assert_code({:==, _meta, [source, expected]}) do
     quote bind_quoted: [source: source, expected: expected] do
       assert source |> Source.get(:content) |> eof_newline() == eof_newline(expected)
+    end
+  end
+
+  defmacro assert_code(source, expected) do
+    quote bind_quoted: [source: source, expected: expected] do
+      assert Source.get(source, :content) == expected
     end
   end
 

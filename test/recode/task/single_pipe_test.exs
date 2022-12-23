@@ -13,7 +13,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "fixes single pipes" do
@@ -49,7 +49,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "fixes single pipes with heredoc" do
@@ -85,7 +85,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "does not expands single pipes that starts with a none zero fun" do
@@ -99,7 +99,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "keeps pipes" do
@@ -113,7 +113,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "keeps pipes (length 3)" do
@@ -128,7 +128,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "keeps pipes with tap" do
@@ -143,7 +143,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "keeps pipes with then" do
@@ -157,7 +157,7 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "reports single pipes violation" do
@@ -208,6 +208,6 @@ defmodule Recode.Task.SinglePipeTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 end

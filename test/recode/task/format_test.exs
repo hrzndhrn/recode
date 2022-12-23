@@ -23,7 +23,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "formats the code" do
@@ -42,7 +42,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats the code and ignores the Recode.FormatterPlugin" do
@@ -76,7 +76,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(source)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats the code with a plugin" do
@@ -101,7 +101,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(source)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats en empty string" do
@@ -110,7 +110,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "reports no issues" do

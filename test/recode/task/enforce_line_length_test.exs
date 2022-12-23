@@ -25,7 +25,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "keeps format for single line map" do
@@ -35,7 +35,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
 
     source = run(code)
 
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "keeps format for a big map" do
@@ -54,7 +54,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "formats list" do
@@ -73,7 +73,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats multiline and" do
@@ -90,7 +90,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats multiline operators" do
@@ -110,7 +110,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats def" do
@@ -135,7 +135,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats defp with when" do
@@ -155,7 +155,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats def in module" do
@@ -182,7 +182,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "keeps with" do
@@ -196,7 +196,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "formats with clauses" do
@@ -219,7 +219,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "keeps case" do
@@ -233,7 +233,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "formats case clauses" do
@@ -257,7 +257,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "formats anonymous functions" do
@@ -274,7 +274,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "keeps fn with pattern matching" do
@@ -288,7 +288,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "formats fn without skip and ignore" do
@@ -309,7 +309,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "keeps fn with skip" do
@@ -326,7 +326,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code, skip: [:fn])
 
     assert formated?(code)
-    assert_code source == code
+    assert_code(source == code)
   end
 
   test "keeps fn with ignore" do
@@ -349,7 +349,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code, ignore: [:fn])
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "inlines assert_raise" do
@@ -379,7 +379,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code)
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "ignore fn" do
@@ -411,7 +411,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code, ignore: [:fn])
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "skip assert_raise" do
@@ -446,6 +446,6 @@ defmodule Recode.Task.EnforceLineLengthTest do
     source = run(code, skip: [:assert_raise])
 
     assert formated?(code)
-    assert_code source == expected
+    assert_code(source == expected)
   end
 end

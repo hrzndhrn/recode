@@ -25,7 +25,7 @@ defmodule Recode.Task.UnusedVariableTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "fix multiple unused variables" do
@@ -47,7 +47,7 @@ defmodule Recode.Task.UnusedVariableTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "fix unused variables in anonymous function" do
@@ -67,7 +67,7 @@ defmodule Recode.Task.UnusedVariableTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "reports an issue" do

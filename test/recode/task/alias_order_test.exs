@@ -22,7 +22,7 @@ defmodule Recode.Task.AliasOrderTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "keeps sorted groups" do
@@ -48,7 +48,7 @@ defmodule Recode.Task.AliasOrderTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "sorts a group of aliases" do
@@ -78,7 +78,7 @@ defmodule Recode.Task.AliasOrderTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "sorts multi aliases" do
@@ -101,7 +101,7 @@ defmodule Recode.Task.AliasOrderTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "ignores as for sorting" do
@@ -125,7 +125,7 @@ defmodule Recode.Task.AliasOrderTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "put multi after single" do
@@ -145,7 +145,7 @@ defmodule Recode.Task.AliasOrderTest do
 
     source = run(code)
 
-    assert_code source == expected
+    assert_code(source == expected)
   end
 
   test "reports an issue" do
@@ -251,7 +251,7 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "sort aliases in multi (case insensitive)" do
@@ -269,7 +269,7 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
   end
 
@@ -316,7 +316,7 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
 
     test "sorts aliases in multi with __MODULE__" do
@@ -334,7 +334,7 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
   end
 
@@ -396,7 +396,7 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code, autocorrect: true)
 
-      assert_code source == code
+      assert_code(source == code)
     end
 
     test "sorts aliases and moves unquote to the top" do
@@ -430,7 +430,7 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code, autocorrect: true)
 
-      assert_code source == expected
+      assert_code(source == expected)
     end
   end
 end
