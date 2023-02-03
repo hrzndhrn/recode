@@ -9,7 +9,6 @@ defmodule Recode.Task.Format do
 
   alias Recode.Issue
   alias Recode.Task.Format
-  alias Rewrite.DotFormatter
   alias Rewrite.Source
 
   @impl Recode.Task
@@ -25,7 +24,7 @@ defmodule Recode.Task.Format do
   defp format(source, false) do
     code = format(source)
 
-    case Source.code(source) == code <> "\n" do
+    case Source.code(source) == code do
       true ->
         source
 
@@ -35,9 +34,10 @@ defmodule Recode.Task.Format do
   end
 
   defp format(source) do
+    {formatter, _opts} = Mix.Tasks.Format.formatter_for_file(Source.path(source) || "elixir.ex")
+
     source
     |> Source.code()
-    |> Code.format_string!(DotFormatter.opts())
-    |> IO.iodata_to_binary()
+    |> formatter.()
   end
 end

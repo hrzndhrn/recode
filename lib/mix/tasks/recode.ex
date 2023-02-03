@@ -38,7 +38,6 @@ defmodule Mix.Tasks.Recode do
 
   alias Recode.Config
   alias Recode.Runner
-  alias Rewrite.DotFormatter
   alias Rewrite.Project
 
   # The minimum version of the config to run recode. This version marks the last
@@ -63,7 +62,6 @@ defmodule Mix.Tasks.Recode do
     |> validate_config!()
     |> Keyword.merge(opts)
     |> update(:verbose)
-    |> update(:locals_without_parens)
     |> Runner.run()
     |> output()
   end
@@ -112,9 +110,5 @@ defmodule Mix.Tasks.Recode do
       true -> Keyword.put(opts, :verbose, true)
       false -> opts
     end
-  end
-
-  defp update(opts, :locals_without_parens) do
-    Keyword.put(opts, :locals_without_parens, DotFormatter.locals_without_parens())
   end
 end
