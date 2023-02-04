@@ -140,7 +140,7 @@ defmodule Recode.Formatter do
       output,
       changed_by(source),
       [ANSI.reset()],
-      [source |> Source.diff(iodata: true) |> IO.iodata_to_binary()]
+      [source |> Source.diff() |> IO.iodata_to_binary()]
     ])
   end
 
