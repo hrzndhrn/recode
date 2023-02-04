@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4., - 2023/02/04
+
++ Refactor recode formatter task.
+
 ## 0.4.2 - 2022/12/10
 
 + Fixing file exclusion.
