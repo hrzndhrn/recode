@@ -16,7 +16,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(code)
 
-    assert source.code == code
+    assert_code source == code
   end
 
   test "formats the code" do
@@ -35,7 +35,7 @@ defmodule Recode.Task.FormatTest do
 
     source = run(code)
 
-    assert source.code == expected
+    assert_code source == expected
   end
 
   test "reports no issues" do

@@ -37,6 +37,12 @@ defmodule RecodeCase do
     assert issues == [], "Expected no issues, got #{inspect(issues, pretty: true)}"
   end
 
+  defmacro assert_code({:==, _meta, [source, expected]}) do
+    quote bind_quoted: [source: source, expected: expected] do
+      assert source |> Source.code() |> eof_newline() == expected
+    end
+  end
+
   def source(string, path \\ nil) do
     Source.from_string(string, path)
   end
@@ -52,4 +58,6 @@ defmodule RecodeCase do
   def formated?(code) do
     String.trim(code) == code |> Code.format_string!() |> IO.iodata_to_binary()
   end
+
+  def eof_newline(string), do: String.trim_trailing(string) <> "\n"
 end
