@@ -48,29 +48,29 @@ defmodule Recode.Task.EnforceLineLength do
       source
       |> Source.ast()
       |> Zipper.zip()
-      |> Zipper.traverse(fn zipper -> same_line(zipper, opts) end)
+      |> Zipper.traverse_while(fn zipper -> same_line(zipper, opts) end)
 
     Source.update(source, EnforceLineLength, ast: Zipper.root(zipper))
   end
 
   defp same_line({{:with, _meta, _args}, _zipper_meta} = zipper, _opts) do
-    zipper
+    {:cont, zipper}
   end
 
   defp same_line({{name, _meta, args}, _zipper_meta} = zipper, opts) when is_list(args) do
     cond do
-      name in opts[:skip] -> Zipper.skip(zipper)
-      name in opts[:ignore] -> zipper
+      name in opts[:skip] -> {:skip, zipper}
+      name in opts[:ignore] -> {:cont, zipper}
       true -> do_same_line(zipper)
     end
   end
 
-  defp same_line(zipper, _opts), do: zipper
+  defp same_line(zipper, _opts), do: {:cont, zipper}
 
   defp do_same_line(zipper) do
     case zipper |> Zipper.node() |> AST.multiline?() do
-      true -> Zipper.update(zipper, &AST.to_same_line/1)
-      false -> zipper
+      true -> {:cont, Zipper.update(zipper, &AST.to_same_line/1)}
+      false -> {:cont, zipper}
     end
   end
 
