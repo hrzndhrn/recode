@@ -13,7 +13,7 @@ defmodule Recode.ConfigTest do
       assert Config.read("priv/config.exs") ==
                {:ok,
                 [
-                  version: "0.4.3",
+                  version: "0.4.4",
                   autocorrect: true,
                   dry: false,
                   verbose: false,

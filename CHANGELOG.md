@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.4., - 2023/02/04
+## 0.4.4 - unreleased
+
++ Refactor `Recode.Task.EnforceLineLength`.
+
+## 0.4.3 - 2023/02/04
 
 + Refactor recode formatter task.
 
