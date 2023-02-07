@@ -7,6 +7,15 @@ defmodule Recode.Task.SinglePipeTest do
     code |> source() |> run_task({SinglePipe, opts})
   end
 
+  test "fix single pipe" do
+    code = "x |> foo()"
+    expected = "foo(x)"
+
+    source = run(code)
+
+    assert_code source == expected
+  end
+
   test "fixes single pipes" do
     code = """
     def fixme(arg) do
@@ -74,7 +83,6 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    Sourceror.parse_string!(expected)
     source = run(code)
 
     assert_code source == expected

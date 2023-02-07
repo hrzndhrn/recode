@@ -39,7 +39,7 @@ defmodule RecodeCase do
 
   defmacro assert_code({:==, _meta, [source, expected]}) do
     quote bind_quoted: [source: source, expected: expected] do
-      assert source |> Source.code() |> eof_newline() == expected
+      assert source |> Source.code() |> eof_newline() == eof_newline(expected)
     end
   end
 
