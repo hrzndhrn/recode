@@ -88,7 +88,6 @@ defmodule Recode.Task.SinglePipeTest do
     assert_code source == expected
   end
 
-
   test "does not expands single pipes that starts with a none zero fun" do
     code = """
     def fixme(arg) do
