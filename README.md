@@ -245,6 +245,20 @@ Found 11 files, including 2 scripts.
 [TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 ```
 
+### `mix format`
+
+You can also run Recode together with `mix format` by adding
+`Recode.FormatterPlugin` to your `.formatter.exs` plugins:
+
+```elixir
+[
+  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"],
+  plugins: [Recode.FormatterPlugin]
+]
+```
+
+Note that Elixir >= 1.13 is required.
+
 ## Differences to Credo
 
 `recode` was started as a plugin for `credo`. Unfortunately it was not possible
