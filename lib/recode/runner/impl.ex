@@ -120,14 +120,18 @@ defmodule Recode.Runner.Impl do
   end
 
   defp project(config) do
-    inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
-
-    if inputs == ["-"] do
-      stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
-
-      stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
+    if Keyword.has_key?(config, :project) do
+      config[:project]
     else
-      Project.read!(inputs)
+      inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
+
+      if inputs == ["-"] do
+        stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
+
+        stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
+      else
+        Project.read!(inputs)
+      end
     end
   end
 
