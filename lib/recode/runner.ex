@@ -3,14 +3,18 @@ defmodule Recode.Runner do
 
   alias Recode.Runner
   alias Rewrite.Project
+  alias Rewrite.Source
 
   @type config :: keyword()
   @type opts :: keyword()
   @type task :: {module(), opts()}
 
   @callback run(config) :: Project.t()
+  @callback run(String.t(), config) :: String.t()
+  @callback run(String.t(), config, Path.t()) :: String.t()
 
-  def run(config), do: impl().run(config)
+  def run(config) when is_list(config), do: impl().run(config)
+  def run(%Source{} = source, config, path \\ "source.ex") when is_list(config), do: impl().run(source, config, path)
 
   defp impl, do: Application.get_env(:recode, :runner, Runner.Impl)
 end

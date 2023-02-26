@@ -8,13 +8,24 @@ defmodule Recode.Runner.Impl do
   alias Rewrite.Source
 
   @impl true
-  def run(config) do
+  def run(config) when is_list(config) do
     config
     |> tasks()
-    |> run(update_config(config))
+    |> do_run(update_config(config))
   end
 
-  defp run(tasks, config) when is_list(tasks) do
+  @impl true
+  def run(content, config, path \\ "source.ex") do
+    source = Source.from_string(content, path)
+
+    config
+    |> tasks()
+    |> do_run(update_config(config), source)
+    |> Source.code()
+    |> eof()
+  end
+
+  defp do_run(tasks, config) do
     project =
       config
       |> project()
@@ -26,6 +37,17 @@ defmodule Recode.Runner.Impl do
     |> format(:tasks_ready, config)
     |> format(:results, config)
     |> tap(fn project -> write(project, config) end)
+  end
+
+  def do_run(tasks, config, source) do
+    tasks
+    |> update_opts(config)
+    |> Enum.reduce(source, fn {module, opts}, source ->
+      case exclude?(module, source, config) do
+        true -> source
+        false -> module.run(source, opts)
+      end
+    end)
   end
 
   defp run_tasks(tasks, project, config) do
@@ -183,4 +205,8 @@ defmodule Recode.Runner.Impl do
       end)
     end
   end
+
+  defp eof(""), do: ""
+
+  defp eof(string), do: (String.trim_trailing(string, "\n")) <> "\n"
 end

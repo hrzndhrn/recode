@@ -8,6 +8,7 @@ defmodule Recode.Runner.ImplTest do
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
   alias Rewrite.Project
+  alias Rewrite.Source
 
   setup :verify_on_exit!
 
@@ -139,6 +140,18 @@ defmodule Recode.Runner.ImplTest do
         assert [{1, issue}] = source.issues
         assert issue.reporter == Recode.Runner
       end)
+    end
+  end
+
+  describe "run/2" do
+    test "runs task with a source", %{config: config} do
+      config = Keyword.put(config, :tasks, [{SinglePipe, []}])
+
+      code = "x |> Enum.reverse()"
+
+      assert Runner.run(code, config, "source.ex") == """
+             Enum.reverse(x)
+             """
     end
   end
 end
