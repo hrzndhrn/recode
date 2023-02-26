@@ -3,7 +3,7 @@
 ## 0.4.4 - unreleased
 
 + Refactor `Recode.Task.EnforceLineLength`.
-+ Add `Recode.Runner.run/2`.
++ Add `Recode.Runner.run/3`.
 
 ## 0.4.3 - 2023/02/04
 
