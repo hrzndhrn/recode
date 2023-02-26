@@ -10,6 +10,8 @@ defmodule Recode.Config do
   @config ".recode.exs"
 
   @spec read(Path.t() | opts) :: {:ok, config()} | {:error, :not_found} when opts: keyword()
+  def read(opts \\ [])
+
   def read(path) when is_binary(path) do
     case File.exists?(path) do
       true ->

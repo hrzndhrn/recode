@@ -40,9 +40,6 @@ defmodule Recode.FormatterPlugin do
   @behaviour Mix.Tasks.Format
 
   alias Recode.Config
-  alias Recode.Task
-  alias Rewrite.Project
-  alias Rewrite.Source
 
   @impl true
   def features(_opts) do
@@ -50,48 +47,34 @@ defmodule Recode.FormatterPlugin do
   end
 
   @impl true
-  def format(contents, opts) do
-    file = Keyword.fetch!(opts, :file)
-    config = Keyword.get(opts, :recode, [])
-    project = project_from_string(contents, file)
+  def format(content, opts) do
+    if seen?(opts[:file]) do
+      content
+    else
+      {:ok, config} = Config.read()
 
-    config
-    |> merge_project_config()
-    |> force_formatter_config(project)
-    |> Recode.Runner.run()
-    |> Project.source!(file)
-    |> Source.code()
-  end
-
-  defp project_from_string(string, file) do
-    string
-    |> Source.from_string(file)
-    |> List.wrap()
-    |> Project.from_sources()
-  end
-
-  defp merge_project_config(config) do
-    case Config.read(config) do
-      {:ok, merged_config} -> merged_config
-      {:error, :not_found} -> config
+      Recode.Runner.run(content, config, opts[:file])
     end
   end
 
-  defp force_formatter_config(config, project) do
-    config
-    |> Keyword.put(:project, project)
-    |> Keyword.put(:autocorrect, true)
-    |> Keyword.put(:dry, true)
-    |> Keyword.put(:verbose, false)
-    |> Keyword.delete(:formatter)
-    |> Keyword.update(:tasks, [], &force_default_formatter_task/1)
+  defp seen?(file) do
+    table = table()
+
+    case :ets.lookup(table, file) do
+      [] ->
+        :ets.insert(table, {file})
+        false
+
+      _seen ->
+        true
+    end
   end
 
-  defp force_default_formatter_task(tasks) do
-    default_formatter = {Task.Format, config: [force_default_formatter: true]}
-
-    tasks
-    |> Enum.reject(&match?({Task.Format, _}, &1))
-    |> Enum.concat([default_formatter])
+  @table :recode_formatter_plugin
+  defp table do
+    case :ets.whereis(@table) do
+      :undefined -> :ets.new(@table, [:set, :public, :named_table])
+      _ref -> @table
+    end
   end
 end

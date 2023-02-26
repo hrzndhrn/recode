@@ -29,7 +29,8 @@ defmodule MyCode.MixProject do
     [
       {:recode, path: "../.."},
       # dev/test
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:freedom_formatter, "~> 2.1", only: :dev}
     ]
   end
 end
