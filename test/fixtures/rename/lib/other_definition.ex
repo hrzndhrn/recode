@@ -3,6 +3,10 @@ defmodule Rename.Bar do
 end
 
 defmodule Rename.Foo do
+  @moduledoc """
+  There are multiple definitions of baz/1 in this module.
+  one is from the alias, the others are from the module itself.
+  """
   alias Rename.Bar
 
   def baz, do: :baz

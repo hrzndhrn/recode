@@ -1,4 +1,7 @@
 defmodule Rename.Bar do
+  @doc """
+  baz/1 is a function that be referenced by anonymous function.
+  """
   def baz(x), do: {x, :baz}
 end
 

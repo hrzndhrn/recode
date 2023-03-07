@@ -1,3 +1,4 @@
+# Modules is changed to another names
 defmodule Rename.Bar do
   def baz, do: :bar
 end
