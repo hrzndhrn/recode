@@ -44,7 +44,11 @@ defmodule RecodeCase do
   end
 
   def source(string, path \\ nil) do
-    Source.from_string(string, path)
+    if File.exists?(string) do
+      Source.read!(string)
+    else
+      Source.from_string(string, path)
+    end
   end
 
   def project(%Source{} = source) do

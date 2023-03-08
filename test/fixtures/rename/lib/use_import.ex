@@ -1,11 +1,11 @@
 defmodule Rename.Bar do
-  def bar, do: :baz
+  def baz, do: :baz
 end
 
 defmodule Rename.Baz do
   defmacro __using__(_opts) do
     quote do
-      alias Rename.Bar
+      import Rename.Bar
     end
   end
 end
@@ -13,9 +13,9 @@ end
 defmodule Rename.Foo do
   use Rename.Baz
 
-  def foo(:a), do: Bar.bar()
+  def foo(:a), do: baz()
 
   def foo(:b) do
-    Bar.bar()
+    baz()
   end
 end
