@@ -10,7 +10,7 @@ defmodule Rename.Foo do
   def foo(:a), do: baz()
 
   def foo(:b) do
-    baz() |> baz() |> List.wrap()
+    bar() |> baz() |> List.wrap()
   end
 
   def go(x) do

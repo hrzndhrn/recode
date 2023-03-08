@@ -5,6 +5,12 @@ end
 
 defmodule Rename.Baz do
   def baz, do: :baz
+
+  def baz(1), do: :baz_1
+end
+
+defmodule Rename.BarBaz do
+  def baz(1, 2, 3), do: :bar_baz
 end
 
 defmodule Rename.Foo do
@@ -16,6 +22,10 @@ defmodule Rename.Foo do
   def foo(:a), do: Ace.baz()
 
   def foo(:b) do
-    {Ace.baz(), Asdf.baz()}
+    {Ace.baz(), Asdf.baz(), Rename.BarBaz.baz(1, 2, 3)}
+  end
+
+  def foofoo(b) do
+    Asdf.baz(b)
   end
 end
