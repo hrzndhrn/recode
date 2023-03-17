@@ -127,7 +127,7 @@ defmodule Recode.Runner.ImplTest do
     test "runs task throwing exception", %{config: config} do
       TaskMock
       |> expect(:run, 2, fn _source, _config ->
-        raise "ups"
+        raise "An Exception Occurred"
       end)
       |> expect(:config, 1, fn :correct -> true end)
 
@@ -138,6 +138,7 @@ defmodule Recode.Runner.ImplTest do
         assert [source, _rest] = Project.sources(project)
         assert [{1, issue}] = source.issues
         assert issue.reporter == Recode.Runner
+        assert String.starts_with?(issue.message, "** (RuntimeError) An Exception Occurred")
       end)
     end
   end

@@ -71,7 +71,15 @@ defmodule Recode.Runner.Impl do
     end
   rescue
     error ->
-      Source.add_issue(source, Issue.new(Recode.Runner, task: module, error: error))
+      Source.add_issue(
+        source,
+        Issue.new(
+          Recode.Runner,
+          task: module,
+          error: error,
+          message: Exception.format(:error, error, __STACKTRACE__)
+        )
+      )
   end
 
   defp exclude?(task, source, config) do

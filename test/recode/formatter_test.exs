@@ -244,7 +244,9 @@ defmodule Recode.FormatterTest do
       source =
         code
         |> from_string()
-        |> Source.add_issue(Issue.new(Recode.Runner, task: Test, error: :error))
+        |> Source.add_issue(
+          Issue.new(Recode.Runner, task: Test, error: :error, message: "Error Message")
+        )
 
       project = Project.from_sources([source])
 
@@ -257,7 +259,8 @@ defmodule Recode.FormatterTest do
 
       assert output == """
               File: no file
-             Execution of the Test task failed.
+             Execution of the Test task failed with error:
+             Error Message
              """
     end
 
