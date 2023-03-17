@@ -13,7 +13,9 @@ defmodule Recode.Runner do
   @callback run(String.t(), config, Path.t()) :: String.t()
 
   def run(config) when is_list(config), do: impl().run(config)
-  def run(content, config, path \\ "source.ex") when is_list(config), do: impl().run(content, config, path)
+
+  def run(content, config, path \\ "source.ex") when is_list(config),
+    do: impl().run(content, config, path)
 
   defp impl, do: Application.get_env(:recode, :runner, Runner.Impl)
 end

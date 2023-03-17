@@ -208,5 +208,5 @@ defmodule Recode.Runner.Impl do
 
   defp eof(""), do: ""
 
-  defp eof(string), do: (String.trim_trailing(string, "\n")) <> "\n"
+  defp eof(string), do: String.trim_trailing(string, "\n") <> "\n"
 end
