@@ -41,9 +41,13 @@ defmodule Recode.FormatterPlugin do
 
   alias Recode.Config
 
+  @table :recode_formatter_plugin
+
   @impl true
   def features(_opts) do
-    _table = table()
+    # A little misappropriated as `&init/0/1`
+    init()
+
     [extensions: [".ex", ".exs"]]
   end
 
@@ -57,11 +61,9 @@ defmodule Recode.FormatterPlugin do
   end
 
   defp seen?(file) do
-    table = table()
-
-    case :ets.lookup(table, file) do
+    case :ets.lookup(@table, file) do
       [] ->
-        :ets.insert(table, {file})
+        :ets.insert(@table, {file})
         false
 
       _seen ->
@@ -70,16 +72,14 @@ defmodule Recode.FormatterPlugin do
   end
 
   defp config(nil) do
-    table = table()
-
-    case {:ets.lookup(table, :config), self()} do
+    case {:ets.lookup(@table, :config), self()} do
       {[], pid} ->
-        :ets.insert(table, {:config, {:loading, pid}})
+        :ets.insert(@table, {:config, {:loading, pid}})
         config(nil)
 
       {[{:config, {:loading, pid}}], pid} ->
         config = read_config()
-        :ets.insert(table, {:config, config})
+        :ets.insert(@table, {:config, config})
         config
 
       {[{:config, {:loading, _loader}}], _pid} ->
@@ -91,16 +91,13 @@ defmodule Recode.FormatterPlugin do
   end
 
   defp read_config do
-    IO.inspect(self(), label: :read)
     {:ok, config} = Config.read()
     config
   end
 
-  @table :recode_formatter_plugin
-  defp table do
-    case :ets.whereis(@table) do
-      :undefined -> :ets.new(@table, [:set, :public, :named_table]) |> IO.inspect(label: :table)
-      _ref -> @table
+  defp init do
+    with :undefined <- :ets.whereis(@table) do
+      :ets.new(@table, [:set, :public, :named_table])
     end
-  end
+    end
 end
