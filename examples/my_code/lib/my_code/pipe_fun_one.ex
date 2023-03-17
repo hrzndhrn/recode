@@ -4,6 +4,6 @@ defmodule MyCode.PipeFunOne do
   def double(x), do: x + x
 
   def pipe(x) do
-    x |> double() |> double()
+    x |> double |> double()
   end
 end

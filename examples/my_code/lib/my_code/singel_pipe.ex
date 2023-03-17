@@ -4,8 +4,8 @@ defmodule MyCode.SinglePipe do
   def double(x), do: x + x
 
   def single_pipe(x) do
-    double(x)
+    x |> double()
   end
 
-  def reverse(a), do: Enum.reverse(a)
+  def reverse(a), do: a |> Enum.reverse()
 end

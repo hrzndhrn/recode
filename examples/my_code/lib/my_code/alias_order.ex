@@ -11,11 +11,9 @@ defmodule MyCode.Foxtrot do
 end
 
 defmodule Mycode.AliasOrder do
-  alias MyCode.Foxtrot
-  alias MyCode.PipeFunOne
   alias MyCode.SinglePipe
-
-  alias MyCode.Echo
+  alias MyCode.PipeFunOne
+  alias MyCode.{Foxtrot, Echo}
 
   @doc false
   def foo do
