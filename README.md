@@ -21,7 +21,7 @@ For now, `recode` corrects only a few things:
 * `SinglePipe` corrects single pipes
 * `TestFileExt` renames test file extensions to `*.exs`
 
-It is also possible to run `recode` in a none-autocorect mode to just lint your
+It is also possible to run `recode` in a none-autocorrect mode to just lint your
 code.
 
 ## Installation
@@ -248,17 +248,15 @@ Found 11 files, including 2 scripts.
 ## Differences to Credo
 
 `recode` was started as a plugin for `credo`. Unfortunately it was not possible
-to implement autocorrection as a plugin because the traversation of the code does
+to implement autocorrection as a plugin because Credo's traversal of the code does
 not support changing the code.
-
-
 
 Maybe some code lines from `recode` could be used as inspiration for `credo`
 to bring the autocorrect feature to `credo`.
 
 Other differences:
 
-* `recode` requiers Elixir 1.13, `credo` requiers Elixir 1.7
+* `recode` requires Elixir 1.13, `credo` requires Elixir 1.7
 * `recode` has autocorrection
 * `credo` has much more checkers
 * `credo` is faster
