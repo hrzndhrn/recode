@@ -11,7 +11,7 @@ alias Recode.Task
   # Can also be set/reset with "--verbose"/"--no-verbose".
   verbose: false,
   # Can be overwriten by calling `mix recode "lib/**/*.ex"`.
-  inputs: ["{config,lib,test}/**/*.{ex,exs}"],
+  inputs: ["{apps,config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
