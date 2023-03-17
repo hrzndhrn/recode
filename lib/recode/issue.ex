@@ -38,6 +38,8 @@ defmodule Recode.Issue do
   def new(reporter, meta, info, nil) do
     line = Keyword.get(info, :line)
     column = Keyword.get(info, :column)
-    struct!(Issue, reporter: reporter, line: line, column: column, meta: meta)
+    message = Keyword.get(meta, :message)
+
+    struct!(Issue, reporter: reporter, line: line, column: column, meta: meta, message: message)
   end
 end

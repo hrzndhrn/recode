@@ -82,7 +82,7 @@ defmodule Recode.Formatter do
     |> format_updates(source, opts, updated?)
     |> format_path_update(source, opts, path_updated?)
     |> format_code_update(source, opts, code_updated?)
-    |> format_issues(source, opts, issues?)
+    |> format_issues(source, opts, issues?, verbose)
     |> newline(issues? or updated? or created?)
     |> write()
   end
@@ -144,9 +144,9 @@ defmodule Recode.Formatter do
     ])
   end
 
-  defp format_issues(output, _source, _opts, false), do: output
+  defp format_issues(output, _source, _opts, false, _verbose), do: output
 
-  defp format_issues(output, source, _opts, true) do
+  defp format_issues(output, source, _opts, true, verbose) do
     actual = Source.version(source)
 
     issues =
@@ -154,7 +154,7 @@ defmodule Recode.Formatter do
       |> Map.get(:issues)
       |> Enum.sort(&sort_issues/2)
       |> Enum.flat_map(fn {version, issue} ->
-        format_issue(issue, version, actual)
+        format_issue(issue, version, actual, verbose)
       end)
 
     Enum.concat(output, issues)
@@ -179,11 +179,20 @@ defmodule Recode.Formatter do
     end
   end
 
-  defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual) do
+  defp format_issue(
+         %{reporter: Recode.Runner, meta: meta, message: message},
+         _version,
+         _actual,
+         true
+       ) do
+    [:warn, "Execution of the #{inspect(meta[:task])} task failed with error:\n#{message}"]
+  end
+
+  defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual, false) do
     [:warn, "Execution of the #{inspect(meta[:task])} task failed."]
   end
 
-  defp format_issue(issue, version, actual) do
+  defp format_issue(issue, version, actual, _verbose) do
     warn =
       case version != actual do
         true ->
