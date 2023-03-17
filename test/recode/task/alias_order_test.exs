@@ -339,7 +339,47 @@ defmodule Recode.Task.AliasOrderTest do
   end
 
   describe "issue #54" do
-    test "todo" do
+    test "ignores unquote in sorted aliases" do
+      code = """
+      defmodule RepoTestCase do
+        defmacro __using__(opts) do
+          repo = Keyword.fetch!(opts, :repo)
+
+          quote do
+            alias Foo.Bar
+            alias unquote(repo), as: Repo
+            alias Foo.Baz
+          end
+        end
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_no_issues(source)
+    end
+
+    test "ignores unquote in unsorted aliases" do
+      code = """
+      defmodule RepoTestCase do
+        defmacro __using__(opts) do
+          repo = Keyword.fetch!(opts, :repo)
+
+          quote do
+            alias Foo.Baz
+            alias unquote(repo), as: Repo
+            alias Foo.Bar
+          end
+        end
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_issues(source, AliasOrder, 1)
+    end
+
+    test "moves unquote to the top" do
       code = """
       defmodule RepoTestCase do
         defmacro __using__(opts) do
@@ -348,6 +388,7 @@ defmodule Recode.Task.AliasOrderTest do
           quote do
             alias unquote(repo), as: Repo
             alias Foo.Bar
+            alias Foo.Baz
           end
         end
       end
@@ -355,8 +396,41 @@ defmodule Recode.Task.AliasOrderTest do
 
       source = run(code, autocorrect: true)
 
-      assert_no_issues(source)
+      assert_code source == code
+    end
+
+    test "sorts aliases and moves unquote to the top" do
+      code = """
+      defmodule RepoTestCase do
+        defmacro __using__(opts) do
+          repo = Keyword.fetch!(opts, :repo)
+
+          quote do
+            alias Foo.Baz
+            alias unquote(repo), as: Repo
+            alias Foo.Bar
+          end
+        end
+      end
+      """
+
+      expected = """
+      defmodule RepoTestCase do
+        defmacro __using__(opts) do
+          repo = Keyword.fetch!(opts, :repo)
+
+          quote do
+            alias unquote(repo), as: Repo
+            alias Foo.Bar
+            alias Foo.Baz
+          end
+        end
+      end
+      """
+
+      source = run(code, autocorrect: true)
+
+      assert_code source == expected
     end
   end
 end
-

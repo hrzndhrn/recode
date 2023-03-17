@@ -119,6 +119,12 @@ defmodule Recode.Task.AliasOrder do
   end
 
   defp unordered(group) do
+    group =
+      Enum.reject(group, fn
+        {:alias, _meta1, [{:unquote, _meta2, _args} | _rest]} -> true
+        _alias -> false
+      end)
+
     sorted = Enum.sort(group, &sort/2)
 
     sorted
