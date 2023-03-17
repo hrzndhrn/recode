@@ -99,5 +99,5 @@ defmodule Recode.FormatterPlugin do
     with :undefined <- :ets.whereis(@table) do
       :ets.new(@table, [:set, :public, :named_table])
     end
-    end
+  end
 end
