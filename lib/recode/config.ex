@@ -9,6 +9,10 @@ defmodule Recode.Config do
 
   @config ".recode.exs"
 
+  # The minimum version of the config to run recode. This version marks the last
+  # breaking change for handle the config.
+  @config_min_version "0.3.0"
+
   @spec read(Path.t() | opts) :: {:ok, config()} | {:error, :not_found} when opts: keyword()
   def read(opts \\ [])
 
@@ -33,6 +37,19 @@ defmodule Recode.Config do
     opts
     |> Keyword.get(:config, @config)
     |> read()
+  end
+
+  def validate(config) do
+    cmp =
+      config
+      |> Keyword.get(:version, "0.1.0")
+      |> Version.compare(@config_min_version)
+
+    if cmp == :lt do
+      {:error, :out_of_date}
+    else
+      :ok
+    end
   end
 
   defp default(config, :tasks) do
