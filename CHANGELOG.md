@@ -4,6 +4,8 @@
 
 + Refactor `Recode.Task.EnforceLineLength`.
 + Add `Recode.Runner.run/3`.
++ Fix `Recode.Task.AliasOrder`
++ Add dir `apps` to the default config.
 
 ## 0.4.3 - 2023/02/04
 

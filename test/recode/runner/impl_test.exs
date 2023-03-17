@@ -8,7 +8,6 @@ defmodule Recode.Runner.ImplTest do
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
   alias Rewrite.Project
-  alias Rewrite.Source
 
   setup :verify_on_exit!
 
