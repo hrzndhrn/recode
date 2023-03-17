@@ -337,4 +337,26 @@ defmodule Recode.Task.AliasOrderTest do
       assert_code source == expected
     end
   end
+
+  describe "issue #54" do
+    test "todo" do
+      code = """
+      defmodule RepoTestCase do
+        defmacro __using__(opts) do
+          repo = Keyword.fetch!(opts, :repo)
+
+          quote do
+            alias unquote(repo), as: Repo
+            alias Foo.Bar
+          end
+        end
+      end
+      """
+
+      source = run(code, autocorrect: true)
+
+      assert_no_issues(source)
+    end
+  end
 end
+
