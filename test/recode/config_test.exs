@@ -17,7 +17,7 @@ defmodule Recode.ConfigTest do
                   autocorrect: true,
                   dry: false,
                   verbose: false,
-                  inputs: [~g|{config,lib,test}/**/*.{ex,exs}|],
+                  inputs: [~g|{apps,config,lib,test}/**/*.{ex,exs}|],
                   formatter: {Formatter, []},
                   tasks: [
                     {Task.Format, []},
