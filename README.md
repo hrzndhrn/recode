@@ -3,7 +3,7 @@
 [![GitHub: CI status](https://img.shields.io/github/actions/workflow/status/hrzndhrn/recode/ci.yml?branch=main&style=flat-square)](https://github.com/hrzndhrn/recode/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/hrzndhrn//blob/main/LICENSE.md)
 
-A linter with autocorrection and a refactoring tool.
+A linter with autocorrection.
 
 `recode` is an experimental project to play around with the great
 [`sourceror`](https://github.com/doorgan/sourceror) package by @doorgan.
