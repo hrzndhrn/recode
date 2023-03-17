@@ -189,12 +189,18 @@ defmodule Recode.Task.AliasOrder do
 
     case module1 == module2 do
       true -> length(multi1) < length(multi2)
-      false -> module1 < module2
+      false -> lt?(module1, module2)
     end
   end
 
   defp sort({:__aliases__, _meta1, args1}, {:__aliases__, _meta2, args2}) do
-    args1 < args2
+    lt?(args1, args2)
+  end
+
+  defp lt?([value1], [value2]), do: lt?(value1, value2)
+
+  defp lt?(value1, value2) when is_atom(value1) and is_atom(value2) do
+    String.upcase(to_string(value1)) < String.upcase(to_string(value2))
   end
 
   defp sort_multi({:alias, meta1, [{{:., meta2, [aliases, opts]}, meta3, multi}]}) do

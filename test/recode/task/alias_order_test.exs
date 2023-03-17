@@ -207,4 +207,134 @@ defmodule Recode.Task.AliasOrderTest do
 
     assert_no_issues(source)
   end
+
+  describe "Issue #52:" do
+    test "reports an issue for unsorted aliases (case insensitive)" do
+      code = """
+      defmodule MyModule do
+        alias App.Module.AnnotationV2
+        alias App.Module.AnnotationsBehaviour
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_issues(source, AliasOrder, 1)
+    end
+
+    test "reports an issue for unsorted aliases in multi (case insensitive)" do
+      code = """
+      defmodule MyModule do
+        alias App.Module.{AnnotationV2, AnnotationsBehaviour}
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_issues(source, AliasOrder, 1)
+    end
+
+    test "sort aliases (case insensitive)" do
+      code = """
+      defmodule MyModule do
+        alias App.Module.AnnotationV2
+        alias App.Module.AnnotationsBehaviour
+      end
+      """
+
+      expected = """
+      defmodule MyModule do
+        alias App.Module.AnnotationsBehaviour
+        alias App.Module.AnnotationV2
+      end
+      """
+
+      source = run(code)
+
+      assert_code source == expected
+    end
+
+    test "sort aliases in multi (case insensitive)" do
+      code = """
+      defmodule MyModule do
+        alias App.Module.{AnnotationV2, AnnotationsBehaviour}
+      end
+      """
+
+      expected = """
+      defmodule MyModule do
+        alias App.Module.{AnnotationV2, AnnotationsBehaviour}
+      end
+      """
+
+      source = run(code)
+
+      assert_code source == expected
+    end
+  end
+
+  describe "Issue #51:" do
+    test "reports an issue for unsorted aliases with __MODULE__" do
+      code = """
+      defmodule MyModule do
+        alias __MODULE__.Beta
+        alias __MODULE__.Alpha
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_issues(source, AliasOrder, 1)
+    end
+
+    test "reports an issue for unsorted aliases in multi with __MODULE__" do
+      code = """
+      defmodule MyModule do
+        alias __MODULE__.{Beta, Alpha}
+      end
+      """
+
+      source = run(code, autocorrect: false)
+
+      assert_issues(source, AliasOrder, 1)
+    end
+
+    test "sorts aliases with __MODULE__" do
+      code = """
+      defmodule MyModule do
+        alias __MODULE__.Beta
+        alias __MODULE__.Alpha
+      end
+      """
+
+      expected = """
+      defmodule MyModule do
+        alias __MODULE__.Alpha
+        alias __MODULE__.Beta
+      end
+      """
+
+      source = run(code)
+
+      assert_code source == expected
+    end
+
+    test "sorts aliases in multi with __MODULE__" do
+      code = """
+      defmodule MyModule do
+        alias __MODULE__.{Beta, Alpha}
+      end
+      """
+
+      expected = """
+      defmodule MyModule do
+        alias __MODULE__.{Alpha, Beta}
+      end
+      """
+
+      source = run(code)
+
+      assert_code source == expected
+    end
+  end
 end

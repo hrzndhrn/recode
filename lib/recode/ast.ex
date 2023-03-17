@@ -444,6 +444,12 @@ defmodule Recode.AST do
   """
   @spec alias_info(Macro.t()) :: {module(), [module()], module() | nil}
   def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}]}) do
+    aliases =
+      Enum.map(aliases, fn
+        {:__MODULE__, _meta, _args} -> :__MODULE__
+        alias -> alias
+      end)
+
     module = Module.concat(aliases)
     {module, [], nil}
   end
