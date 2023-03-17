@@ -467,6 +467,14 @@ defmodule Recode.AST do
     {module, [], as}
   end
 
+  def alias_info({:alias, _meta1, [{:unquote, _meta2, _args}]}) do
+    {nil, [], nil}
+  end
+
+  def alias_info({:alias, _meta1, [{:unquote, _meta2, _args}, [{_block, as}]]}) do
+    {nil, [], as}
+  end
+
   @doc """
   Concatinates the aliases of an `:__aliases__` tuple.
 
