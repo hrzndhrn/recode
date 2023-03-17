@@ -46,7 +46,7 @@ defmodule Recode.FormatterPlugin do
   @impl true
   def features(_opts) do
     # A little misappropriated as `&init/0/1`
-    init()
+    _ref = init()
 
     [extensions: [".ex", ".exs"]]
   end
