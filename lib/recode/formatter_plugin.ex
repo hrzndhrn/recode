@@ -81,7 +81,7 @@ defmodule Recode.FormatterPlugin do
 
   defp init(recode) do
     with :undefined <- :ets.whereis(@table) do
-      :ets.new(@table, [:set, :public, :named_table])
+      _ref = :ets.new(@table, [:set, :public, :named_table])
       :ets.insert(@table, {:config, init_config(recode)})
     end
   end
