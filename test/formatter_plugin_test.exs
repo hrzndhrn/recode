@@ -23,6 +23,7 @@ defmodule Mix.Tasks.FormatterPluginTest do
     expect(RunnerMock, :run, fn content, config, path ->
       assert content == "code"
       assert path == "source.ex"
+
       assert config == [
                tasks: [{Recode.Task.SinglePipe, []}],
                dry: false,
