@@ -206,6 +206,12 @@ defmodule Recode.Runner.Impl do
 
       opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
 
+      opts =
+        case Keyword.fetch(config, :formatter_opts) do
+          {:ok, formatter_opts} -> Keyword.put(opts, :formatter_opts, formatter_opts)
+          :error -> opts
+        end
+
       {task, opts}
     end)
   end

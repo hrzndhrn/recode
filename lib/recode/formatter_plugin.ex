@@ -48,7 +48,7 @@ defmodule Recode.FormatterPlugin do
     # This callback will be applied for every file the Elixir formater wants to
     # format. All calls comming from one Process.
     # Here it is a little misappropriated as `&init/1`.
-    _ref = init(opts[:recode])
+    _ref = init(opts)
 
     [extensions: [".ex", ".exs"]]
   end
@@ -79,10 +79,10 @@ defmodule Recode.FormatterPlugin do
     end
   end
 
-  defp init(recode) do
+  defp init(opts) do
     with :undefined <- :ets.whereis(@table) do
       _ref = :ets.new(@table, [:set, :public, :named_table])
-      :ets.insert(@table, {:config, init_config(recode)})
+      :ets.insert(@table, {:config, init_config(opts[:recode], opts)})
     end
   end
 
@@ -91,7 +91,7 @@ defmodule Recode.FormatterPlugin do
   `mix recode.get.config` to create a config file or add config in \
   `.formatter.exs` under the key `:recode`.
   """
-  defp init_config(nil) do
+  defp init_config(nil, opts) do
     case Config.read() do
       {:error, :not_found} ->
         Mix.raise(@config_error)
@@ -99,12 +99,20 @@ defmodule Recode.FormatterPlugin do
       {:ok, config} ->
         config
         |> validate_config!()
-        |> init_config()
+        |> init_config(opts)
     end
   end
 
-  defp init_config(recode) do
-    Keyword.merge(recode, dry: false, verbose: false, autocorrect: true, check: false)
+  defp init_config(recode, opts) do
+    recode
+    |> Keyword.merge(
+      dry: false,
+      verbose: false,
+      autocorrect: true,
+      check: false,
+      formatter_opts: Keyword.delete(opts, :recode)
+    )
+    |> validate_config!()
   end
 
   defp validate_config!(config) do
@@ -114,6 +122,9 @@ defmodule Recode.FormatterPlugin do
 
       {:error, :out_of_date} ->
         Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
+
+      {:error, :no_tasks} ->
+        Mix.raise("No `:tasks` key found in configuration.")
     end
   end
 end

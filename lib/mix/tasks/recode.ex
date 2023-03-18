@@ -98,6 +98,9 @@ defmodule Mix.Tasks.Recode do
 
       {:error, :out_of_date} ->
         Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
+
+      {:error, :no_tasks} ->
+        Mix.raise("No `:tasks` key found in configuration.")
     end
   end
 

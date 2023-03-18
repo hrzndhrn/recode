@@ -40,9 +40,15 @@ defmodule Recode.Config do
   end
 
   def validate(config) do
+    with :ok <- validate(config, :version) do
+      validate(config, :tasks)
+    end
+  end
+
+  def validate(config, :version) do
     cmp =
       config
-      |> Keyword.get(:version, "0.1.0")
+      |> Keyword.get(:version, @config_min_version)
       |> Version.compare(@config_min_version)
 
     if cmp == :lt do
@@ -50,6 +56,10 @@ defmodule Recode.Config do
     else
       :ok
     end
+  end
+
+  def validate(config, :tasks) do
+    if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
   end
 
   defp default(config, :tasks) do
