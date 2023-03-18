@@ -151,6 +151,7 @@ defmodule Recode.Runner.Impl do
     |> tasks(:active)
     |> tasks(:correct_first)
     |> tasks(:autocorrect, config[:autocorrect])
+    |> tasks(:check, config[:check])
   end
 
   defp tasks(tasks, :autocorrect, autocorrect) do
@@ -159,6 +160,14 @@ defmodule Recode.Runner.Impl do
       true -> tasks
     end
   end
+
+  defp tasks(tasks, :check, false) do
+    Enum.reject(tasks, fn {task, _opts} ->
+      task.config(:check) && !task.config(:correct)
+    end)
+  end
+
+  defp tasks(tasks, :check, _config), do: tasks
 
   defp tasks(tasks, :active) do
     Enum.filter(tasks, fn {_task, config} -> Keyword.get(config, :active, true) end)

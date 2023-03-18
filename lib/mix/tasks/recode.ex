@@ -83,8 +83,11 @@ defmodule Mix.Tasks.Recode do
 
   defp config!(opts) do
     case Config.read(opts) do
-      {:ok, config} -> config
-      {:error, :not_found} -> Mix.raise("Config file not found")
+      {:ok, config} ->
+        config
+
+      {:error, :not_found} ->
+        Mix.raise("Config file not found. Run `mix recode.get.config` to create.")
     end
   end
 

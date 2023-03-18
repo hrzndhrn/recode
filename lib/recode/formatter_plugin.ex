@@ -18,8 +18,9 @@ defmodule Recode.FormatterPlugin do
 
   By default it uses the `.recode.exs` configuration file.
 
-  If your project does not have a `.recode.exs` configuration file, you can pass
-  the configuration using the `recode` option:
+  If your project does not have a `.recode.exs` configuration file or if you
+  want to overwrite the configuration, you can pass the configuration using the
+  `recode` option:
 
   ```
     [
@@ -34,7 +35,6 @@ defmodule Recode.FormatterPlugin do
       ]
     ]
   ```
-
   """
 
   @behaviour Mix.Tasks.Format
@@ -44,9 +44,11 @@ defmodule Recode.FormatterPlugin do
   @table :recode_formatter_plugin
 
   @impl true
-  def features(_opts) do
-    # A little misappropriated as `&init/0/1`
-    _ref = init()
+  def features(opts) do
+    # This callback will be applied for every file the Elixir formater wants to
+    # format. All calls comming from one Process.
+    # Here it is a little misappropriated as `&init/1`.
+    _ref = init(opts[:recode])
 
     [extensions: [".ex", ".exs"]]
   end
@@ -56,7 +58,7 @@ defmodule Recode.FormatterPlugin do
     if seen?(opts[:file]) do
       content
     else
-      Recode.Runner.run(content, config(opts[:recode]), opts[:file])
+      Recode.Runner.run(content, config())
     end
   end
 
@@ -71,33 +73,47 @@ defmodule Recode.FormatterPlugin do
     end
   end
 
-  defp config(nil) do
-    case {:ets.lookup(@table, :config), self()} do
-      {[], pid} ->
-        :ets.insert(@table, {:config, {:loading, pid}})
-        config(nil)
-
-      {[{:config, {:loading, pid}}], pid} ->
-        config = read_config()
-        :ets.insert(@table, {:config, config})
-        config
-
-      {[{:config, {:loading, _loader}}], _pid} ->
-        config(nil)
-
-      {[{:config, config}], _pid} ->
-        config
+  defp config do
+    with [{:config, config}] <- :ets.lookup(@table, :config) do
+      config
     end
   end
 
-  defp read_config do
-    {:ok, config} = Config.read()
-    config
-  end
-
-  defp init do
+  defp init(recode) do
     with :undefined <- :ets.whereis(@table) do
       :ets.new(@table, [:set, :public, :named_table])
+      :ets.insert(@table, {:config, init_config(recode)})
+    end
+  end
+
+  @config_error """
+  No configuration for `Recode.FormatterPlugin` found. Run \
+  `mix recode.get.config` to create a config file or add config in \
+  `.formatter.exs` under the key `:recode`.
+  """
+  defp init_config(nil) do
+    case Config.read() do
+      {:error, :not_found} ->
+        Mix.raise(@config_error)
+
+      {:ok, config} ->
+        config
+        |> validate_config!()
+        |> init_config()
+    end
+  end
+
+  defp init_config(recode) do
+    Keyword.merge(recode, dry: false, verbose: false, autocorrect: true, check: false)
+  end
+
+  defp validate_config!(config) do
+    case Config.validate(config) do
+      :ok ->
+        config
+
+      {:error, :out_of_date} ->
+        Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
     end
   end
 end
