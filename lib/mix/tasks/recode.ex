@@ -87,7 +87,7 @@ defmodule Mix.Tasks.Recode do
         config
 
       {:error, :not_found} ->
-        Mix.raise("Config file not found. Run `mix recode.get.config` to create.")
+        Mix.raise("Config file not found. Run `mix recode.get.config` to create `.recode.exs`.")
     end
   end
 
