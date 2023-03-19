@@ -13,7 +13,7 @@ defmodule Recode.Task.Format do
 
   @impl Recode.Task
   def run(source, opts) do
-    format(source, opts[:autocorrect], opts[:formatter_opts])
+    format(source, opts[:autocorrect], Map.get(source.private, :dot_fromatter_opts))
   end
 
   defp format(source, true, formatter_opts) do
@@ -49,9 +49,6 @@ defmodule Recode.Task.Format do
 
     case Keyword.get(formatter_opts, :plugins, []) do
       [] ->
-        fn content -> elixir_format(content, formatter_opts) end
-
-      [Recode.FormatterPlugin] ->
         fn content -> elixir_format(content, formatter_opts) end
 
       plugins ->

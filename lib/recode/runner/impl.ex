@@ -15,8 +15,13 @@ defmodule Recode.Runner.Impl do
   end
 
   @impl true
-  def run(content, config, path \\ "source.ex") do
-    source = Source.from_string(content, path)
+  def run(content, config, path \\ "source.xe") do
+    dot_formatter_opts = Keyword.get(config, :dot_formatter_opts, [])
+
+    source =
+      content
+      |> Source.from_string(dot_formatter_opts[:file] || path)
+      |> Source.put_private(:dot_formatter_opts, dot_formatter_opts)
 
     config
     |> tasks()
@@ -202,15 +207,10 @@ defmodule Recode.Runner.Impl do
 
   defp update_opts(tasks, config) do
     Enum.map(tasks, fn {task, task_config} ->
-      opts = Keyword.get(task_config, :config, [])
-
-      opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
-
       opts =
-        case Keyword.fetch(config, :formatter_opts) do
-          {:ok, formatter_opts} -> Keyword.put(opts, :formatter_opts, formatter_opts)
-          :error -> opts
-        end
+        task_config
+        |> Keyword.get(:config, [])
+        |> Keyword.put_new(:autocorrect, config[:autocorrect])
 
       {task, opts}
     end)

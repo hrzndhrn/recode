@@ -54,23 +54,15 @@ defmodule Recode.FormatterPlugin do
   end
 
   @impl true
-  def format(content, opts) do
-    if seen?(opts[:file]) do
-      content
-    else
-      Recode.Runner.run(content, config())
-    end
-  end
+  def format(content, formatter_opts) do
+    formatter_opts =
+      Keyword.update(formatter_opts, :plugins, [], fn plugins ->
+        Enum.reject(plugins, fn plugin -> plugin == __MODULE__ end)
+      end)
 
-  defp seen?(file) do
-    case :ets.lookup(@table, file) do
-      [] ->
-        :ets.insert(@table, {file})
-        false
+    config = Keyword.put(config(), :dot_formatter_opts, formatter_opts)
 
-      _seen ->
-        true
-    end
+    Recode.Runner.run(content, config)
   end
 
   defp config do
@@ -82,7 +74,7 @@ defmodule Recode.FormatterPlugin do
   defp init(opts) do
     with :undefined <- :ets.whereis(@table) do
       _ref = :ets.new(@table, [:set, :public, :named_table])
-      :ets.insert(@table, {:config, init_config(opts[:recode], opts)})
+      :ets.insert(@table, {:config, init_config(opts[:recode])})
     end
   end
 
@@ -91,26 +83,20 @@ defmodule Recode.FormatterPlugin do
   `mix recode.get.config` to create a config file or add config in \
   `.formatter.exs` under the key `:recode`.
   """
-  defp init_config(nil, opts) do
+  defp init_config(nil) do
     case Config.read() do
-      {:error, :not_found} ->
-        Mix.raise(@config_error)
-
-      {:ok, config} ->
-        config
-        |> validate_config!()
-        |> init_config(opts)
+      {:error, :not_found} -> Mix.raise(@config_error)
+      {:ok, config} -> init_config(config)
     end
   end
 
-  defp init_config(recode, opts) do
+  defp init_config(recode) do
     recode
     |> Keyword.merge(
       dry: false,
       verbose: false,
       autocorrect: true,
-      check: false,
-      formatter_opts: Keyword.delete(opts, :recode)
+      check: false
     )
     |> validate_config!()
   end
