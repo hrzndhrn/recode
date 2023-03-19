@@ -13,7 +13,7 @@ defmodule Recode.Task.Format do
 
   @impl Recode.Task
   def run(source, opts) do
-    format(source, opts[:autocorrect], Map.get(source.private, :dot_fromatter_opts))
+    format(source, opts[:autocorrect], Map.get(source.private, :dot_formatter_opts))
   end
 
   defp format(source, true, formatter_opts) do

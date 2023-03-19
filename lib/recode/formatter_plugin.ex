@@ -57,7 +57,7 @@ defmodule Recode.FormatterPlugin do
   def format(content, formatter_opts) do
     formatter_opts =
       Keyword.update(formatter_opts, :plugins, [], fn plugins ->
-        Enum.reject(plugins, fn plugin -> plugin == __MODULE__ end)
+        Enum.reject(plugins, fn plugin -> plugin == Recode.FormatterPlugin end)
       end)
 
     config = Keyword.put(config(), :dot_formatter_opts, formatter_opts)
