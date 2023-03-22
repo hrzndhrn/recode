@@ -25,20 +25,20 @@ defmodule Mix.Tasks.FormatterPluginTest do
       assert path == "source.ex"
 
       assert config == [
+               dot_formatter_opts: [locals_without_parens: [foo: 2], plugins: []],
                tasks: [{Recode.Task.SinglePipe, []}],
                dry: false,
                verbose: false,
                autocorrect: true,
-               check: false,
-               formatter_opts: [locals_without_parens: [foo: 2]]
+               check: false
              ]
 
       :ok
     end)
 
-    FormatterPlugin.features(recode: [tasks: [{SinglePipe, []}]], locals_without_parens: [foo: 2])
+    FormatterPlugin.features(recode: [tasks: [{SinglePipe, []}]])
 
     # assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "--dry"])) == :normal
-    assert FormatterPlugin.format("code", []) == :ok
+    assert FormatterPlugin.format("code", locals_without_parens: [foo: 2]) == :ok
   end
 end
