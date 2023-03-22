@@ -3,8 +3,8 @@ defmodule Mix.Tasks.FormatterPluginTest do
 
   import Mox
 
-  alias Recode.RunnerMock
   alias Recode.FormatterPlugin
+  alias Recode.RunnerMock
   alias Recode.Task.SinglePipe
 
   setup :verify_on_exit!
