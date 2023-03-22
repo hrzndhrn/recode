@@ -45,7 +45,7 @@ defmodule Recode.Task.Format do
     file = Source.path(source) || "elixir.ex"
     ext = Path.extname(file)
 
-    formatter_opts = unless formatter_opts, do: formatter_opts(file), else: formatter_opts
+    formatter_opts = if is_nil(formatter_opts), do: formatter_opts(file), else: formatter_opts
 
     case Keyword.get(formatter_opts, :plugins, []) do
       [] ->
