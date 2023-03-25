@@ -47,12 +47,11 @@ defmodule Recode.Task.Format do
 
     formatter_opts = if is_nil(formatter_opts), do: formatter_opts(file), else: formatter_opts
 
-    case Keyword.get(formatter_opts, :plugins, []) do
+    case plugins_for_ext(ext, formatter_opts) do
       [] ->
         fn content -> elixir_format(content, formatter_opts) end
 
       plugins ->
-        plugins = plugins_for_ext(plugins, ext, formatter_opts)
         formatter_opts = [extension: ext, file: file] ++ formatter_opts
         fn content -> plugins_format(plugins, content, formatter_opts) end
     end
@@ -76,8 +75,10 @@ defmodule Recode.Task.Format do
     end)
   end
 
-  defp plugins_for_ext([_ | _] = plugins, ext, formatter_opts) do
-    Enum.filter(plugins, fn
+  defp plugins_for_ext(ext, formatter_opts) do
+    formatter_opts
+    |> Keyword.get(:plugins, [])
+    |> Enum.filter(fn
       Recode.FormatterPlugin ->
         false
 

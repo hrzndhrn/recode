@@ -19,7 +19,7 @@ defmodule Mix.Tasks.FormatterPluginTest do
     end
   end
 
-  test "adsf" do
+  test "runs with tasks from the .formatter config" do
     expect(RunnerMock, :run, fn content, config, path ->
       assert content == "code"
       assert path == "source.ex"
@@ -38,7 +38,6 @@ defmodule Mix.Tasks.FormatterPluginTest do
 
     FormatterPlugin.features(recode: [tasks: [{SinglePipe, []}]])
 
-    # assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "--dry"])) == :normal
     assert FormatterPlugin.format("code", locals_without_parens: [foo: 2]) == :ok
   end
 end
