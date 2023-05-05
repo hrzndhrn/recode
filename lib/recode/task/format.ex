@@ -13,16 +13,16 @@ defmodule Recode.Task.Format do
 
   @impl Recode.Task
   def run(source, opts) do
-    format(source, opts[:autocorrect])
+    format(source, opts[:autocorrect], Map.get(source.private, :dot_formatter_opts))
   end
 
-  defp format(source, true) do
-    code = format(source)
+  defp format(source, true, formatter_opts) do
+    code = format(source, formatter_opts)
     Source.update(source, Format, code: code)
   end
 
-  defp format(source, false) do
-    code = format(source)
+  defp format(source, false, formatter_opts) do
+    code = format(source, formatter_opts)
 
     case Source.code(source) == code do
       true ->
@@ -33,11 +33,58 @@ defmodule Recode.Task.Format do
     end
   end
 
-  defp format(source) do
-    {formatter, _opts} = Mix.Tasks.Format.formatter_for_file(Source.path(source) || "elixir.ex")
+  defp format(source, formatter_opts) do
+    formatter = formatter(source, formatter_opts)
 
     source
     |> Source.code()
     |> formatter.()
+  end
+
+  defp formatter(source, formatter_opts) do
+    file = Source.path(source) || "elixir.ex"
+    ext = Path.extname(file)
+
+    formatter_opts = if is_nil(formatter_opts), do: formatter_opts(file), else: formatter_opts
+
+    case plugins_for_ext(ext, formatter_opts) do
+      [] ->
+        fn content -> elixir_format(content, formatter_opts) end
+
+      plugins ->
+        formatter_opts = [extension: ext, file: file] ++ formatter_opts
+        fn content -> plugins_format(plugins, content, formatter_opts) end
+    end
+  end
+
+  defp formatter_opts(file) do
+    {_formatter, formatter_opts} = Mix.Tasks.Format.formatter_for_file(file)
+    formatter_opts
+  end
+
+  defp elixir_format(content, formatter_opts) do
+    case Code.format_string!(content, formatter_opts) do
+      [] -> ""
+      formatted_content -> IO.iodata_to_binary([formatted_content, ?\n])
+    end
+  end
+
+  defp plugins_format(plugins, content, formatter_opts) do
+    Enum.reduce(plugins, content, fn plugin, content ->
+      plugin.format(content, formatter_opts)
+    end)
+  end
+
+  defp plugins_for_ext(ext, formatter_opts) do
+    formatter_opts
+    |> Keyword.get(:plugins, [])
+    |> Enum.filter(fn
+      Recode.FormatterPlugin ->
+        false
+
+      plugin ->
+        Code.ensure_loaded?(plugin) and function_exported?(plugin, :features, 1) and
+          ext in List.wrap(plugin.features(formatter_opts)[:extensions])
+    end)
   end
 end

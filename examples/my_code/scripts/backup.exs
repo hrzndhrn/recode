@@ -1,5 +1,5 @@
 defmodule Backup do
-  @inputs "{lib,test}/**/*"
+  @inputs "{config,lib,test}/**/*"
   @backup "scripts/backup.bin"
 
   alias Mix.Generator
@@ -16,8 +16,7 @@ defmodule Backup do
   def run(["restore"]) do
     Shell.IO.info("restoring form backup #{@backup}")
 
-    File.rm_rf!("lib")
-    File.rm_rf!("test")
+    Enum.each(["lib", "test", "config"], fn dir -> File.rm_rf!(dir) end)
 
     files = @backup |> File.read!() |> :erlang.binary_to_term()
 

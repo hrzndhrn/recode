@@ -40,10 +40,6 @@ defmodule Mix.Tasks.Recode do
   alias Recode.Runner
   alias Rewrite.Project
 
-  # The minimum version of the config to run recode. This version marks the last
-  # breaking change for handle the config.
-  @config_min_version "0.3.0"
-
   @opts strict: [
           autocorrect: :boolean,
           dry: :boolean,
@@ -87,22 +83,25 @@ defmodule Mix.Tasks.Recode do
 
   defp config!(opts) do
     case Config.read(opts) do
-      {:ok, config} -> config
-      {:error, :not_found} -> Mix.raise("Config file not found")
+      {:ok, config} ->
+        config
+
+      {:error, :not_found} ->
+        Mix.raise("Config file not found. Run `mix recode.get.config` to create `.recode.exs`.")
     end
   end
 
   defp validate_config!(config) do
-    cmp =
-      config
-      |> Keyword.get(:version, "0.1.0")
-      |> Version.compare(@config_min_version)
+    case Config.validate(config) do
+      :ok ->
+        config
 
-    if cmp == :lt do
-      Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
+      {:error, :out_of_date} ->
+        Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
+
+      {:error, :no_tasks} ->
+        Mix.raise("No `:tasks` key found in configuration.")
     end
-
-    config
   end
 
   defp update(opts, :verbose) do

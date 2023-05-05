@@ -15,8 +15,13 @@ defmodule Recode.Runner.Impl do
   end
 
   @impl true
-  def run(content, config, path \\ "source.ex") do
-    source = Source.from_string(content, path)
+  def run(content, config, path \\ "source.xe") do
+    dot_formatter_opts = Keyword.get(config, :dot_formatter_opts, [])
+
+    source =
+      content
+      |> Source.from_string(dot_formatter_opts[:file] || path)
+      |> Source.put_private(:dot_formatter_opts, dot_formatter_opts)
 
     config
     |> tasks()
@@ -120,14 +125,18 @@ defmodule Recode.Runner.Impl do
   end
 
   defp project(config) do
-    inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
-
-    if inputs == ["-"] do
-      stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
-
-      stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
+    if Keyword.has_key?(config, :project) do
+      config[:project]
     else
-      Project.read!(inputs)
+      inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
+
+      if inputs == ["-"] do
+        stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
+
+        stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
+      else
+        Project.read!(inputs)
+      end
     end
   end
 
@@ -147,6 +156,7 @@ defmodule Recode.Runner.Impl do
     |> tasks(:active)
     |> tasks(:correct_first)
     |> tasks(:autocorrect, config[:autocorrect])
+    |> tasks(:check, config[:check])
   end
 
   defp tasks(tasks, :autocorrect, autocorrect) do
@@ -155,6 +165,14 @@ defmodule Recode.Runner.Impl do
       true -> tasks
     end
   end
+
+  defp tasks(tasks, :check, false) do
+    Enum.reject(tasks, fn {task, _opts} ->
+      task.config(:check) && !task.config(:correct)
+    end)
+  end
+
+  defp tasks(tasks, :check, _config), do: tasks
 
   defp tasks(tasks, :active) do
     Enum.filter(tasks, fn {_task, config} -> Keyword.get(config, :active, true) end)
@@ -189,9 +207,10 @@ defmodule Recode.Runner.Impl do
 
   defp update_opts(tasks, config) do
     Enum.map(tasks, fn {task, task_config} ->
-      opts = Keyword.get(task_config, :config, [])
-
-      opts = Keyword.put_new(opts, :autocorrect, config[:autocorrect])
+      opts =
+        task_config
+        |> Keyword.get(:config, [])
+        |> Keyword.put_new(:autocorrect, config[:autocorrect])
 
       {task, opts}
     end)
