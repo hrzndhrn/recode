@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 - unreleased
+
++ Add `Recode.FormatterPlugin`
+
 ## 0.4.4 - 2023/03/17
 
 + Refactor `Recode.Task.EnforceLineLength`.
