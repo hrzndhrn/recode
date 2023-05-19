@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.5.0 - unreleased
+## 0.5.1 - 2023/05/19
+
++ Fix `Recode.Task.AliasExpansion`
+
+## 0.5.0 - 2023/05/05
 
 + Add `Recode.FormatterPlugin`
 
