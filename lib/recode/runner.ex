@@ -2,13 +2,12 @@ defmodule Recode.Runner do
   @moduledoc false
 
   alias Recode.Runner
-  alias Rewrite.Project
 
   @type config :: keyword()
   @type opts :: keyword()
   @type task :: {module(), opts()}
 
-  @callback run(config) :: Project.t()
+  @callback run(config) :: Rewrite.t()
   @callback run(String.t(), config) :: String.t()
   @callback run(String.t(), config, Path.t()) :: String.t()
 
