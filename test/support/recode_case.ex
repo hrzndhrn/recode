@@ -3,7 +3,6 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
-  alias Rewrite.Project
   alias Rewrite.Source
 
   using do
@@ -39,16 +38,16 @@ defmodule RecodeCase do
 
   defmacro assert_code({:==, _meta, [source, expected]}) do
     quote bind_quoted: [source: source, expected: expected] do
-      assert source |> Source.code() |> eof_newline() == eof_newline(expected)
+      assert source |> Source.get(:content) |> eof_newline() == eof_newline(expected)
     end
   end
 
   def source(string, path \\ nil) do
-    Source.from_string(string, path)
+    Source.Ex.from_string(string, path)
   end
 
   def project(%Source{} = source) do
-    Project.from_sources([source])
+    Rewrite.from_sources!([source])
   end
 
   def run_task(%Source{} = source, {task, opts}) do

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 - 2023/07/17
+
++ Bump `rewrite` to 0.7.0.
+
 ## 0.5.1 - 2023/05/19
 
 + Fix `Recode.Task.AliasExpansion`

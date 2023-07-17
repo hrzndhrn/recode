@@ -13,7 +13,7 @@ defmodule Recode.Task.UnusedVariable do
   def run(source, opts) do
     {zipper, issues} =
       source
-      |> Source.ast()
+      |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
         prepend_unused_variable_with_underscore(zipper, issues)
@@ -21,7 +21,7 @@ defmodule Recode.Task.UnusedVariable do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, __MODULE__, ast: Zipper.root(zipper))
+        Source.update(source, __MODULE__, :quoted, Zipper.root(zipper))
 
       false ->
         Source.add_issues(source, issues)

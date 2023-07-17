@@ -12,7 +12,7 @@ defmodule Mix.Tasks.RecodeTest do
   test "mix recode --config priv/config.exs" do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
-      ":test" |> source() |> project()
+      ":test" |> source("test.exs") |> project()
     end)
 
     capture_io(fn ->
@@ -24,7 +24,7 @@ defmodule Mix.Tasks.RecodeTest do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:verbose] == true
-      ":test" |> source() |> project()
+      ":test" |> source("test.exs") |> project()
     end)
 
     assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "--dry"])) == :normal
@@ -35,7 +35,7 @@ defmodule Mix.Tasks.RecodeTest do
       assert Keyword.keyword?(config)
       assert config[:inputs] == ["-"]
 
-      ":test" |> source() |> project()
+      ":test" |> source("test.exs") |> project()
     end)
 
     assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "-"])) == :normal
@@ -46,7 +46,7 @@ defmodule Mix.Tasks.RecodeTest do
       assert Keyword.keyword?(config)
       assert config[:inputs] == ["file_1.ex", "file_2.ex"]
 
-      ":test" |> source() |> project()
+      ":test" |> source("test.exs") |> project()
     end)
 
     assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "file_1.ex", "file_2.ex"])) ==
@@ -69,7 +69,7 @@ defmodule Mix.Tasks.RecodeTest do
 
   test "mix recode raises exception for missing inputs" do
     assert_raise Mix.Error, "No sources found", fn ->
-      Tasks.Recode.run(["--config", "priv/config.exs", "inputs"])
+      Tasks.Recode.run(["--config", "priv/config.exs", "no-sources"])
     end
   end
 end

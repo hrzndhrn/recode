@@ -31,19 +31,19 @@ defmodule Recode.Task.AliasOrder do
   defp do_run(source, true) do
     {zipper, []} =
       source
-      |> Source.ast()
+      |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse_while([], fn zipper, acc ->
         alias_order(zipper, acc)
       end)
 
-    Source.update(source, AliasOrder, ast: Zipper.root(zipper))
+    Source.update(source, AliasOrder, :quoted, Zipper.root(zipper))
   end
 
   defp do_run(source, false) do
     {_zipper, groups} =
       source
-      |> Source.ast()
+      |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse_while([[]], fn zipper, acc ->
         alias_groups(zipper, acc)

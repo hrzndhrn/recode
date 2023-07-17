@@ -6,7 +6,6 @@ defmodule Recode.FormatterTest do
   alias Recode.Formatter
   alias Recode.Issue
   alias Recode.Task.Format
-  alias Rewrite.Project
   alias Rewrite.Source
 
   @config verbose: true
@@ -22,7 +21,7 @@ defmodule Recode.FormatterTest do
 
       source = from_string(code)
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -42,9 +41,9 @@ defmodule Recode.FormatterTest do
       source =
         code
         |> from_string()
-        |> Source.update(:test, code: String.replace(code, "bar", "foo"))
+        |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -52,7 +51,7 @@ defmodule Recode.FormatterTest do
         end)
 
       assert strip_esc_seq(output) == """
-              File: no file
+              File: test/formatter_test.ex
              Updates: 1
              Changed by: test
              1 1   |defmodule Foo do
@@ -74,10 +73,10 @@ defmodule Recode.FormatterTest do
       source =
         code
         |> from_string()
-        |> Source.update(:test, code: String.replace(code, "bar", "foo"))
-        |> Source.update(:test, code: code)
+        |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+        |> Source.update(:test, :content, code)
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -85,7 +84,7 @@ defmodule Recode.FormatterTest do
         end)
 
       assert strip_esc_seq(output) == """
-              File: no file
+              File: test/formatter_test.ex
              Updates: 2
              Changed by: test, test
 
@@ -116,9 +115,9 @@ defmodule Recode.FormatterTest do
       source =
         code
         |> from_string()
-        |> Source.update(:test, code: String.replace(code, "bar", "foo"))
+        |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -140,9 +139,9 @@ defmodule Recode.FormatterTest do
       source =
         code
         |> from_string(path: "foo.ex")
-        |> Source.update(:test, path: "bar.ex")
+        |> Source.update(:test, :path, "bar.ex")
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -166,7 +165,7 @@ defmodule Recode.FormatterTest do
       """
 
       source = from_string(code, path: "foo.ex", from: :string)
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -188,7 +187,7 @@ defmodule Recode.FormatterTest do
       """
 
       source = from_string(code, path: "foo.ex", from: :string, owner: Test)
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -217,7 +216,7 @@ defmodule Recode.FormatterTest do
           Issue.new(:bar, "no no no", line: 2, column: 3)
         ])
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -227,7 +226,7 @@ defmodule Recode.FormatterTest do
       output = strip_esc_seq(output)
 
       assert output == """
-              File: no file
+              File: test/formatter_test.ex
              [foo 1/2] do not do this
              [bar 2/3] no no no
 
@@ -248,7 +247,7 @@ defmodule Recode.FormatterTest do
           Issue.new(Recode.Runner, task: Test, error: :error, message: "Error Message")
         )
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -258,7 +257,7 @@ defmodule Recode.FormatterTest do
       output = strip_esc_seq(output)
 
       assert output == """
-              File: no file
+              File: test/formatter_test.ex
              Execution of the Test task failed with error:
              Error Message
              """
@@ -273,7 +272,7 @@ defmodule Recode.FormatterTest do
 
       source = from_string(code)
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -284,7 +283,7 @@ defmodule Recode.FormatterTest do
     end
 
     test "formats when tasks ready for an empty project" do
-      project = Project.from_sources([])
+      project = Rewrite.from_sources!([])
       assert Formatter.format(:tasks_ready, {project, @config}, @opts) == :ok
     end
 
@@ -297,7 +296,7 @@ defmodule Recode.FormatterTest do
 
       source = from_string(code)
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -318,7 +317,7 @@ defmodule Recode.FormatterTest do
 
       source = from_string(code)
 
-      project = Project.from_sources([source])
+      project = Rewrite.from_sources!([source])
 
       output =
         capture_io(fn ->
@@ -337,7 +336,7 @@ defmodule Recode.FormatterTest do
   end
 
   defp from_string(string, opts \\ []) do
-    source = Source.from_string(string)
+    source = Source.Ex.from_string(string, "test/formatter_test.ex")
 
     opts = Keyword.put_new(opts, :from, :file)
 

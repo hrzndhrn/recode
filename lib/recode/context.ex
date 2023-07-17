@@ -22,8 +22,8 @@ defmodule Recode.Context do
       ...>   end
       ...> end
       ...> """
-      ...> |> Source.from_string()
-      ...> |> Source.ast()
+      ...> |> Source.Ex.from_string()
+      ...> |> Source.get(:quoted)
       ...> |> Zipper.zip()
       ...> |> Context.traverse(nil, fn
       ...>   zipper, context, nil ->
