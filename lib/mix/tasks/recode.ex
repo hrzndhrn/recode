@@ -38,7 +38,6 @@ defmodule Mix.Tasks.Recode do
 
   alias Recode.Config
   alias Recode.Runner
-  alias Rewrite.Project
 
   @opts strict: [
           autocorrect: :boolean,
@@ -62,13 +61,13 @@ defmodule Mix.Tasks.Recode do
     |> output()
   end
 
-  @spec output(Project.t()) :: no_return()
-  defp output(%Project{sources: sources}) when map_size(sources) == 0 do
+  @spec output(Rewrite.t()) :: no_return()
+  defp output(%Rewrite{sources: sources}) when map_size(sources) == 0 do
     Mix.raise("No sources found")
   end
 
-  defp output(%Project{} = project) do
-    case Project.issues?(project) do
+  defp output(%Rewrite{} = project) do
+    case Rewrite.issues?(project) do
       true -> exit({:shutdown, 1})
       false -> exit(:normal)
     end

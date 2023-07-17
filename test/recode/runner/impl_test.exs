@@ -7,7 +7,6 @@ defmodule Recode.Runner.ImplTest do
   alias Recode.Runner.Impl, as: Runner
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
-  alias Rewrite.Project
 
   setup :verify_on_exit!
 
@@ -27,7 +26,7 @@ defmodule Recode.Runner.ImplTest do
       config = Keyword.merge(config, dry: true, verbose: true, tasks: [{SinglePipe, []}])
 
       capture_io(fn ->
-        assert %Project{} = Runner.run(config)
+        assert %Rewrite{} = Runner.run(config)
       end)
     end
 
@@ -35,7 +34,7 @@ defmodule Recode.Runner.ImplTest do
       config = Keyword.merge(config, dry: true, autocorrect: false, tasks: [{SinglePipe, []}])
 
       capture_io(fn ->
-        assert %Project{} = Runner.run(config)
+        assert %Rewrite{} = Runner.run(config)
       end)
     end
 
@@ -135,7 +134,7 @@ defmodule Recode.Runner.ImplTest do
 
       capture_io(fn ->
         assert project = Runner.run(config)
-        assert [source, _rest] = Project.sources(project)
+        assert [source, _rest] = Rewrite.sources(project)
         assert [{1, issue}] = source.issues
         assert issue.reporter == Recode.Runner
         assert String.starts_with?(issue.message, "** (RuntimeError) An Exception Occurred")

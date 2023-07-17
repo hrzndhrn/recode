@@ -6,43 +6,42 @@ defmodule Recode.Formatter do
   import Recode.IO
 
   alias IO.ANSI
-  alias Rewrite.Project
   alias Rewrite.Source
 
   @callback format(
               type :: :project | :results | :tasks_ready,
-              {Project.t(), config :: keyword()},
+              {Rewrite.t(), config :: keyword()},
               opts :: keyword()
             ) :: any()
 
   @callback format(
               type :: :task,
-              {Project.t(), config :: keyword()},
+              {Rewrite.t(), config :: keyword()},
               {Source.t(), module, keyword()},
               opts :: keyword()
             ) :: any()
 
   @spec format(
           type :: :project | :results | :tasks_ready,
-          {Project.t(), config :: keyword()},
+          {Rewrite.t(), config :: keyword()},
           opts :: keyword()
         ) :: any()
-  def format(:results, {%Project{} = project, config}, opts) do
+  def format(:results, {%Rewrite{} = project, config}, opts) do
     verbose = Keyword.fetch!(config, :verbose)
 
     project
-    |> Project.sources()
+    |> Rewrite.sources()
     |> Enum.each(fn source -> do_format(source, opts, verbose) end)
   end
 
-  def format(:tasks_ready, {%Project{} = project, _config}, _opts) do
-    case Project.sources(project) do
+  def format(:tasks_ready, {%Rewrite{} = project, _config}, _opts) do
+    case Rewrite.sources(project) do
       [] -> :ok
       [_ | _] -> write("\n")
     end
   end
 
-  def format(:project, {%Project{} = project, _config}, _opts) do
+  def format(:project, {%Rewrite{} = project, _config}, _opts) do
     case counts(project) do
       {0, 0} ->
         :ok
@@ -54,7 +53,7 @@ defmodule Recode.Formatter do
 
   @spec format(
           type :: :task,
-          {Project.t(), config :: keyword()},
+          {Rewrite.t(), config :: keyword()},
           {Source.t(), module, keyword()},
           opts :: keyword()
         ) :: any()
@@ -64,16 +63,16 @@ defmodule Recode.Formatter do
 
   defp counts(project) do
     {
-      Project.count(project, :sources),
-      Project.count(project, :scripts)
+      Rewrite.count(project, ".ex"),
+      Rewrite.count(project, ".exs")
     }
   end
 
   defp do_format(source, opts, verbose) do
     issues? = Source.has_issues?(source, :all)
-    code_updated? = Source.updated?(source, :code) and verbose
+    code_updated? = Source.updated?(source, :content) and verbose
     path_updated? = Source.updated?(source, :path) and verbose
-    created? = Source.created?(source) and verbose
+    created? = Source.from?(source, :string) and verbose
     updated? = code_updated? or path_updated?
 
     []
@@ -129,7 +128,7 @@ defmodule Recode.Formatter do
     Enum.concat([
       output,
       changed_by(source),
-      ["Moved from: #{Source.path(source, 1)}\n"]
+      ["Moved from: #{Source.get(source, :path, 1)}\n"]
     ])
   end
 
@@ -227,8 +226,8 @@ defmodule Recode.Formatter do
 
   defp split(name) when is_binary(name), do: String.split(name, ".")
 
-  defp changed_by(%Source{updates: updates}) do
-    by = Enum.map(updates, fn {_key, by, _value} -> module(by) end)
+  defp changed_by(%Source{history: history}) do
+    by = Enum.map(history, fn {_key, by, _value} -> module(by) end)
 
     [:info, ~s|Changed by: #{Enum.join(by, ", ")}\n|]
   end

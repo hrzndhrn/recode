@@ -69,7 +69,7 @@ defmodule Recode.Task.FormatTest do
     source =
       code
       |> source()
-      |> Source.put_private(:dot_formatter_opts,
+      |> Source.Ex.put_formatter_opts(
         plugins: [Recode.FormatterPlugin],
         locals_without_parens: [bar: 1]
       )
@@ -97,7 +97,7 @@ defmodule Recode.Task.FormatTest do
     source =
       code
       |> source()
-      |> Source.put_private(:dot_formatter_opts, plugins: [FakePlugin])
+      |> Source.Ex.put_formatter_opts(plugins: [FakePlugin])
 
     source = run(source)
 

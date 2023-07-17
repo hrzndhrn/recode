@@ -46,11 +46,11 @@ defmodule Recode.Task.EnforceLineLength do
 
     zipper =
       source
-      |> Source.ast()
+      |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse_while(fn zipper -> same_line(zipper, opts) end)
 
-    Source.update(source, EnforceLineLength, ast: Zipper.root(zipper))
+    Source.update(source, EnforceLineLength, :quoted, Zipper.root(zipper))
   end
 
   defp same_line({{:with, _meta, _args}, _zipper_meta} = zipper, _opts) do

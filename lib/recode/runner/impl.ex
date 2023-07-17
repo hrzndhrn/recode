@@ -4,7 +4,6 @@ defmodule Recode.Runner.Impl do
   @behaviour Recode.Runner
 
   alias Recode.Issue
-  alias Rewrite.Project
   alias Rewrite.Source
 
   @impl true
@@ -16,17 +15,12 @@ defmodule Recode.Runner.Impl do
 
   @impl true
   def run(content, config, path \\ "source.xe") do
-    dot_formatter_opts = Keyword.get(config, :dot_formatter_opts, [])
-
-    source =
-      content
-      |> Source.from_string(dot_formatter_opts[:file] || path)
-      |> Source.put_private(:dot_formatter_opts, dot_formatter_opts)
+    source = Source.Ex.from_string(content, path)
 
     config
     |> tasks()
     |> do_run(update_config(config), source)
-    |> Source.code()
+    |> Source.get(:content)
     |> eof()
   end
 
@@ -59,7 +53,7 @@ defmodule Recode.Runner.Impl do
     tasks
     |> filter(Keyword.get(config, :task, :all))
     |> Enum.reduce(project, fn {module, opts}, project ->
-      Project.map(project, fn source ->
+      Rewrite.map!(project, fn source ->
         run_task(source, project, config, module, opts)
       end)
     end)
@@ -105,7 +99,7 @@ defmodule Recode.Runner.Impl do
     end)
   end
 
-  defp format(%Project{} = project, label, config, info \\ nil) do
+  defp format(%Rewrite{} = project, label, config, info \\ nil) do
     case Keyword.fetch(config, :formatter) do
       {:ok, {formatter, opts}} ->
         do_format(formatter, label, project, opts, config, info)
@@ -133,9 +127,9 @@ defmodule Recode.Runner.Impl do
       if inputs == ["-"] do
         stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
 
-        stdin |> Source.from_string() |> List.wrap() |> Project.from_sources()
+        stdin |> Source.Ex.from_string("nofile") |> List.wrap() |> Rewrite.from_sources!()
       else
-        Project.read!(inputs)
+        Rewrite.new!(inputs)
       end
     end
   end
@@ -224,11 +218,9 @@ defmodule Recode.Runner.Impl do
   end
 
   defp write(project) do
-    exclude = project |> Project.conflicts() |> Map.keys()
-
-    with {:error, errors} <- Project.save(project, exclude) do
-      Enum.each(errors, fn {file, reason} ->
-        Mix.Shell.IO.error("Writing file #{file} fails, reason: #{inspect(reason)}")
+    with {:error, errors, _project} <- Rewrite.write_all(project) do
+      Enum.each(errors, fn error ->
+        error |> Exception.message() |> Mix.Shell.IO.error()
       end)
     end
   end

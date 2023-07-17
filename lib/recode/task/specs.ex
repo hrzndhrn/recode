@@ -28,7 +28,7 @@ defmodule Recode.Task.Specs do
 
   defp check_specs(source, opts) do
     source
-    |> Source.ast()
+    |> Source.get(:quoted)
     |> Zipper.zip()
     |> Context.traverse({[], nil}, fn zipper, context, acc ->
       check_specs(zipper, context, acc, opts)
