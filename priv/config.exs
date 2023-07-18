@@ -1,7 +1,7 @@
 alias Recode.Task
 
 [
-  version: "0.5.1",
+  version: "0.5.2",
   # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
