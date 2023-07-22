@@ -3,17 +3,18 @@ defmodule Recode.Task.SinglePipeTest do
 
   alias Recode.Task.SinglePipe
 
-  defp run(code, opts \\ [autocorrect: true]) do
-    code |> source() |> run_task({SinglePipe, opts})
-  end
-
   test "fix single pipe" do
-    code = "x |> foo()"
-    expected = "foo(x)"
+    code = """
+    x |> foo()
+    """
 
-    source = run(code)
+    expected = """
+    foo(x)
+    """
 
-    assert_code(source == expected)
+    code
+    |> run_task(SinglePipe, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "fixes single pipes" do
@@ -47,9 +48,9 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    source = run(code)
-
-    assert_code(source == expected)
+    code
+    |> run_task(SinglePipe, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "fixes single pipes with heredoc" do
@@ -83,41 +84,37 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    source = run(code)
-
-    assert_code(source == expected)
+    code
+    |> run_task(SinglePipe, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "does not expands single pipes that starts with a none zero fun" do
-    code = """
+    """
     def fixme(arg) do
       foo(arg) |> zoo()
       foo(arg, :animal) |> zoo(:tiger)
       one(:a) |> two()
     end
     """
-
-    source = run(code)
-
-    assert_code(source == code)
+    |> run_task(SinglePipe, autocorrect: true)
+    |> refute_update()
   end
 
   test "keeps pipes" do
-    code = """
+    """
     def ok(arg) do
       arg
       |> bar()
       |> baz(:baz)
     end
     """
-
-    source = run(code)
-
-    assert_code(source == code)
+    |> run_task(SinglePipe, autocorrect: true)
+    |> refute_update()
   end
 
   test "keeps pipes (length 3)" do
-    code = """
+    """
     def ok(arg) do
       arg
       |> bar()
@@ -125,14 +122,12 @@ defmodule Recode.Task.SinglePipeTest do
       |> bing()
     end
     """
-
-    source = run(code)
-
-    assert_code(source == code)
+    |> run_task(SinglePipe, autocorrect: true)
+    |> refute_update()
   end
 
   test "keeps pipes with tap" do
-    code = """
+    """
     def ok(arg) do
       arg
       |> bar()
@@ -140,37 +135,31 @@ defmodule Recode.Task.SinglePipeTest do
       |> baz(:baz)
     end
     """
-
-    source = run(code)
-
-    assert_code(source == code)
+    |> run_task(SinglePipe, autocorrect: true)
+    |> refute_update()
   end
 
   test "keeps pipes with then" do
-    code = """
+    """
     def ok(arg) do
       arg
       |> bar()
       |> then(fn x -> Enum.reverse(x) end)
     end
     """
-
-    source = run(code)
-
-    assert_code(source == code)
+    |> run_task(SinglePipe, autocorrect: true)
+    |> refute_update()
   end
 
   test "reports single pipes violation" do
-    code = """
+    """
     def fixme(arg) do
       arg |> zoo()
       arg |> zoo(:tiger)
     end
     """
-
-    source = run(code, autocorrect: false)
-
-    assert_issues(source, SinglePipe, 2)
+    |> run_task(SinglePipe, autocorrect: false)
+    |> assert_issues(2)
   end
 
   test "keeps |> when not used as pipe operator" do
@@ -206,8 +195,8 @@ defmodule Recode.Task.SinglePipeTest do
     end
     """
 
-    source = run(code)
-
-    assert_code(source == expected)
+    code
+    |> run_task(SinglePipe, autocorrect: true)
+    |> assert_code(expected)
   end
 end

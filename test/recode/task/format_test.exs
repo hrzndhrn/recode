@@ -4,26 +4,14 @@ defmodule Recode.Task.FormatTest do
   alias Recode.Task.Format
   alias Rewrite.Source
 
-  defp run(code, opts \\ [autocorrect: true])
-
-  defp run(code, opts) when is_binary(code) do
-    code |> source() |> run_task({Format, opts})
-  end
-
-  defp run(source, opts) when is_struct(source) do
-    run_task(source, {Format, opts})
-  end
-
   test "keeps formatted code" do
-    code = """
+    """
     defmodule MyModule do
       def foo, do: :foo
     end
     """
-
-    source = run(code)
-
-    assert_code(source == code)
+    |> run_task(Format, autocorrect: true)
+    |> refute_update()
   end
 
   test "formats the code" do
@@ -40,9 +28,9 @@ defmodule Recode.Task.FormatTest do
     end
     """
 
-    source = run(code)
-
-    assert_code(source == expected)
+    code
+    |> run_task(Format, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "formats the code and ignores the Recode.FormatterPlugin" do
@@ -74,9 +62,9 @@ defmodule Recode.Task.FormatTest do
         locals_without_parens: [bar: 1]
       )
 
-    source = run(source)
-
-    assert_code(source == expected)
+    source
+    |> run_task(Format, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "formats the code with a plugin" do
@@ -99,18 +87,18 @@ defmodule Recode.Task.FormatTest do
       |> source()
       |> Source.Ex.put_formatter_opts(plugins: [FakePlugin])
 
-    source = run(source)
-
-    assert_code(source == expected)
+    source
+    |> run_task(Format, autocorrect: true)
+    |> assert_code(expected)
   end
 
-  test "formats en empty string" do
+  test "formats an empty string" do
     code = "  "
-    expected = ""
+    expected = "\n"
 
-    source = run(code)
-
-    assert_code(source == expected)
+    code
+    |> run_task(Format, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "reports no issues" do
@@ -120,9 +108,9 @@ defmodule Recode.Task.FormatTest do
     end
     """
 
-    source = run(code, autocorrect: false)
-
-    assert_no_issues(source)
+    code
+    |> run_task(Format, autocorrect: false)
+    |> refute_issues()
   end
 
   test "reports an issue" do
@@ -133,8 +121,8 @@ defmodule Recode.Task.FormatTest do
     end
     """
 
-    source = run(code, autocorrect: false)
-
-    assert_issue(source, Format)
+    code
+    |> run_task(Format, autocorrect: false)
+    |> assert_issue()
   end
 end

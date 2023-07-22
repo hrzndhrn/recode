@@ -3,10 +3,6 @@ defmodule Recode.Task.PipeFunOneTest do
 
   alias Recode.Task.PipeFunOne
 
-  defp run(code, opts \\ [autocorrect: true]) do
-    code |> source() |> run_task({PipeFunOne, opts})
-  end
-
   describe "run/1" do
     test "adds parentheses" do
       code = """
@@ -27,9 +23,9 @@ defmodule Recode.Task.PipeFunOneTest do
       end
       """
 
-      source = run(code)
-
-      assert_code(source == expected)
+      code
+      |> run_task(PipeFunOne, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "adds parenthes in single pipe" do
@@ -41,13 +37,13 @@ defmodule Recode.Task.PipeFunOneTest do
       a |> IO.inspect()
       """
 
-      source = run(code)
-
-      assert_code(source == expected)
+      code
+      |> run_task(PipeFunOne, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "reports issue" do
-      code = """
+      """
       def foo(arg) do
         arg
         |> bar
@@ -55,26 +51,22 @@ defmodule Recode.Task.PipeFunOneTest do
         |> zoo()
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issue(source, PipeFunOne)
+      |> run_task(PipeFunOne, autocorrect: false)
+      |> assert_issue_with(reporter: PipeFunOne)
     end
 
     test "reports issue for single pipe" do
-      code = """
+      """
       def foo(arg) do
         arg |> IO.inspect
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issue(source, PipeFunOne)
+      |> run_task(PipeFunOne, autocorrect: false)
+      |> assert_issue()
     end
 
     test "reports no issue" do
-      code = """
+      """
       def foo(arg) do
         arg
         |> bar()
@@ -82,10 +74,8 @@ defmodule Recode.Task.PipeFunOneTest do
         |> zoo()
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_no_issues(source)
+      |> run_task(PipeFunOne, autocorrect: false)
+      |> refute_issues()
     end
   end
 
@@ -122,8 +112,8 @@ defmodule Recode.Task.PipeFunOneTest do
     end
     """
 
-    source = run(code)
-
-    assert_code(source == expected)
+    code
+    |> run_task(PipeFunOne, autocorrect: true)
+    |> assert_code(expected)
   end
 end

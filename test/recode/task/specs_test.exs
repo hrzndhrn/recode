@@ -3,10 +3,6 @@ defmodule Recode.Task.SpecsTest do
 
   alias Recode.Task.Specs
 
-  def run_specs(code, opts \\ []) do
-    code |> source() |> run_task({Specs, opts})
-  end
-
   test "reports missing specs" do
     code = """
     defmodule Bar do
@@ -20,17 +16,17 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    all = run_specs(code)
+    code
+    |> run_task(Specs)
+    |> assert_issues(2)
 
-    assert_issues(all, Specs, 2)
+    code
+    |> run_task(Specs, only: :public)
+    |> assert_issues(2)
 
-    public = run_specs(code, only: :public)
-
-    assert_issues(public, Specs, 2)
-
-    visible = run_specs(code, only: :visible)
-
-    assert_issues(visible, Specs, 2)
+    code
+    |> run_task(Specs, only: :visible)
+    |> assert_issues(2)
   end
 
   test "reports missing specs - with private function" do
@@ -46,17 +42,17 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    all = run_specs(code)
+    code
+    |> run_task(Specs)
+    |> assert_issues(2)
 
-    assert_issues(all, Specs, 2)
+    code
+    |> run_task(Specs, only: :public)
+    |> assert_issues(1)
 
-    public = run_specs(code, only: :public)
-
-    assert_issues(public, Specs, 1)
-
-    visible = run_specs(code, only: :visible)
-
-    assert_issues(visible, Specs, 1)
+    code
+    |> run_task(Specs, only: :visible)
+    |> assert_issues(1)
   end
 
   test "reports missing specs - with private and invisible function" do
@@ -75,17 +71,17 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    all = run_specs(code)
+    code
+    |> run_task(Specs)
+    |> assert_issues(3)
 
-    assert_issues(all, Specs, 3)
+    code
+    |> run_task(Specs, only: :public)
+    |> assert_issues(2)
 
-    public = run_specs(code, only: :public)
-
-    assert_issues(public, Specs, 2)
-
-    visible = run_specs(code, only: :visible)
-
-    assert_issues(visible, Specs, 1)
+    code
+    |> run_task(Specs, only: :visible)
+    |> assert_issues(1)
   end
 
   test "reports missing specs - with private function and invisible module" do
@@ -103,17 +99,17 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    all = run_specs(code)
+    code
+    |> run_task(Specs)
+    |> assert_issues(2)
 
-    assert_issues(all, Specs, 2)
+    code
+    |> run_task(Specs, only: :public)
+    |> assert_issues(1)
 
-    public = run_specs(code, only: :public)
-
-    assert_issues(public, Specs, 1)
-
-    visible = run_specs(code, only: :visible)
-
-    assert_no_issues(visible)
+    code
+    |> run_task(Specs, only: :visible)
+    |> refute_issues()
   end
 
   test "reports nothing when specs are available" do
@@ -133,17 +129,17 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    all = run_specs(code)
+    code
+    |> run_task(Specs)
+    |> refute_issues()
 
-    assert_no_issues(all)
+    code
+    |> run_task(Specs, only: :public)
+    |> refute_issues()
 
-    public = run_specs(code, only: :public)
-
-    assert_no_issues(public)
-
-    visible = run_specs(code, only: :visible)
-
-    assert_no_issues(visible)
+    code
+    |> run_task(Specs, only: :visible)
+    |> refute_issues()
   end
 
   test "reports nothing for macros when macros: false is set" do
@@ -157,7 +153,9 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    code |> run_specs() |> assert_no_issues()
+    code
+    |> run_task(Specs)
+    |> refute_issues()
   end
 
   test "reports issues for macros when macros: true is set" do
@@ -171,7 +169,9 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    code |> run_specs(macros: true) |> assert_issues(Specs, 1)
+    code
+    |> run_task(Specs, macros: true)
+    |> assert_issue_with(reporter: Specs)
   end
 
   test "reports issues for definitions inside quotes" do
@@ -188,6 +188,8 @@ defmodule Recode.Task.SpecsTest do
     end
     """
 
-    code |> run_specs(macros: true) |> assert_issues(Specs, 1)
+    code
+    |> run_task(Specs, macros: true)
+    |> assert_issue_with(reporter: Specs)
   end
 end

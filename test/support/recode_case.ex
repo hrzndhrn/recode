@@ -40,26 +40,11 @@ defmodule RecodeCase do
     end
   end
 
-  @deprected "refactor"
-  def assert_issue(%Source{} = source, reporter) do
-    assert_issues(source, reporter, 1)
-  end
-
-  @deprected "refactor"
-  def assert_issues(%Source{issues: issues}, reporter, amount) do
-    assert length(issues) == amount,
-           "Expected #{amount} issue(s), got: #{inspect(issues, pretty: true)}"
-
-    assert Enum.any?(issues, fn {_version, issue} -> issue.reporter == reporter end),
-           """
-           Expected that each issue was reported by #{inspect(reporter)}, \
-           got: #{inspect(issues, pretty: true)}\
-           """
-  end
-
-  @deprecated "use refute_issues/1"
-  def assert_no_issues(%Source{issues: issues}) do
-    assert issues == [], "Expected no issues, got #{inspect(issues, pretty: true)}"
+  defmacro assert_issues(source, amount) do
+    quote bind_quoted: [source: source, amount: amount] do
+      assert length(source.issues) == amount,
+             "Expected #{amount} issue(s), got: #{inspect(source.issues, pretty: true)}"
+    end
   end
 
   defmacro refute_issues(source) do
@@ -75,16 +60,15 @@ defmodule RecodeCase do
     end
   end
 
-  @deprecated "use assert_code/2"
-  defmacro assert_code({:==, _meta, [source, expected]}) do
-    quote bind_quoted: [source: source, expected: expected] do
-      assert source |> Source.get(:content) |> eof_newline() == eof_newline(expected)
-    end
-  end
-
   defmacro assert_code(source, expected) do
     quote bind_quoted: [source: source, expected: expected] do
       assert Source.get(source, :content) == expected
+    end
+  end
+
+  defmacro assert_path(source, expected) do
+    quote bind_quoted: [source: source, expected: expected] do
+      assert Source.get(source, :path) == expected
     end
   end
 
@@ -96,22 +80,16 @@ defmodule RecodeCase do
     Rewrite.from_sources!([source])
   end
 
-  @deprecated "use run_task/3"
-  def run_task(code, {task, opts}) when is_binary(code) do
-    code
-    |> Source.Ex.from_string()
-    |> task.run(opts)
-  end
-
-  @deprecated "use run_task/3"
-  def run_task(%Source{} = source, {task, opts}) do
-    task.run(source, opts)
-  end
+  def run_task(code, task, opts \\ [])
 
   def run_task(code, task, opts) when is_binary(code) do
     code
     |> Source.Ex.from_string()
     |> task.run(opts)
+  end
+
+  def run_task(%Source{} = source, task, opts) do
+    task.run(source, opts)
   end
 
   def formated?(code) do
