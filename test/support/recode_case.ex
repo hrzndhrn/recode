@@ -17,10 +17,35 @@ defmodule RecodeCase do
     context
   end
 
+  defmacro assert_issue(source) do
+    quote bind_quoted: [source: source] do
+      assert length(source.issues) == 1,
+             "Expected one issue, got:\n#{inspect(source.issues, pretty: true)}"
+    end
+  end
+
+  defmacro assert_issue_with(source, keyword) do
+    quote bind_quoted: [source: source, keyword: keyword] do
+      assert length(source.issues) == 1,
+             "Expected one issue, got:\n#{inspect(source.issues, pretty: true)}"
+
+      {_, issue} = hd(source.issues)
+
+      Enum.each(keyword, fn {key, value} ->
+        got = Map.fetch!(issue, key)
+
+        assert got == value,
+               "Expected #{inspect(value)} for #{inspect(key)} in issue, got: #{inspect(got)}"
+      end)
+    end
+  end
+
+  @deprected "refactor"
   def assert_issue(%Source{} = source, reporter) do
     assert_issues(source, reporter, 1)
   end
 
+  @deprected "refactor"
   def assert_issues(%Source{issues: issues}, reporter, amount) do
     assert length(issues) == amount,
            "Expected #{amount} issue(s), got: #{inspect(issues, pretty: true)}"
@@ -41,6 +66,12 @@ defmodule RecodeCase do
     quote bind_quoted: [source: source] do
       assert Enum.empty?(source.issues),
              "Expected no issues, got #{inspect(source.issues, pretty: true)}"
+    end
+  end
+
+  defmacro refute_update(source) do
+    quote bind_quoted: [source: source] do
+      refute Source.updated?(source)
     end
   end
 
@@ -65,8 +96,22 @@ defmodule RecodeCase do
     Rewrite.from_sources!([source])
   end
 
+  @deprecated "use run_task/3"
+  def run_task(code, {task, opts}) when is_binary(code) do
+    code
+    |> Source.Ex.from_string()
+    |> task.run(opts)
+  end
+
+  @deprecated "use run_task/3"
   def run_task(%Source{} = source, {task, opts}) do
     task.run(source, opts)
+  end
+
+  def run_task(code, task, opts) when is_binary(code) do
+    code
+    |> Source.Ex.from_string()
+    |> task.run(opts)
   end
 
   def formated?(code) do

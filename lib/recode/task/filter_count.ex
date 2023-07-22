@@ -68,7 +68,10 @@ defmodule Recode.Task.FilterCount do
            {:|>, meta,
             [
               {:|>, _,
-               [{expr, _, _} = arg, {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [fun]}]},
+               [
+                 {expr, _, _} = arg,
+                 {{:., issue_meta, [{:__aliases__, _, [:Enum]}, :filter]}, _, [fun]}
+               ]},
               {{:., _, [{:__aliases__, _, [:Enum]}, :count]}, _, []}
             ]},
            _zipper_meta
@@ -94,7 +97,7 @@ defmodule Recode.Task.FilterCount do
 
       {Zipper.replace(zipper, quoted), issues}
     else
-      {zipper, [issue(meta) | issues]}
+      {zipper, [issue(issue_meta) | issues]}
     end
   end
 
