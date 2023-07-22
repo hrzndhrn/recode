@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.3 - dev
+
++ Add `Recode.Task.FilterCount`.
++ Refactor `RecodeCase`
+
 ## 0.5.2 - 2023/07/17
 
 + Bump `rewrite` to 0.7.0.

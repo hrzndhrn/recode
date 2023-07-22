@@ -11,7 +11,7 @@ defmodule Recode.Config do
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
-  @config_min_version "0.3.0"
+  @config_min_version "0.5.3"
 
   @spec read(Path.t() | opts) :: {:ok, config()} | {:error, :not_found} when opts: keyword()
   def read(opts \\ [])
