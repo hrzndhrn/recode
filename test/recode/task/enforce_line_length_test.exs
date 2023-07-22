@@ -184,14 +184,14 @@ defmodule Recode.Task.EnforceLineLengthTest do
   end
 
   test "keeps with" do
-      """
-      with {:ok, a} <- foo(x),
-           {:ok, b} <- bar(x) do
-        {a, b}
-      end
-      """
-      |> run_task(EnforceLineLength)
-      |> refute_update()
+    """
+    with {:ok, a} <- foo(x),
+         {:ok, b} <- bar(x) do
+      {a, b}
+    end
+    """
+    |> run_task(EnforceLineLength)
+    |> refute_update()
   end
 
   test "formats with clauses" do
