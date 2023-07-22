@@ -3,10 +3,6 @@ defmodule Recode.Task.AliasExapnasionTest do
 
   alias Recode.Task.AliasExpansion
 
-  defp run(code, opts \\ [autocorrect: true]) do
-    code |> source() |> run_task({AliasExpansion, opts})
-  end
-
   describe "run/1" do
     test "expands aliases" do
       code = """
@@ -29,9 +25,9 @@ defmodule Recode.Task.AliasExapnasionTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "expands aliases keeps newline" do
@@ -57,9 +53,9 @@ defmodule Recode.Task.AliasExapnasionTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "expands aliases with with comments" do
@@ -87,9 +83,9 @@ defmodule Recode.Task.AliasExapnasionTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "expands long aliases" do
@@ -111,9 +107,9 @@ defmodule Recode.Task.AliasExapnasionTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "expands aliases with __MODULE__" do
@@ -138,74 +134,62 @@ defmodule Recode.Task.AliasExapnasionTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "keeps the code as it is" do
-      code = """
+      """
       defmodule Mod do
         alias Beta
         alias Alpha
       end
       """
-
-      source = run(code)
-
-      assert_code source == code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> refute_update()
     end
 
     test "keeps the code as it is with __MODULE__" do
-      code = """
+      """
       defmodule Mod do
         alias __MODULE__.Beta
         alias __MODULE__.Alpha.Delta
       end
       """
-
-      source = run(code)
-
-      assert_code source == code
+      |> run_task(AliasExpansion, autocorrect: true)
+      |> refute_update()
     end
 
     test "reports no issues" do
-      code = """
+      """
       defmodule Mod do
         alias Beta
         alias Alpha
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_no_issues(source)
+      |> run_task(AliasExpansion, autocorrect: false)
+      |> refute_issues()
     end
 
     test "reports an issue" do
-      code = """
+      """
       defmodule Mod do
         alias Foo.{Beta, Alpha}
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issue(source, AliasExpansion)
+      |> run_task(AliasExpansion, autocorrect: false)
+      |> assert_issue_with(reporter: AliasExpansion)
     end
 
     test "reports an issue for aliases with __MODULE__" do
-      code = """
+      """
       defmodule Mod do
         alias __MODULE__.{Beta, Alpha}
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issue(source, AliasExpansion)
+      |> run_task(AliasExpansion, autocorrect: false)
+      |> assert_issue_with(reporter: AliasExpansion)
     end
   end
 end
-
-{:__MODULE__, [trailing_comments: [], leading_comments: [], line: 2, column: 9], nil}

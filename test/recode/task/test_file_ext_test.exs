@@ -3,42 +3,39 @@ defmodule Recode.Task.TestFileExtTest do
 
   alias Recode.Task.TestFileExt
 
-  defp run(path, opts \\ [autocorrect: true]) do
-    ":test" |> source(path) |> run_task({TestFileExt, opts})
-  end
-
   test "updates path" do
     path = "test/foo_test.ex"
-    source = run(path)
 
-    assert source.path == path <> "s"
+    ":test"
+    |> source(path)
+    |> run_task(TestFileExt, autocorrect: true)
+    |> assert_path(path <> "s")
   end
 
   test "keeps path" do
     path = "test/foo_test.exs"
-    source = run(path)
 
-    assert source.path == path
+    ":test"
+    |> source(path)
+    |> run_task(TestFileExt, autocorrect: true)
+    |> refute_update()
   end
 
   test "reports issue" do
     path = "test/foo_test.ex"
-    source = run(path, autocorrect: false)
 
-    assert_issue(source, TestFileExt)
+    ":test"
+    |> source(path)
+    |> run_task(TestFileExt, autocorrect: false)
+    |> assert_issue_with(reporter: TestFileExt)
   end
 
   test "reports no issues" do
     path = "test/foo_test.exs"
-    source = run(path, autocorrect: false)
 
-    assert_no_issues(source)
-  end
-
-  test "reports no issue when nofile" do
-    path = nil
-    source = run(path)
-
-    assert_no_issues(source)
+    ":test"
+    |> source(path)
+    |> run_task(TestFileExt, autocorrect: false)
+    |> refute_issues()
   end
 end

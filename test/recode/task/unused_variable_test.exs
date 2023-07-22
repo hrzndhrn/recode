@@ -3,10 +3,6 @@ defmodule Recode.Task.UnusedVariableTest do
 
   alias Recode.Task.UnusedVariable
 
-  defp run(code, opts \\ [autocorrect: true]) do
-    code |> source() |> run_task({UnusedVariable, opts})
-  end
-
   describe "run/1" do
     test "fix simple unused variables" do
       code = """
@@ -23,9 +19,9 @@ defmodule Recode.Task.UnusedVariableTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(UnusedVariable, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "fix multiple unused variables" do
@@ -45,9 +41,9 @@ defmodule Recode.Task.UnusedVariableTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(UnusedVariable, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "fix unused variables in anonymous function" do
@@ -65,22 +61,20 @@ defmodule Recode.Task.UnusedVariableTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(UnusedVariable, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "reports an issue" do
-      code = """
+      """
       def foo(bar) do
         baz = 1
         bar
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issue(source, UnusedVariable)
+      |> run_task(UnusedVariable, autocorrect: false)
+      |> assert_issue()
     end
   end
 end

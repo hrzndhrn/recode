@@ -3,30 +3,18 @@ defmodule Recode.Task.AliasOrderTest do
 
   alias Recode.Task.AliasOrder
 
-  defp run(code, opts \\ [autocorrect: true]) do
-    code |> source() |> run_task({AliasOrder, opts})
-  end
-
   test "keeps a single alias" do
-    code = """
+    """
     defmodule MyModule do
       alias Alpha
     end
     """
-
-    expected = """
-    defmodule MyModule do
-      alias Alpha
-    end
-    """
-
-    source = run(code)
-
-    assert_code source == expected
+    |> run_task(AliasOrder, autocorrect: true)
+    |> refute_update()
   end
 
   test "keeps sorted groups" do
-    code = """
+    """
     defmodule MyModule do
       alias Yankee
       alias Zulu
@@ -35,20 +23,8 @@ defmodule Recode.Task.AliasOrderTest do
       alias Bravo
     end
     """
-
-    expected = """
-    defmodule MyModule do
-      alias Yankee
-      alias Zulu
-
-      alias Alpha
-      alias Bravo
-    end
-    """
-
-    source = run(code)
-
-    assert_code source == expected
+    |> run_task(AliasOrder, autocorrect: true)
+    |> refute_update()
   end
 
   test "sorts a group of aliases" do
@@ -76,9 +52,9 @@ defmodule Recode.Task.AliasOrderTest do
     end
     """
 
-    source = run(code)
-
-    assert_code source == expected
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "sorts multi aliases" do
@@ -99,9 +75,9 @@ defmodule Recode.Task.AliasOrderTest do
     end
     """
 
-    source = run(code)
-
-    assert_code source == expected
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "ignores as for sorting" do
@@ -123,9 +99,9 @@ defmodule Recode.Task.AliasOrderTest do
     end
     """
 
-    source = run(code)
-
-    assert_code source == expected
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "put multi after single" do
@@ -143,39 +119,35 @@ defmodule Recode.Task.AliasOrderTest do
     end
     """
 
-    source = run(code)
-
-    assert_code source == expected
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
   end
 
   test "reports an issue" do
-    code = """
+    """
     defmodule MyModule do
       alias Bravo
       alias Alpha
     end
     """
-
-    source = run(code, autocorrect: false)
-
-    assert_issues(source, AliasOrder, 1)
+    |> run_task(AliasOrder, autocorrect: false)
+    |> assert_issue_with(reporter: AliasOrder)
   end
 
   test "reports issues for unordered multiple groups" do
-    code = """
+    """
     defmodule MyModule do
       alias Yankee.{Bravo, Alpha}
       alias Zulu.{Foxtrot, Echo}
     end
     """
-
-    source = run(code, autocorrect: false)
-
-    assert_issues(source, AliasOrder, 2)
+    |> run_task(AliasOrder, autocorrect: false)
+    |> assert_issues(2)
   end
 
   test "reports no issues" do
-    code = """
+    """
     defmodule MyModule do
       alias Delta
       alias Yankee.{Alpha, Bravo}
@@ -185,14 +157,12 @@ defmodule Recode.Task.AliasOrderTest do
       alias Lima
     end
     """
-
-    source = run(code, autocorrect: false)
-
-    assert_no_issues(source)
+    |> run_task(AliasOrder, autocorrect: false)
+    |> refute_issues()
   end
 
   test "reports no issues for crazy groups" do
-    code = """
+    """
     defmodule MyModule do
       alias Delta
       alias Yankee.{Alpha, Bravo}
@@ -202,36 +172,30 @@ defmodule Recode.Task.AliasOrderTest do
       alias Lima
     end
     """
-
-    source = run(code, autocorrect: false)
-
-    assert_no_issues(source)
+    |> run_task(AliasOrder, autocorrect: false)
+    |> refute_issues()
   end
 
   describe "Issue #52:" do
     test "reports an issue for unsorted aliases (case insensitive)" do
-      code = """
+      """
       defmodule MyModule do
         alias App.Module.AnnotationV2
         alias App.Module.AnnotationsBehaviour
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issues(source, AliasOrder, 1)
+      |> run_task(AliasOrder, autocorrect: false)
+      |> assert_issue()
     end
 
     test "reports an issue for unsorted aliases in multi (case insensitive)" do
-      code = """
+      """
       defmodule MyModule do
         alias App.Module.{AnnotationV2, AnnotationsBehaviour}
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issues(source, AliasOrder, 1)
+      |> run_task(AliasOrder, autocorrect: false)
+      |> assert_issue()
     end
 
     test "sort aliases (case insensitive)" do
@@ -249,9 +213,9 @@ defmodule Recode.Task.AliasOrderTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "sort aliases in multi (case insensitive)" do
@@ -267,36 +231,32 @@ defmodule Recode.Task.AliasOrderTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
     end
   end
 
   describe "Issue #51:" do
     test "reports an issue for unsorted aliases with __MODULE__" do
-      code = """
+      """
       defmodule MyModule do
         alias __MODULE__.Beta
         alias __MODULE__.Alpha
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issues(source, AliasOrder, 1)
+      |> run_task(AliasOrder, autocorrect: false)
+      |> assert_issue()
     end
 
     test "reports an issue for unsorted aliases in multi with __MODULE__" do
-      code = """
+      """
       defmodule MyModule do
         alias __MODULE__.{Beta, Alpha}
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issues(source, AliasOrder, 1)
+      |> run_task(AliasOrder, autocorrect: false)
+      |> assert_issue()
     end
 
     test "sorts aliases with __MODULE__" do
@@ -314,9 +274,9 @@ defmodule Recode.Task.AliasOrderTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "sorts aliases in multi with __MODULE__" do
@@ -332,15 +292,15 @@ defmodule Recode.Task.AliasOrderTest do
       end
       """
 
-      source = run(code)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
     end
   end
 
   describe "issue #54" do
     test "ignores unquote in sorted aliases" do
-      code = """
+      """
       defmodule RepoTestCase do
         defmacro __using__(opts) do
           repo = Keyword.fetch!(opts, :repo)
@@ -353,14 +313,12 @@ defmodule Recode.Task.AliasOrderTest do
         end
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_no_issues(source)
+      |> run_task(AliasOrder, autocorrect: false)
+      |> refute_issues()
     end
 
     test "ignores unquote in unsorted aliases" do
-      code = """
+      """
       defmodule RepoTestCase do
         defmacro __using__(opts) do
           repo = Keyword.fetch!(opts, :repo)
@@ -373,10 +331,8 @@ defmodule Recode.Task.AliasOrderTest do
         end
       end
       """
-
-      source = run(code, autocorrect: false)
-
-      assert_issues(source, AliasOrder, 1)
+      |> run_task(AliasOrder, autocorrect: false)
+      |> assert_issue()
     end
 
     test "moves unquote to the top" do
@@ -386,6 +342,20 @@ defmodule Recode.Task.AliasOrderTest do
           repo = Keyword.fetch!(opts, :repo)
 
           quote do
+            alias Foo.Bar
+            alias unquote(repo), as: Repo
+            alias Foo.Baz
+          end
+        end
+      end
+      """
+
+      expected = """
+      defmodule RepoTestCase do
+        defmacro __using__(opts) do
+          repo = Keyword.fetch!(opts, :repo)
+
+          quote do
             alias unquote(repo), as: Repo
             alias Foo.Bar
             alias Foo.Baz
@@ -394,9 +364,9 @@ defmodule Recode.Task.AliasOrderTest do
       end
       """
 
-      source = run(code, autocorrect: true)
-
-      assert_code source == code
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
     end
 
     test "sorts aliases and moves unquote to the top" do
@@ -428,9 +398,9 @@ defmodule Recode.Task.AliasOrderTest do
       end
       """
 
-      source = run(code, autocorrect: true)
-
-      assert_code source == expected
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
     end
   end
 end
