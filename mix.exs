@@ -42,6 +42,7 @@ defmodule Recode.MixProject do
           Recode.Task.AliasExpansion,
           Recode.Task.AliasOrder,
           Recode.Task.EnforceLineLength,
+          Recode.Task.FilterCount,
           Recode.Task.Format,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
