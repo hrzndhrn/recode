@@ -4,6 +4,7 @@
 
 + Add `Recode.Task.FilterCount`.
 + Refactor `RecodeCase`
++ Use switch `--task` multiple times.
 
 ## 0.5.2 - 2023/07/17
 

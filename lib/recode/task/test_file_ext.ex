@@ -6,6 +6,10 @@ defmodule Recode.Task.TestFileExt do
   issue.
   """
 
+  @shortdoc "Checks the file extension of test files."
+
+  @category :warning
+
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue

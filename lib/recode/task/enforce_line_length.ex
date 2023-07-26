@@ -33,6 +33,10 @@ defmodule Recode.Task.EnforceLineLength do
   and with the option `skip: :fn` the code keeps unchanged.
   """
 
+  @shortdoc "Forces expressions to one line."
+
+  @category :readability
+
   use Recode.Task, correct: true, check: false
 
   alias Recode.AST

@@ -18,6 +18,10 @@ defmodule Recode.Task.SinglePipe do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
+  @shortdoc "Pipes should only be used when piping data through multiple calls."
+
+  @category :readability
+
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue

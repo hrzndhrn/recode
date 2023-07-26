@@ -5,6 +5,10 @@ defmodule Recode.Task.Format do
   This task runs as first task by any `mix recode` call.
   """
 
+  @shortdoc "Does the same as `mix format`."
+
+  @category :readability
+
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue

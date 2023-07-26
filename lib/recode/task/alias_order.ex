@@ -15,6 +15,10 @@ defmodule Recode.Task.AliasOrder do
       alias Bravo
   """
 
+  @shortdoc "Checks if aliases are sorted alphabetically."
+
+  @category :readability
+
   use Recode.Task, correct: true, check: true
 
   alias Recode.AST
