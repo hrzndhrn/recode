@@ -52,7 +52,7 @@ defmodule Recode.Runner.Impl do
 
   defp run_tasks(tasks, project, config) do
     tasks
-    |> filter(get_cli_opts(config, :tasks, :all))
+    |> filter(get_cli_opts(config, :tasks, []))
     |> Enum.reduce(project, fn {module, opts}, project ->
       Rewrite.map!(project, fn source ->
         run_task(source, project, config, module, opts)
@@ -94,7 +94,7 @@ defmodule Recode.Runner.Impl do
     |> Keyword.get(key, default)
   end
 
-  defp filter(tasks, :all), do: tasks
+  defp filter(tasks, []), do: tasks
 
   defp filter(tasks, selected) do
     Enum.reduce(tasks, [], fn {module, opts}, acc ->
