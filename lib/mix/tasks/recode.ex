@@ -44,7 +44,7 @@ defmodule Mix.Tasks.Recode do
           dry: :boolean,
           verbose: :boolean,
           config: :string,
-          task: :string
+          task: :keep
         ]
 
   @impl Mix.Task
@@ -53,9 +53,11 @@ defmodule Mix.Tasks.Recode do
     opts = opts!(opts)
 
     opts
+    |> Keyword.take([:config])
     |> config!()
     |> validate_config!()
-    |> Keyword.merge(opts)
+    |> Keyword.merge(Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs]))
+    |> Keyword.put(:cli_opts, acc_tasks(opts))
     |> update(:verbose)
     |> Runner.run()
     |> output()
@@ -78,6 +80,20 @@ defmodule Mix.Tasks.Recode do
       {opts, []} -> opts
       {opts, inputs} -> Keyword.put(opts, :inputs, inputs)
     end
+  end
+
+  defp acc_tasks(opts) do
+    tasks =
+      Enum.reduce(opts, [], fn {key, value}, acc ->
+        case key do
+          :task -> [value | acc]
+          _else -> acc
+        end
+      end)
+
+    opts
+    |> Keyword.delete(:task)
+    |> Keyword.put(:tasks, tasks)
   end
 
   defp config!(opts) do

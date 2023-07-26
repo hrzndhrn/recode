@@ -1,12 +1,19 @@
 defmodule Recode.Task.Specs do
   @moduledoc """
-  Function should have specs.
+  Function, macros and callbacks should have typespecs.
+
+  The check only considers whether the specification is present. It doesn't
+  perform any actual type checking.
 
   ## Options
 
     * `:only` - `:public`, `:visible`
     * `:macros` - when `true`, macros are also checked, defaults to `false`.
   """
+
+  @shortdoc "Checks for specs."
+
+  @category :readability
 
   use Recode.Task, check: true
 

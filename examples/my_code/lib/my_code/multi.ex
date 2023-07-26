@@ -6,7 +6,7 @@ defmodule MyCode.Multi do
   def double(x), do: x + x
 
   def pipe(x) do
-    x |> double |> double()
+    x |> double |> double() |> dbg()
   end
 
   def single(x) do

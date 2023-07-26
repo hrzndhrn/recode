@@ -18,21 +18,42 @@ defmodule Recode.Task do
   @optional_callbacks config: 1
 
   defmacro __using__(opts) do
+    config = Keyword.validate!(opts, check: false, correct: false)
+
     quote do
       @behaviour Recode.Task
 
-      @opts Map.merge(
-              %{
-                check: false,
-                correct: false,
-                refactor: false
-              },
-              Enum.into(unquote(opts), %{})
-            )
+      @config unquote(config)
 
-      @doc false
-      def config(key) when key in [:check, :correct, :refactor] do
-        Map.fetch!(@opts, key)
+      for name <- [:shortdoc, :category] do
+        Module.register_attribute(__MODULE__, name, persist: true)
+      end
+
+      @doc """
+      Returns the config entry for the given key.
+      """
+      def config(key) when key in [:check, :correct] do
+        Keyword.fetch!(@config, key)
+      end
+
+      @doc """
+      Returns the shortdoc for recode task.
+
+      Returns `nil` if `@shortdoc` is not available.
+      """
+      def shortdoc, do: attribute(:shortdoc)
+
+      @doc """
+      Returns the category for recode task.
+
+      Returns `nil` if `@catgoey` is not available.
+      """
+      def category, do: attribute(:category)
+
+      defp attribute(key) do
+        with [shortdoc] <- Keyword.get(__MODULE__.__info__(:attributes), key) do
+          shortdoc
+        end
       end
     end
   end

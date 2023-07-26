@@ -18,6 +18,10 @@ defmodule Recode.Task.FilterCount do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
+  @shortdoc "Checks calls like Enum.filter(...) |> Enum.count()."
+
+  @category :refactor
+
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue

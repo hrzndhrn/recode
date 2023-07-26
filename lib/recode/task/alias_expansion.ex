@@ -12,6 +12,10 @@ defmodule Recode.Task.AliasExpansion do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
+  @shortdoc "Exapnds multi aliases to separate aliases."
+
+  @category :readability
+
   use Recode.Task, correct: true, check: true
 
   alias Recode.Issue

@@ -25,12 +25,12 @@ defmodule Recode.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :mix, :ex_unit, :crypto]
+      extra_applications: [:logger, :mix, :ex_unit, :crypto, :iex]
     ]
   end
 
   defp description do
-    "An experimental linter with autocorrection and a refactoring tool."
+    "An experimental linter with autocorrection."
   end
 
   defp docs do

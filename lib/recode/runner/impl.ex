@@ -32,6 +32,7 @@ defmodule Recode.Runner.Impl do
 
     tasks
     |> update_opts(config)
+    |> correst_first()
     |> run_tasks(project, config)
     |> format(:tasks_ready, config)
     |> format(:results, config)
@@ -51,7 +52,7 @@ defmodule Recode.Runner.Impl do
 
   defp run_tasks(tasks, project, config) do
     tasks
-    |> filter(Keyword.get(config, :task, :all))
+    |> filter(get_cli_opts(config, :tasks, []))
     |> Enum.reduce(project, fn {module, opts}, project ->
       Rewrite.map!(project, fn source ->
         run_task(source, project, config, module, opts)
@@ -87,15 +88,23 @@ defmodule Recode.Runner.Impl do
     |> Enum.any?(fn glob -> GlobEx.match?(glob, source.path) end)
   end
 
-  defp filter(tasks, :all), do: tasks
+  defp get_cli_opts(config, key, default) do
+    config
+    |> Keyword.get(:cli_opts, [])
+    |> Keyword.get(key, default)
+  end
 
-  defp filter(tasks, task) do
-    tasks
-    |> Enum.filter(fn {module, _opts} ->
-      module |> inspect() |> String.ends_with?(".#{task}")
-    end)
-    |> Enum.map(fn {module, opts} ->
-      {module, Keyword.delete(opts, :active)}
+  defp filter(tasks, []), do: tasks
+
+  defp filter(tasks, selected) do
+    Enum.reduce(tasks, [], fn {module, opts}, acc ->
+      name = inspect(module)
+      take = Enum.any?(selected, fn item -> String.ends_with?(name, ".#{item}") end)
+
+      case take do
+        true -> [{module, Keyword.delete(opts, :active)} | acc]
+        false -> acc
+      end
     end)
   end
 
@@ -148,7 +157,6 @@ defmodule Recode.Runner.Impl do
     config
     |> Keyword.fetch!(:tasks)
     |> tasks(:active)
-    |> tasks(:correct_first)
     |> tasks(:autocorrect, config[:autocorrect])
     |> tasks(:check, config[:check])
   end
@@ -172,10 +180,10 @@ defmodule Recode.Runner.Impl do
     Enum.filter(tasks, fn {_task, config} -> Keyword.get(config, :active, true) end)
   end
 
-  defp tasks(tasks, :correct_first) do
+  defp correst_first(tasks) do
     groups =
-      Enum.group_by(tasks, fn {task, _opts} ->
-        task.config(:correct)
+      Enum.group_by(tasks, fn {task, opts} ->
+        task.config(:correct) && Keyword.get(opts, :autocorrect)
       end)
 
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
@@ -204,10 +212,23 @@ defmodule Recode.Runner.Impl do
       opts =
         task_config
         |> Keyword.get(:config, [])
-        |> Keyword.put_new(:autocorrect, config[:autocorrect])
+        |> update_autocorrect(config, task_config)
 
       {task, opts}
     end)
+  end
+
+  defp update_autocorrect(opts, config, task_config) do
+    cli_opts = Keyword.get(config, :cli_opts, [])
+
+    autocorrect =
+      cond do
+        Keyword.has_key?(cli_opts, :autocorrect) -> Keyword.get(cli_opts, :autocorrect)
+        Keyword.has_key?(task_config, :autocorrect) -> Keyword.get(task_config, :autocorrect)
+        true -> Keyword.get(config, :autocorrect, true)
+      end
+
+    Keyword.put(opts, :autocorrect, autocorrect)
   end
 
   defp write(project, config) do
