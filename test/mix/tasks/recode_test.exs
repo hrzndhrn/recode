@@ -9,28 +9,29 @@ defmodule Mix.Tasks.RecodeTest do
 
   setup :verify_on_exit!
 
-  test "mix recode --config priv/config.exs" do
+  test "mix recode --config test/fixtures/config.exs" do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       ":test" |> source("test.exs") |> project()
     end)
 
     capture_io(fn ->
-      assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs"])) == :normal
+      assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs"])) == :normal
     end)
   end
 
-  test "mix recode --config priv/config.exs --dry" do
+  test "mix recode --config test/fixtures/config.exs --dry" do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:verbose] == true
       ":test" |> source("test.exs") |> project()
     end)
 
-    assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "--dry"])) == :normal
+    assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs", "--dry"])) ==
+             :normal
   end
 
-  test "mix recode --config priv/config.exs -" do
+  test "mix recode --config test/fixtures/config.exs -" do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:inputs] == ["-"]
@@ -38,7 +39,7 @@ defmodule Mix.Tasks.RecodeTest do
       ":test" |> source("test.exs") |> project()
     end)
 
-    assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "-"])) == :normal
+    assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs", "-"])) == :normal
   end
 
   test "mix recode file_1.ex file_2.ex" do
@@ -49,7 +50,9 @@ defmodule Mix.Tasks.RecodeTest do
       ":test" |> source("test.exs") |> project()
     end)
 
-    assert catch_exit(Tasks.Recode.run(["--config", "priv/config.exs", "file_1.ex", "file_2.ex"])) ==
+    assert catch_exit(
+             Tasks.Recode.run(["--config", "test/fixtures/config.exs", "file_1.ex", "file_2.ex"])
+           ) ==
              :normal
   end
 
@@ -63,13 +66,15 @@ defmodule Mix.Tasks.RecodeTest do
 
   test "mix recode raises exception for unknown arg" do
     assert_raise OptionParser.ParseError, ~r|unknown-arg : Unknown option|, fn ->
-      Tasks.Recode.run(["--config", "priv/config.exs", "--unknown-arg", "inputs", "foo"])
+      Tasks.Recode.run(["--config", "test/fixtures/config.exs", "--unknown-arg", "inputs", "foo"])
     end
   end
 
   test "mix recode raises exception for missing inputs" do
-    assert_raise Mix.Error, "No sources found", fn ->
-      Tasks.Recode.run(["--config", "priv/config.exs", "no-sources"])
+    message = "No sources found"
+
+    assert_raise Mix.Error, message, fn ->
+      Tasks.Recode.run(["--config", "test/fixtures/config.exs", "no-sources"])
     end
   end
 end

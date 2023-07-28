@@ -7,18 +7,14 @@ defmodule Mix.Tasks.Recode.Gen.Config do
 
   The default config:
   ```elixir
-  #{File.read!("priv/config.exs")}
+  #{Recode.Config.to_string()}
   ```
   """
 
   use Mix.Task
 
-  @config ".recode.exs"
-
-  @doc false
+  @impl true
   def run([]) do
-    Mix.Generator.copy_file(source(), @config)
+    Mix.Generator.create_file(".recode.exs", Recode.Config.to_string())
   end
-
-  defp source, do: :recode |> :code.priv_dir() |> Path.join("config.exs")
 end

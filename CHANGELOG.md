@@ -1,11 +1,12 @@
 # Changelog
 
-## 0.5.3 - dev
+## 0.6.0 - dev
 
 + Add `Recode.Task.FilterCount`.
 + Refactor `RecodeCase`
 + Use switch `--task` multiple times.
 + Add mix task `recode.help`.
++ Add mix task `recode.update.config`.
 
 ## 0.5.2 - 2023/07/17
 

@@ -25,6 +25,7 @@ defmodule Mix.Tasks.Recode.Help do
 
     if module do
       IEx.Introspection.h(module)
+      :ok
     else
       Mix.raise("task #{task} not found")
     end

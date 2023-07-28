@@ -10,8 +10,9 @@ defmodule Mix.Tasks.Recode.Gen.ConfigTest do
   test "mix recode.gen.config" do
     unless File.exists?(@config) do
       capture_io(fn -> Config.run([]) end)
-      assert File.read!(@config) == File.read!("priv/config.exs")
+      config = File.read!(@config)
       File.rm!(@config)
+      assert config == Recode.Config.to_string()
     end
   end
 end

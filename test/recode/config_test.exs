@@ -5,7 +5,7 @@ defmodule Recode.ConfigTest do
 
   describe "read/1" do
     test "reads config" do
-      assert {:ok, config} = Config.read("priv/config.exs")
+      assert {:ok, config} = Config.read("test/fixtures/config.exs")
       assert Keyword.keyword?(config)
     end
 
@@ -14,13 +14,7 @@ defmodule Recode.ConfigTest do
     end
   end
 
-  test "version in priv/config is equal to the version in mix.exs" do
-    config =
-      "priv/config.exs"
-      |> File.read!()
-      |> Code.eval_string()
-      |> elem(0)
-
-    assert config[:version] == Mix.Project.config()[:version]
+  test "version in Config.default() is equal to the version in mix.exs" do
+    assert Config.default()[:version] == Mix.Project.config()[:version]
   end
 end
