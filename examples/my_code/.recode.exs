@@ -20,6 +20,7 @@
     {Recode.Task.Dbg, [autocorrect: false]},
     {Recode.Task.EnforceLineLength, [active: false]},
     {Recode.Task.FilterCount, []},
+    {Recode.Task.Nesting, [config: [max_depth: 2]]},
     {Recode.Task.PipeFunOne, []},
     {Recode.Task.SinglePipe, []},
     {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},

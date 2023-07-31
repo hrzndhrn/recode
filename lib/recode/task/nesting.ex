@@ -5,6 +5,10 @@ defmodule Recode.Task.Nesting do
   Developers should refactor a too-deeply nested function/macro by extracting
   branches from the code to separate functions to separate different loops and
   conditions.
+
+  ## Options
+
+    * `:max_depth` - the maximum allowable depth, defaults to `2`.
   """
 
   @shortdoc "Checks code nesting depth in functions and macros."
@@ -20,13 +24,16 @@ defmodule Recode.Task.Nesting do
 
   @def_ops [:def, :defp, :defmacro, :defmacrop]
   @depth_ops [:if, :unless, :case, :cond, :fn]
+  @max_depth 2
 
   @impl Recode.Task
   def run(source, opts) do
+    max_depth = Keyword.get(opts, :max_depth, @max_depth)
+
     source
     |> Source.get(:quoted)
     |> Zipper.zip()
-    |> Zipper.traverse_while([], traverse_defs(opts[:max_depth]))
+    |> Zipper.traverse_while([], traverse_defs(max_depth))
     |> update(source)
   end
 
