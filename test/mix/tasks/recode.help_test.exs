@@ -22,6 +22,7 @@ defmodule Mix.Tasks.Recode.Gen.HelpTest do
            Specs             # Checks for specs.
            Refactor tasks:
            FilterCount       # Checks calls like Enum.filter(...) |> Enum.count().
+           Nesting           # Checks code nesting depth in functions and macros.
            Warning tasks:
            Dbg               # There should be no calls to dbg.
            TestFileExt       # Checks the file extension of test files.
