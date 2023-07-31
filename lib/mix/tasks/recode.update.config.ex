@@ -28,19 +28,11 @@ defmodule Mix.Tasks.Recode.Update.Config do
         @config_filename
         |> Code.eval_file()
         |> elem(0)
-        |> merge(Recode.Config.default())
+        |> Recode.Config.merge()
 
       Mix.Generator.create_file(@config_filename, Recode.Config.to_string(config), force: force)
     else
       Mix.raise(~s|config file #{@config_filename} not found, run "mix recode.gen.config"|)
     end
-  end
-
-  defp merge(old, new) do
-    tasks = new[:tasks] |> Keyword.merge(old[:tasks]) |> Enum.sort()
-
-    new
-    |> Keyword.merge(old)
-    |> Keyword.merge(version: new[:version], tasks: tasks)
   end
 end

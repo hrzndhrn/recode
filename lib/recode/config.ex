@@ -1,6 +1,6 @@
 defmodule Recode.Config do
   @moduledoc """
-  This module reads the `Recode` configuration.
+  Functions to read and merge the `Recode` configuration.
   """
 
   alias Recode.Task.Format
@@ -51,7 +51,7 @@ defmodule Recode.Config do
   """
   @spec to_string(config()) :: String.t()
   def to_string(config \\ default()) do
-    Keyword.validate!(config, @config_keys)
+    config = Keyword.validate!(config, @config_keys)
 
     template = """
     [
@@ -83,10 +83,44 @@ defmodule Recode.Config do
     |> IO.iodata_to_binary()
   end
 
-  @spec read(Path.t() | opts) :: {:ok, config()} | {:error, :not_found} when opts: keyword()
-  def read(opts \\ [])
+  @doc """
+  Merges two configs into one.
 
-  def read(path) when is_binary(path) do
+  The merge will do a deep merge. The merge will do a deep merge. The merge
+  takes the version from the `right` config.
+
+  ## Examples
+
+      iex> new = [version: "0.0.2", verbose: false, autocorrect: true]
+      ...> old = [version: "0.0.1", verbose: true]
+      iex> Recode.Config.merge(new ,old)
+      [{:autocorrect, true}, {:verbose, true}, {:version, "0.0.2"}]
+  """
+  def merge(left \\ default(), right) do
+    left
+    |> Keyword.merge(right, fn
+      :version, version, _ -> version
+      :tasks, left, right -> merge_tasks(left, right)
+      _, _, value -> value
+    end)
+    |> Enum.sort()
+  end
+
+  defp merge_tasks(left, right) do
+    left
+    |> Keyword.merge(right, fn
+      :config, left, right -> left |> Keyword.merge(right) |> Enum.sort()
+      _, value, [] -> value
+      _, _, value -> value
+    end)
+    |> Enum.sort()
+  end
+
+  @doc """
+  Reads the `Recode` cofiguration from the given `path`.
+  """
+  @spec read(Path.t()) :: {:ok, config()} | {:error, :not_found}
+  def read(path \\ @config_filename) when is_binary(path) do
     case File.exists?(path) do
       true ->
         config =
@@ -103,19 +137,17 @@ defmodule Recode.Config do
     end
   end
 
-  def read(opts) when is_list(opts) do
-    opts
-    |> Keyword.get(:config, @config_filename)
-    |> read()
-  end
-
+  @doc """
+  Validates the config version and tasks.
+  """
+  @spec validate(config()) :: :ok | {:error, :out_of_date | :no_tasks}
   def validate(config) do
-    with :ok <- validate(config, :version) do
-      validate(config, :tasks)
+    with :ok <- validate_version(config) do
+      validate_tasks(config)
     end
   end
 
-  def validate(config, :version) do
+  defp validate_version(config) do
     cmp =
       config
       |> Keyword.get(:version, @config_min_version)
@@ -128,7 +160,7 @@ defmodule Recode.Config do
     end
   end
 
-  def validate(config, :tasks) do
+  defp validate_tasks(config) do
     if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
   end
 

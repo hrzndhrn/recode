@@ -53,7 +53,7 @@ defmodule Mix.Tasks.Recode do
     opts = opts!(opts)
 
     opts
-    |> Keyword.take([:config])
+    |> Keyword.get(:config, ".recode.exs")
     |> config!()
     |> validate_config!()
     |> Keyword.merge(Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs]))

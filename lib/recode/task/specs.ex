@@ -7,7 +7,7 @@ defmodule Recode.Task.Specs do
 
   ## Options
 
-    * `:only` - `:public`, `:visible`
+    * `:only` - `:public`, `:visible` or `:all`, defaults to `:all`.
     * `:macros` - when `true`, macros are also checked, defaults to `false`.
   """
 
