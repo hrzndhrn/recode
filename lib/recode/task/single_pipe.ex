@@ -1,4 +1,6 @@
 defmodule Recode.Task.SinglePipe do
+  @shortdoc "Pipes should only be used when piping data through multiple calls."
+
   @moduledoc """
   Pipes (`|>`) should only be used when piping data through multiple calls.
 
@@ -18,11 +20,7 @@ defmodule Recode.Task.SinglePipe do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  @shortdoc "Pipes should only be used when piping data through multiple calls."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
   alias Recode.Task.SinglePipe

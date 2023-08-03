@@ -1,15 +1,13 @@
 defmodule Recode.Task.Format do
+  @shortdoc "Does the same as `mix format`."
+
   @moduledoc """
   This task runs the Elixir formatter.
 
   This task runs as first task by any `mix recode` call.
   """
 
-  @shortdoc "Does the same as `mix format`."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
   alias Recode.Task.Format

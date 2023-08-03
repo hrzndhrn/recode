@@ -1,13 +1,11 @@
 defmodule Recode.Task.UnusedVariable do
+  @shortdoc "Checks if unused variables occur."
+
   @moduledoc """
   Prepend unused variables with `_`.
   """
 
-  @shortdoc "Checks if unused variables occur."
-
-  @category :warning
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
   alias Rewrite.Source

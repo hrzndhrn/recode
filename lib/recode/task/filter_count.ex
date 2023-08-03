@@ -1,4 +1,6 @@
 defmodule Recode.Task.FilterCount do
+  @shortdoc "Checks calls like Enum.filter(...) |> Enum.count()."
+
   @moduledoc """
   `Enum.count/2` is more efficient than `Enum.filter/2 |> Enum.count/1`.
 
@@ -18,11 +20,7 @@ defmodule Recode.Task.FilterCount do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  @shortdoc "Checks calls like Enum.filter(...) |> Enum.count()."
-
-  @category :refactor
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :refactor
 
   alias Recode.Issue
   alias Recode.Task.FilterCount

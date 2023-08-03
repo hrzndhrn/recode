@@ -1,4 +1,6 @@
 defmodule Recode.Task.AliasOrder do
+  @shortdoc "Checks if aliases are sorted alphabetically."
+
   @moduledoc """
   Alphabetically sorted lists are easier to read.
 
@@ -15,11 +17,7 @@ defmodule Recode.Task.AliasOrder do
       alias Bravo
   """
 
-  @shortdoc "Checks if aliases are sorted alphabetically."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.AST
   alias Recode.Issue

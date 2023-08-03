@@ -1,4 +1,6 @@
 defmodule Recode.Task.Specs do
+  @shortdoc "Checks for specs."
+
   @moduledoc """
   Function, macros and callbacks should have typespecs.
 
@@ -11,11 +13,7 @@ defmodule Recode.Task.Specs do
     * `:macros` - when `true`, macros are also checked, defaults to `false`.
   """
 
-  @shortdoc "Checks for specs."
-
-  @category :readability
-
-  use Recode.Task, check: true
+  use Recode.Task, category: :readability
 
   alias Recode.Context
   alias Recode.Issue

@@ -37,7 +37,7 @@ defmodule Mix.Tasks.Recode.Help do
     """)
   end
 
-  defp category(module), do: module.category()
+  defp category(module), do: Recode.Task.category(module)
 
   defp task?(module) do
     module |> inspect() |> String.starts_with?(@task_namespace)
@@ -51,7 +51,7 @@ defmodule Mix.Tasks.Recode.Help do
 
   defp info(module) do
     name = module |> inspect() |> String.trim_leading(@task_namespace)
-    {name, module.shortdoc()}
+    {name, Recode.Task.shortdoc(module)}
   end
 
   defp print(info) do

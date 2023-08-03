@@ -13,9 +13,7 @@ defmodule Recode.Task.Nesting do
 
   @shortdoc "Checks code nesting depth in functions and macros."
 
-  @category :refactor
-
-  use Recode.Task, check: true
+  use Recode.Task, category: :refactor
 
   alias Recode.Issue
   alias Recode.Task.Nesting

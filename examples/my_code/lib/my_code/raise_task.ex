@@ -1,7 +1,7 @@
 defmodule MyCode.RaiseTask do
   @moduledoc false
 
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true
 
   @impl Recode.Task
   def run(_source, _opts) do

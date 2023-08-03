@@ -8,6 +8,8 @@ defmodule Recode.Runner.ImplTest do
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
 
+  @task_config __recode_task_config__: [checker: true, corrector: true]
+
   setup :verify_on_exit!
 
   setup_all context do
@@ -44,7 +46,7 @@ defmodule Recode.Runner.ImplTest do
         assert config == [autocorrect: true]
         source
       end)
-      |> expect(:config, fn :correct -> true end)
+      |> expect(:__attributes__, fn -> @task_config end)
 
       config = Keyword.put(config, :tasks, [{TaskMock, []}])
 
@@ -59,7 +61,7 @@ defmodule Recode.Runner.ImplTest do
         assert config == [autocorrect: true, foo: :bar]
         source
       end)
-      |> expect(:config, fn :correct -> true end)
+      |> expect(:__attributes__, fn -> @task_config end)
 
       config = Keyword.put(config, :tasks, [{TaskMock, config: [foo: :bar]}])
 
@@ -77,7 +79,7 @@ defmodule Recode.Runner.ImplTest do
         assert source.code == code
         source
       end)
-      |> expect(:config, fn :correct -> true end)
+      |> expect(:__attributes__, fn -> @task_config end)
 
       capture_io(code, fn -> assert Runner.run(config) end)
     end
@@ -88,7 +90,7 @@ defmodule Recode.Runner.ImplTest do
         assert config == [autocorrect: true, foo: :bar]
         source
       end)
-      |> expect(:config, 1, fn :correct -> true end)
+      |> expect(:__attributes__, fn -> @task_config end)
 
       config =
         Keyword.put(config, :tasks, [
@@ -107,7 +109,7 @@ defmodule Recode.Runner.ImplTest do
         assert config == [autocorrect: true, foo: :bar]
         source
       end)
-      |> expect(:config, 1, fn :correct -> true end)
+      |> expect(:__attributes__, fn -> @task_config end)
 
       config =
         Keyword.put(config, :tasks, [
@@ -128,7 +130,7 @@ defmodule Recode.Runner.ImplTest do
       |> expect(:run, 2, fn _source, _config ->
         raise "An Exception Occurred"
       end)
-      |> expect(:config, 1, fn :correct -> true end)
+      |> expect(:__attributes__, fn -> @task_config end)
 
       config = Keyword.put(config, :tasks, [{TaskMock, []}])
 
