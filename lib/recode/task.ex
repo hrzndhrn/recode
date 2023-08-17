@@ -53,7 +53,7 @@ defmodule Recode.Task do
 
   Returns `nil` if `@shortdoc` is not available for the `task`.
   """
-  @spec shortdoc(task()) :: String.t()
+  @spec shortdoc(task()) :: String.t() | nil
   def shortdoc(task) when is_atom(task), do: attribute(task, :shortdoc)
 
   defp attribute(task, key) when key in [:corrector, :checker, :category] do

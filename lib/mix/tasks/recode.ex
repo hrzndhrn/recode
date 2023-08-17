@@ -60,7 +60,7 @@ defmodule Mix.Tasks.Recode do
   @impl Mix.Task
   @spec run(list()) :: no_return()
   def run(opts) do
-    StopWatch.init!()
+    _stop_watch = StopWatch.init!()
     StopWatch.start!(:recode)
 
     opts = opts!(opts)
