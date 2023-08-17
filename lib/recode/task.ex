@@ -17,14 +17,17 @@ defmodule Recode.Task do
 
   @doc """
   Sets a callback to check and manipulate `config` before any recode task runs.
+
+  When `init` returns an error tuple, the `mix recode` task raises an exception
+  with the returned `message`.
   """
-  @callback config(config()) :: {:ok, config} | {:error, message()}
+  @callback init(config()) :: {:ok, config} | {:error, message()}
 
   # a callback for mox
   @doc false
   @callback __attributes__ :: any
 
-  @optional_callbacks config: 1
+  @optional_callbacks init: 1
 
   @doc """
   Returns `true` if the given `task` provides a check for sources.
@@ -61,9 +64,13 @@ defmodule Recode.Task do
 
   defp attribute(task, key) do
     task.__attributes__()
-    |> Keyword.fetch!(key)
-    |> hd()
+    |> Keyword.get(key, [])
+    |> unwrap()
   end
+
+  defp unwrap([]), do: nil
+
+  defp unwrap([value]), do: value
 
   defmacro __using__(opts) do
     config =
@@ -81,11 +88,11 @@ defmodule Recode.Task do
       Module.register_attribute(__MODULE__, :__recode_task_config__, persist: true)
       Module.register_attribute(__MODULE__, :shortdoc, persist: true)
 
-      def config(config), do: {:ok, config}
+      def init(config), do: {:ok, config}
 
       def __attributes__, do: __MODULE__.__info__(:attributes)
 
-      defoverridable config: 1
+      defoverridable init: 1
     end
   end
 end

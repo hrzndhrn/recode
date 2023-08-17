@@ -49,7 +49,8 @@ defmodule Recode.MixProject do
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
           Recode.Task.Specs,
-          Recode.Task.Tags,
+          Recode.Task.TagFIXME,
+          Recode.Task.TagTODO,
           Recode.Task.TestFileExt,
           Recode.Task.UnusedVariable
         ]

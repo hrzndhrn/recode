@@ -454,6 +454,14 @@ defmodule Recode.AST do
     {module, [], nil}
   end
 
+  def alias_info(
+        {:alias, _meta1, [{{:., _meta2, [{:__MODULE__, _meta3, _args}, _opts]}, _meta4, multi}]}
+      ) do
+    multi = Enum.map(multi, &aliases_concat/1)
+
+    {:__MODULE__, multi, nil}
+  end
+
   def alias_info({:alias, _meta, [{{:., _meta2, [aliases, _opts]}, _meta3, multi}]}) do
     module = aliases_concat(aliases)
     multi = Enum.map(multi, &aliases_concat/1)

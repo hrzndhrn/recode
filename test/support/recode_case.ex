@@ -83,12 +83,11 @@ defmodule RecodeCase do
   def run_task(code, task, opts \\ [])
 
   def run_task(code, task, opts) when is_binary(code) do
-    code
-    |> Source.Ex.from_string()
-    |> task.run(opts)
+    run_task(Source.Ex.from_string(code), task, opts)
   end
 
   def run_task(%Source{} = source, task, opts) do
+    {:ok, opts} = task.init(opts)
     task.run(source, opts)
   end
 

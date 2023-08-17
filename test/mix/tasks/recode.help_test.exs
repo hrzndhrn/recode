@@ -12,6 +12,9 @@ defmodule Mix.Tasks.Recode.Gen.HelpTest do
       end)
 
     assert output == """
+           Design tasks:
+           TagFIXME          # Checks if there are FIXME tags in the sources.
+           TagTODO           # Checks if there are TODO tags in the sources.
            Readability tasks:
            AliasExpansion    # Exapnds multi aliases to separate aliases.
            AliasOrder        # Checks if aliases are sorted alphabetically.
@@ -40,7 +43,11 @@ defmodule Mix.Tasks.Recode.Gen.HelpTest do
   end
 
   test "mix recode.help FooBar" do
-    assert_raise Mix.Error, "task FooBar not found", fn ->
+    message = """
+    The recode task FooBar could not be found. Run "mix recode.help" for a list of recode tasks.\
+    """
+
+    assert_raise Mix.Error, message, fn ->
       Help.run(["FooBar"])
     end
   end

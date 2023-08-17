@@ -4,6 +4,10 @@ defmodule Mix.Tasks.Recode.Help do
   @moduledoc """
   Lists all availbale recode tasks with a short description or prints the
   documentation for a given recode task.
+
+  To print the documentation of a task run `mix recode.help {task-name}`. As a
+  task name the module name (e.g. `Nesting`) or the full module name (e.g.
+  `Recode.Task.Nesting`) is accepted.
   """
 
   use Mix.Task
@@ -27,7 +31,10 @@ defmodule Mix.Tasks.Recode.Help do
       IEx.Introspection.h(module)
       :ok
     else
-      Mix.raise("task #{task} not found")
+      Mix.raise("""
+      The recode task #{task} could not be found. \
+      Run "mix recode.help" for a list of recode tasks.\
+      """)
     end
   end
 
@@ -40,12 +47,15 @@ defmodule Mix.Tasks.Recode.Help do
   defp category(module), do: Recode.Task.category(module)
 
   defp task?(module) do
-    module |> inspect() |> String.starts_with?(@task_namespace)
+    task? = module |> inspect() |> String.starts_with?(@task_namespace)
+
+    task? and not is_nil(Recode.Task.shortdoc(module))
   end
 
   defp task?(module, name) do
     with true <- task?(module) do
-      module |> inspect() |> String.trim_leading(@task_namespace) == name
+      inspect(module) == name or
+        module |> inspect() |> String.trim_leading(@task_namespace) == name
     end
   end
 
@@ -56,6 +66,7 @@ defmodule Mix.Tasks.Recode.Help do
 
   defp print(info) do
     max = max_name_length(info)
+    print("Design tasks:", info.design, max)
     print("Readability tasks:", info.readability, max)
     print("Refactor tasks:", info.refactor, max)
     print("Warning tasks:", info.warning, max)

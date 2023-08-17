@@ -30,10 +30,6 @@ defmodule Recode.Task.TestFileExt do
     String.replace(path, ~r/_test\.ex$/, "_test.exs")
   end
 
-  defp update_path(nil) do
-    nil
-  end
-
   defp update_source(source, path, true) do
     Source.update(source, TestFileExt, :path, path)
   end

@@ -7,6 +7,10 @@
 + Use switch `--task` multiple times.
 + Add mix task `recode.help`.
 + Add mix task `recode.update.config`.
++ Add some minor fixes for `Recode.Task.AliasOrder`.
++ Fix file count output.
++ Add callback `init/1` to `Recode.Task`.
++ Add validation of `task` and `config` in `Mix.Tasks.Recode`
 
 ## 0.5.2 - 2023/07/17
 

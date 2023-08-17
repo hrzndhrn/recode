@@ -27,8 +27,10 @@ defmodule Mix.Tasks.RecodeTest do
       ":test" |> source("test.exs") |> project()
     end)
 
-    assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs", "--dry"])) ==
-             :normal
+    capture_io(fn ->
+      assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs", "--dry"])) ==
+               :normal
+    end)
   end
 
   test "mix recode --config test/fixtures/config.exs -" do
@@ -39,7 +41,10 @@ defmodule Mix.Tasks.RecodeTest do
       ":test" |> source("test.exs") |> project()
     end)
 
-    assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs", "-"])) == :normal
+    capture_io(fn ->
+      assert catch_exit(Tasks.Recode.run(["--config", "test/fixtures/config.exs", "-"])) ==
+               :normal
+    end)
   end
 
   test "mix recode file_1.ex file_2.ex" do
@@ -50,10 +55,12 @@ defmodule Mix.Tasks.RecodeTest do
       ":test" |> source("test.exs") |> project()
     end)
 
-    assert catch_exit(
-             Tasks.Recode.run(["--config", "test/fixtures/config.exs", "file_1.ex", "file_2.ex"])
-           ) ==
-             :normal
+    capture_io(fn ->
+      assert catch_exit(
+               Tasks.Recode.run(["--config", "test/fixtures/config.exs", "file_1.ex", "file_2.ex"])
+             ) ==
+               :normal
+    end)
   end
 
   test "mix recode raises exception for unknown config file" do

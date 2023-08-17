@@ -20,7 +20,7 @@ defmodule Recode.Task.NestingTest do
         end
       end
       """
-      |> run_task(Nesting, max_depth: 2)
+      |> run_task(Nesting)
       |> refute_issues()
     end
 
@@ -51,7 +51,7 @@ defmodule Recode.Task.NestingTest do
         end
       end
       """
-      |> run_task(Nesting, max_depth: 2)
+      |> run_task(Nesting)
       |> refute_issues()
     end
 
@@ -93,7 +93,7 @@ defmodule Recode.Task.NestingTest do
         end
       end
       """
-      |> run_task(Nesting, max_depth: 2)
+      |> run_task(Nesting)
       |> assert_issue_with(reporter: Nesting, line: 5)
     end
 
@@ -117,7 +117,7 @@ defmodule Recode.Task.NestingTest do
         end
       end
       """
-      |> run_task(Nesting, max_depth: 2)
+      |> run_task(Nesting)
       |> assert_issue_with(reporter: Nesting, line: 5)
     end
 
@@ -169,7 +169,7 @@ defmodule Recode.Task.NestingTest do
         end
       end
       """
-      |> run_task(Nesting, max_depth: 2)
+      |> run_task(Nesting)
       |> assert_issues(2)
     end
 
@@ -185,8 +185,14 @@ defmodule Recode.Task.NestingTest do
         end
       end
       """
-      |> run_task(Nesting, max_depth: 2)
+      |> run_task(Nesting)
       |> assert_issue_with(reporter: Nesting, line: 5)
+    end
+  end
+
+  describe "init/1" do
+    test "sets default max_depth" do
+      assert Nesting.init([]) == {:ok, max_depth: 2}
     end
   end
 end

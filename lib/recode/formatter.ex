@@ -63,7 +63,7 @@ defmodule Recode.Formatter do
 
   defp counts(project) do
     {
-      Rewrite.count(project, ".ex"),
+      Enum.count(project.sources),
       Rewrite.count(project, ".exs")
     }
   end
@@ -188,7 +188,7 @@ defmodule Recode.Formatter do
   end
 
   defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual, false) do
-    [:warn, "Execution of the #{inspect(meta[:task])} task failed."]
+    [:warn, "Execution of the #{inspect(meta[:task])} task failed.\n"]
   end
 
   defp format_issue(issue, version, actual, _verbose) do
