@@ -7,11 +7,7 @@ defmodule Recode.StopWatchTest do
 
   describe "init/1" do
     test "raises an ArgumentError when already initalized" do
-      message = """
-      errors were found at the given arguments:
-
-        * 1st argument: table name already exists
-      """
+      message = "StopWatch :foo already exisits."
 
       assert_raise(ArgumentError, message, fn ->
         StopWatch.init!(:foo)
