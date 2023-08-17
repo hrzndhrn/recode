@@ -31,7 +31,9 @@ defmodule Recode.StopWatch do
     :ets.new(name, [:set, :public, :named_table])
   rescue
     ArgumentError ->
-      reraise ArgumentError, [message: "StopWatch #{inspect(name)} already exisits."], __STACKTRACE__
+      reraise ArgumentError,
+              [message: "StopWatch #{inspect(name)} already exisits."],
+              __STACKTRACE__
   end
 
   @doc false
