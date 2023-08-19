@@ -1,15 +1,13 @@
 defmodule Recode.Task.Dbg do
+  @shortdoc "There should be no calls to dbg."
+
   @moduledoc """
   Calls to `dbg/2` should only appear in debug sessions.
 
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  @shortdoc "There should be no calls to dbg."
-
-  @category :warning
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
   alias Recode.Task.Dbg

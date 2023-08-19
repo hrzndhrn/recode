@@ -146,6 +146,29 @@ defmodule Recode.Task.AliasOrderTest do
     |> assert_issues(2)
   end
 
+  test "reports issues for unordered multiple groups with dots" do
+    """
+    defmodule MyModule do
+      alias Yankee.{Bravo.Kilo, Alpha.Lima}
+      alias Zulu.{Foxtrot, Echo}
+    end
+    """
+    |> run_task(AliasOrder, autocorrect: false)
+    |> assert_issues(2)
+  end
+
+  test "reports issues for unordered multiple groups with multi dots" do
+    """
+    defmodule MyModule do
+      alias Whiskey.{Bravo.Charlie.Lima, Bravo.Charlie.Kilo}
+      alias Yankee.{Bravo.Charlie.Lima, Bravo.Charlie}
+      alias Zulu.{Bravo.Charlie, Bravo.Charlie.Lima}
+    end
+    """
+    |> run_task(AliasOrder, autocorrect: false)
+    |> assert_issues(2)
+  end
+
   test "reports no issues" do
     """
     defmodule MyModule do
@@ -253,6 +276,18 @@ defmodule Recode.Task.AliasOrderTest do
       """
       defmodule MyModule do
         alias __MODULE__.{Beta, Alpha}
+      end
+      """
+      |> run_task(AliasOrder, autocorrect: false)
+      |> assert_issue()
+    end
+
+    test "reports an issue for unsorted aliases in multi with and without __MODULE__" do
+      """
+      defmodule MyModule do
+        alias Alpha.Bravo
+        alias Alpha.Bravo.{Charlie, Delta}
+        alias __MODULE__.{UserSocket, Endpoint}
       end
       """
       |> run_task(AliasOrder, autocorrect: false)

@@ -1,4 +1,6 @@
 defmodule Recode.Task.TestFileExt do
+  @shortdoc "Checks the file extension of test files."
+
   @moduledoc """
   Tests must be in a file with the extension `*_test.exs`.
 
@@ -6,11 +8,7 @@ defmodule Recode.Task.TestFileExt do
   issue.
   """
 
-  @shortdoc "Checks the file extension of test files."
-
-  @category :warning
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
   alias Recode.Task.TestFileExt
@@ -30,10 +28,6 @@ defmodule Recode.Task.TestFileExt do
 
   defp update_path(path) when is_binary(path) do
     String.replace(path, ~r/_test\.ex$/, "_test.exs")
-  end
-
-  defp update_path(nil) do
-    nil
   end
 
   defp update_source(source, path, true) do

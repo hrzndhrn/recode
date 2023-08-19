@@ -1,4 +1,6 @@
 defmodule Recode.Task.AliasExpansion do
+  @shortdoc "Exapnds multi aliases to separate aliases."
+
   @moduledoc """
   Multi aliases makes module uses harder to search for in large code bases.
 
@@ -12,11 +14,7 @@ defmodule Recode.Task.AliasExpansion do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  @shortdoc "Exapnds multi aliases to separate aliases."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
   alias Recode.Task.AliasExpansion

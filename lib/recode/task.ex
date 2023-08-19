@@ -5,56 +5,94 @@ defmodule Recode.Task do
 
   alias Rewrite.Source
 
+  @type config :: keyword()
+  @type message :: String.t()
+  @type task :: module()
+  @type category :: atom()
+
   @doc """
   Applies a task with the given `source` and `opts`.
   """
   @callback run(source :: Source.t(), opts :: Keyword.t()) :: Source.t()
 
   @doc """
-  Returns the configuration for the given `key`.
-  """
-  @callback config(key :: :check | :correct | :refactor) :: boolean
+  Sets a callback to check and manipulate `config` before any recode task runs.
 
-  @optional_callbacks config: 1
+  When `init` returns an error tuple, the `mix recode` task raises an exception
+  with the returned `message`.
+  """
+  @callback init(config()) :: {:ok, config} | {:error, message()}
+
+  # a callback for mox
+  @doc false
+  @callback __attributes__ :: any
+
+  @optional_callbacks init: 1
+
+  @doc """
+  Returns `true` if the given `task` provides a check for sources.
+  """
+  @spec checker?(task()) :: boolean()
+  def checker?(task) when is_atom(task), do: attribute(task, :checker)
+
+  @doc """
+  Returns `true` if the given `task` provides a correction functionality for
+  sources.
+  """
+  @spec corrector?(task()) :: boolean()
+  def corrector?(task) when is_atom(task), do: attribute(task, :corrector)
+
+  @doc """
+  Returns the category for the given `task`.
+  """
+  @spec category(task()) :: category()
+  def category(task) when is_atom(task), do: attribute(task, :category)
+
+  @doc """
+  Returns the shortdoc for the given `task`.
+
+  Returns `nil` if `@shortdoc` is not available for the `task`.
+  """
+  @spec shortdoc(task()) :: String.t() | nil
+  def shortdoc(task) when is_atom(task), do: attribute(task, :shortdoc)
+
+  defp attribute(task, key) when key in [:corrector, :checker, :category] do
+    task.__attributes__()
+    |> Keyword.fetch!(:__recode_task_config__)
+    |> Keyword.fetch!(key)
+  end
+
+  defp attribute(task, key) do
+    task.__attributes__()
+    |> Keyword.get(key, [])
+    |> unwrap()
+  end
+
+  defp unwrap([]), do: nil
+
+  defp unwrap([value]), do: value
 
   defmacro __using__(opts) do
-    config = Keyword.validate!(opts, check: false, correct: false)
+    config =
+      Keyword.validate!(opts,
+        checker: true,
+        corrector: false,
+        category: nil
+      )
 
     quote do
       @behaviour Recode.Task
 
-      @config unquote(config)
+      @__recode_task_config__ unquote(config)
 
-      for name <- [:shortdoc, :category] do
-        Module.register_attribute(__MODULE__, name, persist: true)
-      end
+      Module.register_attribute(__MODULE__, :__recode_task_config__, persist: true)
+      Module.register_attribute(__MODULE__, :shortdoc, persist: true)
 
-      @doc """
-      Returns the config entry for the given key.
-      """
-      def config(key) when key in [:check, :correct] do
-        Keyword.fetch!(@config, key)
-      end
+      def init(config), do: {:ok, config}
 
-      @doc """
-      Returns the shortdoc for recode task.
+      def __attributes__, do: __MODULE__.__info__(:attributes)
 
-      Returns `nil` if `@shortdoc` is not available.
-      """
-      def shortdoc, do: attribute(:shortdoc)
-
-      @doc """
-      Returns the category for recode task.
-
-      Returns `nil` if `@catgoey` is not available.
-      """
-      def category, do: attribute(:category)
-
-      defp attribute(key) do
-        with [shortdoc] <- Keyword.get(__MODULE__.__info__(:attributes), key) do
-          shortdoc
-        end
-      end
+      defoverridable init: 1
     end
   end
 end

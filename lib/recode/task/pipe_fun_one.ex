@@ -1,4 +1,6 @@
 defmodule Recode.Task.PipeFunOne do
+  @shortdoc "Add parentheses to one-arity functions."
+
   @moduledoc """
   Add parentheses to one-arity functions.
 
@@ -11,11 +13,7 @@ defmodule Recode.Task.PipeFunOne do
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
-  @shortdoc "Add parentheses to one-arity functions."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
   alias Recode.Task.PipeFunOne

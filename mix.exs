@@ -41,12 +41,16 @@ defmodule Recode.MixProject do
         Tasks: [
           Recode.Task.AliasExpansion,
           Recode.Task.AliasOrder,
+          Recode.Task.Dbg,
           Recode.Task.EnforceLineLength,
           Recode.Task.FilterCount,
           Recode.Task.Format,
+          Recode.Task.Nesting,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
           Recode.Task.Specs,
+          Recode.Task.TagFIXME,
+          Recode.Task.TagTODO,
           Recode.Task.TestFileExt,
           Recode.Task.UnusedVariable
         ]

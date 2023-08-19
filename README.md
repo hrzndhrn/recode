@@ -12,14 +12,30 @@ This library is still under development, breaking changes are expected.
 The same is true for `sourceror` and most of `recode`'s functionality is based
 on `sourceror`.
 
-For now, `recode` corrects only a few things:
+`recode` can correct and check the following things:
 
-* `AliasExpansion` expands multi aliases
-* `AliasOrder` orders aliases alphabetically
-* `Format` runs the Elixir formatter
-* `PipeFunOne` adds `()` to one arity functions in pipes
-* `SinglePipe` corrects single pipes
-* `TestFileExt` renames test file extensions to `*.exs`
+```sh
+> mix recode.help
+
+Design tasks:
+TagFIXME          # Checker   - Checks if there are FIXME tags in the sources.
+TagTODO           # Checker   - Checks if there are TODO tags in the sources.
+Readability tasks:
+AliasExpansion    # Corrector - Exapnds multi aliases to separate aliases.
+AliasOrder        # Corrector - Checks if aliases are sorted alphabetically.
+EnforceLineLength # Corrector - Forces expressions to one line.
+Format            # Corrector - Does the same as `mix format`.
+PipeFunOne        # Corrector - Add parentheses to one-arity functions.
+SinglePipe        # Corrector - Pipes should only be used when piping data through multiple calls.
+Specs             # Checker   - Checks for specs.
+Refactor tasks:
+FilterCount       # Corrector - Checks calls like Enum.filter(...) |> Enum.count().
+Nesting           # Checker   - Checks code nesting depth in functions and macros.
+Warning tasks:
+Dbg               # Corrector - There should be no calls to dbg.
+TestFileExt       # Corrector - Checks the file extension of test files.
+UnusedVariable    # Corrector - Checks if unused variables occur.
+```
 
 It is also possible to run `recode` in a none-autocorrect mode to just lint your
 code.
@@ -58,7 +74,7 @@ Documentation can be found at [https://hexdocs.pm/recode](https://hexdocs.pm/rec
 
 ## Usage
 
-To start with Foo a configuration file is needed.
+To start with `recode` a configuration file is needed.
 
 ```sh
 mix recode.gen.config
@@ -67,40 +83,51 @@ mix recode.gen.config
 This mix task generates the config file `.recode.exs`.
 
 ```elixir
-alias Recode.Task
-
 [
-  version: "0.4.0",
-  # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
+  version: "0.6.0",
+  # Can also be set/reset with `--autocorrect`/`--no-autocorrect`.
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
-  # Can also be set/reset with "--dry"/"--no-dry".
+  # Can also be set/reset with `--dry`/`--no-dry`.
   # If dry is true then verbose is also active.
   dry: false,
-  # Can also be set/reset with "--verbose"/"--no-verbose".
+  # Can also be set/reset with `--verbose`/`--no-verbose`.
   verbose: false,
   # Can be overwriten by calling `mix recode "lib/**/*.ex"`.
-  inputs: ["{config,lib,test}/**/*.{ex,exs}"],
+  inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
     # keyword list. A task can be deactived by `active: false`. The execution of
     # a deactivated task can be forced by calling `mix recode --task ModuleName`.
-    {Task.AliasExpansion, []},
-    {Task.AliasOrder, []},
-    {Task.EnforceLineLength, active: false},
-    {Task.PipeFunOne, []},
-    {Task.SinglePipe, []},
-    {Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
-    {Task.TestFileExt, []},
-    {Task.UnusedVariable, active: false}
+    {Recode.Task.AliasExpansion, []},
+    {Recode.Task.AliasOrder, []},
+    {Recode.Task.Dbg, [autocorrect: false]},
+    {Recode.Task.EnforceLineLength, [active: false]},
+    {Recode.Task.FilterCount, []},
+    {Recode.Task.Nesting, []},
+    {Recode.Task.PipeFunOne, []},
+    {Recode.Task.SinglePipe, []},
+    {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
+    {Recode.Task.TagFIXME, [exit_code: 2]},
+    {Recode.Task.TagTODO, [exit_code: 4]},
+    {Recode.Task.TestFileExt, []},
+    {Recode.Task.UnusedVariable, [active: false]}
   ]
 ]
 ```
 
+If a configuration file already exists, you can use the mix task
+
+```sh
+mix recode.update.config
+```
+
+to update the configuration file.
+
 ### `mix recode`
 
-This mix tasks runs the linter with autocorrection. The switch `--dry` prevents
+This mix task runs the linter with autocorrection. The switch `--dry` prevents
 the update of the files and shows all changes in the console.
 
 ```
@@ -257,7 +284,21 @@ You can also run Recode together with `mix format` by adding
 ]
 ```
 
-Note that Elixir >= 1.13 is required.
+### `mix recode.help`
+
+The task `recode.help` prints all available recode-task with a short description.
+
+The task prints the documentation for a given recode-task.
+
+```sh
+> mix recode.help Dbg
+                                Recode.Task.Dbg
+
+Calls to dbg/2 should only appear in debug sessions.
+
+This task rewrites the code when mix recode runs with autocorrect: true.
+```
+
 
 ## Differences to Credo
 

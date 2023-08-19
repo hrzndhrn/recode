@@ -192,4 +192,20 @@ defmodule Recode.Task.SpecsTest do
     |> run_task(Specs, macros: true)
     |> assert_issue_with(reporter: Specs)
   end
+
+  test "reports no issues for macro __using__" do
+    code = """
+    defmodule MyModule do
+      defmacro __using__(_opts) do
+        quote do
+          import MyModule.Foo
+        end
+      end
+    end
+    """
+
+    code
+    |> run_task(Specs, macros: true)
+    |> refute_issues()
+  end
 end

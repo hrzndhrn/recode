@@ -1,4 +1,6 @@
 defmodule Recode.Task.AliasOrder do
+  @shortdoc "Checks if aliases are sorted alphabetically."
+
   @moduledoc """
   Alphabetically sorted lists are easier to read.
 
@@ -15,11 +17,7 @@ defmodule Recode.Task.AliasOrder do
       alias Bravo
   """
 
-  @shortdoc "Checks if aliases are sorted alphabetically."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: true
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.AST
   alias Recode.Issue
@@ -199,17 +197,25 @@ defmodule Recode.Task.AliasOrder do
 
     case module1 == module2 do
       true -> length(multi1) < length(multi2)
-      false -> lt?(module1, module2)
+      false -> lower_then?(module1, module2)
     end
   end
 
   defp sort({:__aliases__, _meta1, args1}, {:__aliases__, _meta2, args2}) do
-    lt?(args1, args2)
+    lower_then?(args1, args2)
   end
 
-  defp lt?([value1], [value2]), do: lt?(value1, value2)
+  defp lower_then?([value1], [value2]), do: lower_then?(value1, value2)
 
-  defp lt?(value1, value2) when is_atom(value1) and is_atom(value2) do
+  defp lower_then?([_value], []), do: false
+
+  defp lower_then?([], [_value]), do: true
+
+  defp lower_then?([value | rest1], [value | rest2]), do: lower_then?(rest1, rest2)
+
+  defp lower_then?([value1 | _], [value2 | _]), do: lower_then?(value1, value2)
+
+  defp lower_then?(value1, value2) when is_atom(value1) and is_atom(value2) do
     String.upcase(to_string(value1)) < String.upcase(to_string(value2))
   end
 

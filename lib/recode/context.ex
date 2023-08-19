@@ -74,8 +74,6 @@ defmodule Recode.Context do
       }
   '''
 
-  import Recode.Utils, only: [ends_with?: 2]
-
   alias Recode.Context
   alias Sourceror.Zipper
 
@@ -635,4 +633,18 @@ defmodule Recode.Context do
   defp attribute_args(nil), do: nil
 
   defp attribute_args({:@, _meta1, [{_name, _meta2, args}]}), do: args
+
+  defp ends_with?(value, suffix) when is_atom(value) and is_atom(suffix) do
+    list = Module.split(value)
+    suffix = Module.split(suffix)
+
+    ends_with?(list, suffix)
+  end
+
+  defp ends_with?(list, suffix) when is_list(list) and is_list(suffix) do
+    case length(list) - length(suffix) do
+      diff when diff < 0 -> false
+      diff -> Enum.drop(list, diff) == suffix
+    end
+  end
 end

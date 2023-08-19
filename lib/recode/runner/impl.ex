@@ -4,6 +4,7 @@ defmodule Recode.Runner.Impl do
   @behaviour Recode.Runner
 
   alias Recode.Issue
+  alias Recode.Task
   alias Rewrite.Source
 
   @impl true
@@ -163,7 +164,7 @@ defmodule Recode.Runner.Impl do
 
   defp tasks(tasks, :autocorrect, autocorrect) do
     case autocorrect do
-      false -> Enum.filter(tasks, fn {task, _opts} -> task.config(:check) end)
+      false -> Enum.filter(tasks, fn {task, _opts} -> Task.checker?(task) end)
       true -> tasks
     end
   end
@@ -183,7 +184,7 @@ defmodule Recode.Runner.Impl do
   defp correst_first(tasks) do
     groups =
       Enum.group_by(tasks, fn {task, opts} ->
-        task.config(:correct) && Keyword.get(opts, :autocorrect)
+        Task.corrector?(task) && Keyword.get(opts, :autocorrect)
       end)
 
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))

@@ -24,7 +24,7 @@ defmodule Recode.Task.UnusedVariableTest do
       |> assert_code(expected)
     end
 
-    test "fix simple unused variables in comments" do
+    test "ignores comments" do
       code = """
       def foo(bar) do
         # bar is not used
@@ -42,24 +42,15 @@ defmodule Recode.Task.UnusedVariableTest do
       |> assert_code(expected)
     end
 
-    test "fix in fun call" do
-      code = """
+    test "keeps code" do
+      """
       def foo() do
         bar = String.to_atom()
         IO.inspect(bar)
       end
       """
-
-      expected = """
-      def foo() do
-        bar = String.to_atom()
-        IO.inspect(bar)
-      end
-      """
-
-      code
       |> run_task(UnusedVariable, autocorrect: true)
-      |> assert_code(expected)
+      |> refute_update()
     end
 
     test "fix in module" do

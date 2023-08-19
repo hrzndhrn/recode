@@ -1,4 +1,6 @@
 defmodule Recode.Task.EnforceLineLength do
+  @shortdoc "Forces expressions to one line."
+
   @moduledoc """
   The `EnforceLineLength` task writes multiline expressions into one line if
   they do not exceed the maximum line length.
@@ -33,11 +35,7 @@ defmodule Recode.Task.EnforceLineLength do
   and with the option `skip: :fn` the code keeps unchanged.
   """
 
-  @shortdoc "Forces expressions to one line."
-
-  @category :readability
-
-  use Recode.Task, correct: true, check: false
+  use Recode.Task, corrector: true, category: :readability
 
   alias Recode.AST
   alias Recode.Task.EnforceLineLength

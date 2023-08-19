@@ -9,13 +9,12 @@ defmodule Recode.Task.Nesting do
   ## Options
 
     * `:max_depth` - the maximum allowable depth, defaults to `2`.
+
   """
 
   @shortdoc "Checks code nesting depth in functions and macros."
 
-  @category :refactor
-
-  use Recode.Task, check: true
+  use Recode.Task, category: :refactor
 
   alias Recode.Issue
   alias Recode.Task.Nesting
@@ -28,13 +27,16 @@ defmodule Recode.Task.Nesting do
 
   @impl Recode.Task
   def run(source, opts) do
-    max_depth = Keyword.get(opts, :max_depth, @max_depth)
-
     source
     |> Source.get(:quoted)
     |> Zipper.zip()
-    |> Zipper.traverse_while([], traverse_defs(max_depth))
+    |> Zipper.traverse_while([], traverse_defs(opts[:max_depth]))
     |> update(source)
+  end
+
+  @impl Recode.Task
+  def init(opts) do
+    {:ok, Keyword.put_new(opts, :max_depth, @max_depth)}
   end
 
   defp update({_zipper, issues}, source) do
