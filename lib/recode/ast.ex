@@ -454,6 +454,10 @@ defmodule Recode.AST do
     {module, [], nil}
   end
 
+  def alias_info({:alias, _meta1, [{:__MODULE__, _meta2, nil}]}) do
+    {:__MODULE__, [], nil}
+  end
+
   def alias_info(
         {:alias, _meta1, [{{:., _meta2, [{:__MODULE__, _meta3, _args}, _opts]}, _meta4, multi}]}
       ) do
@@ -462,7 +466,7 @@ defmodule Recode.AST do
     {:__MODULE__, multi, nil}
   end
 
-  def alias_info({:alias, _meta, [{{:., _meta2, [aliases, _opts]}, _meta3, multi}]}) do
+  def alias_info({:alias, _meta1, [{{:., _meta2, [aliases, _opts]}, _meta3, multi}]}) do
     module = aliases_concat(aliases)
     multi = Enum.map(multi, &aliases_concat/1)
 
@@ -470,6 +474,12 @@ defmodule Recode.AST do
   end
 
   def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}, [{_block, as}]]}) do
+    module = Module.concat(aliases)
+    as = aliases_concat(as)
+    {module, [], as}
+  end
+
+  def alias_info({:alias, _meta1, [{:__block__, _meta2, aliases}, [{_block, as}]]}) do
     module = Module.concat(aliases)
     as = aliases_concat(as)
     {module, [], as}

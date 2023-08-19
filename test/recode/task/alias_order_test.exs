@@ -57,6 +57,48 @@ defmodule Recode.Task.AliasOrderTest do
     |> assert_code(expected)
   end
 
+  test "sorts __MODULE__" do
+    code = """
+    defmodule MyModule do
+      alias Beta
+      alias __MODULE__
+      alias Alpha
+    end
+    """
+
+    expected = """
+    defmodule MyModule do
+      alias Alpha
+      alias Beta
+      alias __MODULE__
+    end
+    """
+
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
+  end
+
+  test "sorts erlang modules" do
+    code = """
+    defmodule MyModule do
+      alias :mnesia, as: Mnesia
+      alias :ets, as: Ets
+    end
+    """
+
+    expected = """
+    defmodule MyModule do
+      alias :ets, as: Ets
+      alias :mnesia, as: Mnesia
+    end
+    """
+
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
+  end
+
   test "sorts multi aliases" do
     code = """
     defmodule MyModule do

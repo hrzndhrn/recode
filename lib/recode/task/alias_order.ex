@@ -197,25 +197,25 @@ defmodule Recode.Task.AliasOrder do
 
     case module1 == module2 do
       true -> length(multi1) < length(multi2)
-      false -> lower_then?(module1, module2)
+      false -> lower_than?(module1, module2)
     end
   end
 
   defp sort({:__aliases__, _meta1, args1}, {:__aliases__, _meta2, args2}) do
-    lower_then?(args1, args2)
+    lower_than?(args1, args2)
   end
 
-  defp lower_then?([value1], [value2]), do: lower_then?(value1, value2)
+  defp lower_than?([value1], [value2]), do: lower_than?(value1, value2)
 
-  defp lower_then?([_value], []), do: false
+  defp lower_than?([_value], []), do: false
 
-  defp lower_then?([], [_value]), do: true
+  defp lower_than?([], [_value]), do: true
 
-  defp lower_then?([value | rest1], [value | rest2]), do: lower_then?(rest1, rest2)
+  defp lower_than?([value | rest1], [value | rest2]), do: lower_than?(rest1, rest2)
 
-  defp lower_then?([value1 | _], [value2 | _]), do: lower_then?(value1, value2)
+  defp lower_than?([value1 | _], [value2 | _]), do: lower_than?(value1, value2)
 
-  defp lower_then?(value1, value2) when is_atom(value1) and is_atom(value2) do
+  defp lower_than?(value1, value2) when is_atom(value1) and is_atom(value2) do
     String.upcase(to_string(value1)) < String.upcase(to_string(value2))
   end
 
