@@ -61,7 +61,7 @@ defmodule Mix.Tasks.Recode.Help do
 
   defp info(module) do
     name = module |> inspect() |> String.trim_leading(@task_namespace)
-    {name, Recode.Task.shortdoc(module)}
+    {name, Recode.Task.shortdoc(module), Recode.Task.corrector?(module)}
   end
 
   defp print(info) do
@@ -75,8 +75,9 @@ defmodule Mix.Tasks.Recode.Help do
   defp print(section, tasks, max) do
     IO.puts(section)
 
-    Enum.each(tasks, fn {task, doc} ->
-      IO.puts(String.pad_trailing(task, max) <> " # " <> doc)
+    Enum.each(tasks, fn {task, doc, corrector?} ->
+      type = if corrector?, do: "Corrector -", else: "Checker   -"
+      IO.puts(String.pad_trailing(task, max) <> " # #{type} #{doc}")
     end)
   end
 
@@ -84,7 +85,7 @@ defmodule Mix.Tasks.Recode.Help do
     info
     |> Map.values()
     |> List.flatten()
-    |> Enum.reduce(0, fn {name, _shortdoc}, max ->
+    |> Enum.reduce(0, fn {name, _shortdoc, _corrector?}, max ->
       max(byte_size(name), max)
     end)
   end
