@@ -13,23 +13,23 @@ defmodule Mix.Tasks.Recode.Gen.HelpTest do
 
     assert output == """
            Design tasks:
-           TagFIXME          # Checks if there are FIXME tags in the sources.
-           TagTODO           # Checks if there are TODO tags in the sources.
+           TagFIXME          # Checker   - Checks if there are FIXME tags in the sources.
+           TagTODO           # Checker   - Checks if there are TODO tags in the sources.
            Readability tasks:
-           AliasExpansion    # Exapnds multi aliases to separate aliases.
-           AliasOrder        # Checks if aliases are sorted alphabetically.
-           EnforceLineLength # Forces expressions to one line.
-           Format            # Does the same as `mix format`.
-           PipeFunOne        # Add parentheses to one-arity functions.
-           SinglePipe        # Pipes should only be used when piping data through multiple calls.
-           Specs             # Checks for specs.
+           AliasExpansion    # Corrector - Exapnds multi aliases to separate aliases.
+           AliasOrder        # Corrector - Checks if aliases are sorted alphabetically.
+           EnforceLineLength # Corrector - Forces expressions to one line.
+           Format            # Corrector - Does the same as `mix format`.
+           PipeFunOne        # Corrector - Add parentheses to one-arity functions.
+           SinglePipe        # Corrector - Pipes should only be used when piping data through multiple calls.
+           Specs             # Checker   - Checks for specs.
            Refactor tasks:
-           FilterCount       # Checks calls like Enum.filter(...) |> Enum.count().
-           Nesting           # Checks code nesting depth in functions and macros.
+           FilterCount       # Corrector - Checks calls like Enum.filter(...) |> Enum.count().
+           Nesting           # Checker   - Checks code nesting depth in functions and macros.
            Warning tasks:
-           Dbg               # There should be no calls to dbg.
-           TestFileExt       # Checks the file extension of test files.
-           UnusedVariable    # Checks if unused variables occur.
+           Dbg               # Corrector - There should be no calls to dbg.
+           TestFileExt       # Corrector - Checks the file extension of test files.
+           UnusedVariable    # Corrector - Checks if unused variables occur.
            """
   end
 
