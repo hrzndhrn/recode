@@ -30,11 +30,11 @@ defmodule Recode.Task.PipeFunOneTest do
 
     test "adds parenthes in single pipe" do
       code = """
-      a |> IO.inspect
+      a |> Foo.bar
       """
 
       expected = """
-      a |> IO.inspect()
+      a |> Foo.bar()
       """
 
       code
@@ -58,7 +58,7 @@ defmodule Recode.Task.PipeFunOneTest do
     test "reports issue for single pipe" do
       """
       def foo(arg) do
-        arg |> IO.inspect
+        arg |> Foo.bar
       end
       """
       |> run_task(PipeFunOne, autocorrect: false)
@@ -83,7 +83,7 @@ defmodule Recode.Task.PipeFunOneTest do
     code = """
     defmodule Foo do
       defmacro a |> b do
-        a |> IO.inspect
+        a |> Bar.foo
 
         fun = fn {x, pos}, acc ->
           Macro.pipe(acc, x, pos)
@@ -99,7 +99,7 @@ defmodule Recode.Task.PipeFunOneTest do
     expected = """
     defmodule Foo do
       defmacro a |> b do
-        a |> IO.inspect()
+        a |> Bar.foo()
 
         fun = fn {x, pos}, acc ->
           Macro.pipe(acc, x, pos)

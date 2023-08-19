@@ -46,7 +46,7 @@ defmodule Recode.Task.UnusedVariableTest do
       """
       def foo() do
         bar = String.to_atom()
-        IO.inspect(bar)
+        Bar.call(bar)
       end
       """
       |> run_task(UnusedVariable, autocorrect: true)

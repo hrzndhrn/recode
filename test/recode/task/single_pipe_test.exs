@@ -166,7 +166,7 @@ defmodule Recode.Task.SinglePipeTest do
     code = """
     defmodule Foo do
       defmacro a |> b do
-        a |> IO.inspect()
+        a |> Bar.foo()
 
         fun = fn {x, pos}, acc ->
           Macro.pipe(acc, x, pos)
@@ -182,7 +182,7 @@ defmodule Recode.Task.SinglePipeTest do
     expected = """
     defmodule Foo do
       defmacro a |> b do
-        IO.inspect(a)
+        Bar.foo(a)
 
         fun = fn {x, pos}, acc ->
           Macro.pipe(acc, x, pos)
