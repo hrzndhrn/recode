@@ -55,11 +55,9 @@ defmodule Recode.Task.Dbg do
     {Zipper.replace(zipper, arg), issues}
   end
 
-  # {{:., [], [{:__aliases__, [alias: false], [:Kernel]}, :dbg]}, [], [{:x, [], Elixir}]}
-
   defp traverse(
          {
-           {{:., _, [{:__aliases__, _, [:Kernel]}, :dbg]}, meta, _},
+           {{:., _, [{:__aliases__, meta, [:Kernel]}, :dbg]}, _, _},
            _zipper_meat
          } = zipper,
          issues,
@@ -74,7 +72,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp traverse(
-         {{:&, _, [{:/, meta, [{:dbg, _, _}, _]}]}, _zipper_meat} = zipper,
+         {{:&, meta, [{:/, _, [{:dbg, _, _}, _]}]}, _zipper_meat} = zipper,
          issues,
          autocorrect
        ) do

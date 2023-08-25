@@ -32,6 +32,7 @@ defmodule Recode.Config do
       {Recode.Task.Dbg, [autocorrect: false]},
       {Recode.Task.EnforceLineLength, [active: false]},
       {Recode.Task.FilterCount, []},
+      {Recode.Task.IOInspect, [autocorrect: false]},
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
