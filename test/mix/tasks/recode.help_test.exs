@@ -28,6 +28,7 @@ defmodule Mix.Tasks.Recode.Gen.HelpTest do
            Nesting           # Checker   - Checks code nesting depth in functions and macros.
            Warning tasks:
            Dbg               # Corrector - There should be no calls to dbg.
+           IOInspect         # Corrector - There should be no calls to IO.inspect.
            TestFileExt       # Corrector - Checks the file extension of test files.
            UnusedVariable    # Corrector - Checks if unused variables occur.
            """

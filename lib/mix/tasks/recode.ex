@@ -18,20 +18,21 @@ defmodule Mix.Tasks.Recode do
 
   ## Command line Option
 
-    * `--autocorrect`, `--no-autocorrect` - Activates/deactivates autocrrection.
-      Overwrites the corresponding value in the configuration.
+    * `-a`, `--autocorrect`, `--no-autocorrect` - Activates/deactivates
+      autocrrection. Overwrites the corresponding value in the configuration.
 
-    * `--config` - specifies an alternative config file.
+    * `-c`, `--config` - specifies an alternative config file.
 
-    * `--dry`, `--no-dry` - Activates/deactivates the dry mode. No file is
+    * `-d`, `--dry`, `--no-dry` - Activates/deactivates the dry mode. No file is
       overwritten in dry mode. Overwrites the corresponding value in the
       configuration.
 
-    * `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
+    * `-v`, `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
       Overwrites the corresponding value in the configuration.
 
-    * `--task`, specifies the task to use. With this option, the task is used
-      even if it is specified as `active:  false` in the configuration.
+    * `-t`, `--task`, specifies the task to use. With this option, the task is
+      used even if it is specified as `active:  false` in the configuration.
+      This option can appear multiple times in a call.
   """
 
   use Mix.Task
@@ -41,6 +42,7 @@ defmodule Mix.Tasks.Recode do
 
   alias Recode.Config
   alias Recode.Runner
+  alias Rewrite.Source
 
   @opts strict: [
           autocorrect: :boolean,
@@ -111,7 +113,9 @@ defmodule Mix.Tasks.Recode do
       Enum.into(tasks, %{}, fn {task, config} -> {task, Keyword.get(config, :exit_code, 1)} end)
 
     Enum.reduce(Rewrite.sources(project), 0, fn source, exit_code ->
-      Enum.reduce(source.issues, exit_code, fn {_version, issue}, exit_code ->
+      source
+      |> Source.issues()
+      |> Enum.reduce(exit_code, fn issue, exit_code ->
         Bitwise.bor(exit_code, Map.get(exit_codes, issue.reporter, 1))
       end)
     end)

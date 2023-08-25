@@ -1,8 +1,8 @@
-defmodule Recode.Task.Dbg do
-  @shortdoc "There should be no calls to dbg."
+defmodule Recode.Task.IOInspect do
+  @shortdoc "There should be no calls to IO.inspect."
 
   @moduledoc """
-  Calls to `dbg/2` should only appear in debug sessions.
+  Calls to `IO.inspect/2/3` should only appear in debug sessions.
 
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
@@ -10,7 +10,7 @@ defmodule Recode.Task.Dbg do
   use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
-  alias Recode.Task.Dbg
+  alias Recode.Task.IOInspect
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -26,7 +26,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp update({zipper, _issues}, source, true) do
-    Source.update(source, Dbg, :quoted, Zipper.root(zipper))
+    Source.update(source, IOInspect, :quoted, Zipper.root(zipper))
   end
 
   defp update({_zipper, []}, source, false), do: source
@@ -36,10 +36,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp traverse(
-         {
-           {:|>, _, [arg, {{:., _, [{:__aliases__, _, [:Kernel]}, :dbg]}, _, _}]},
-           _zipper_meat
-         } =
+         {{:|>, _, [arg, {{:., _, [{:__aliases__, _, [:IO]}, :inspect]}, _, _}]}, _zipper_meat} =
            zipper,
          issues,
          true
@@ -48,31 +45,17 @@ defmodule Recode.Task.Dbg do
   end
 
   defp traverse(
-         {{:|>, _, [arg, {:dbg, _, _}]}, _zipper_meat} = zipper,
-         issues,
-         true
-       ) do
-    {Zipper.replace(zipper, arg), issues}
-  end
-
-  defp traverse(
-         {
-           {{:., _, [{:__aliases__, meta, [:Kernel]}, :dbg]}, _, _},
-           _zipper_meat
-         } = zipper,
+         {{{:., _, [{:__aliases__, meta, [:IO]}, :inspect]}, _, args}, _zipper_meat} = zipper,
          issues,
          autocorrect
-       ) do
-    handle(zipper, issues, meta, autocorrect)
-  end
-
-  defp traverse({{:dbg, meta, args}, _zipper_meat} = zipper, issues, autocorrect)
+       )
        when is_list(args) do
     handle(zipper, issues, meta, autocorrect)
   end
 
   defp traverse(
-         {{:&, meta, [{:/, _, [{:dbg, _, _}, _]}]}, _zipper_meat} = zipper,
+         {{:&, meta, [{:/, _, [{{:., _, [{:__aliases__, _, [:IO]}, :inspect]}, _, _}, _]}]},
+          _zipper_meat} = zipper,
          issues,
          autocorrect
        ) do
@@ -88,7 +71,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp handle(zipper, issues, meta, false) do
-    issue = Issue.new(Dbg, @shortdoc, meta)
+    issue = Issue.new(IOInspect, @shortdoc, meta)
     {zipper, [issue | issues]}
   end
 
@@ -103,6 +86,6 @@ defmodule Recode.Task.Dbg do
   end
 
   defp handle_up(zipper, issues, meta, false) do
-    handle(zipper, issues, meta, false)
+    zipper |> Zipper.next() |> Zipper.next() |> handle(issues, meta, false)
   end
 end

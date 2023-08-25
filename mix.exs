@@ -88,7 +88,6 @@ defmodule Recode.MixProject do
       {:bunt, "~> 0.2"},
       {:glob_ex, "~> 0.1"},
       {:rewrite, "~> 0.7.0"},
-      {:sourceror, "~> 0.12.0", override: true},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},

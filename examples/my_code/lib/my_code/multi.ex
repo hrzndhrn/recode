@@ -21,5 +21,6 @@ defmodule MyCode.Multi do
     list
     |> Enum.filter(fn x -> rem(x, 2) == 0 end)
     |> Enum.count()
+    |> IO.inspect()
   end
 end
