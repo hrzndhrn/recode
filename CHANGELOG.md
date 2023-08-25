@@ -2,11 +2,15 @@
 
 ## 0.6.0 - dev
 
++ Add `Recode.Task.Dbg`.
 + Add `Recode.Task.FilterCount`.
-+ Refactor `RecodeCase`
-+ Use switch `--task` multiple times.
++ Add `Recode.Task.IOInspect`.
++ Add `Recode.Task.TagFIXME`.
++ Add `Recode.Task.TagTODO`.
 + Add mix task `recode.help`.
 + Add mix task `recode.update.config`.
++ Use switch `--task` multiple times.
++ Refactor `RecodeCase`
 + Add some minor fixes for `Recode.Task.AliasOrder`.
 + Fix file count output.
 + Add callback `init/1` to `Recode.Task`.

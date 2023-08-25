@@ -127,8 +127,8 @@ to update the configuration file.
 
 ### `mix recode`
 
-This mix task runs the linter with autocorrection. The switch `--dry` prevents
-the update of the files and shows all changes in the console.
+This mix task runs the linter with autocorrection. The switch `--dry` (alias
+`-d`) prevents the update of the files and shows all changes in the console.
 
 ```
 > cd examples/my_code
@@ -232,9 +232,12 @@ Changed by: SinglePipe
 Updates: 1
 Changed by: TestFileExt
 Moved from: test/my_code_test.ex
+
+Finished in 0.06 seconds.
 ```
 
-The switch `--no-autocorrect` runs the linter without any file changes.
+The switch `--no-autocorrect` runs the linter without any file changes. In this
+mode, all correctors are working as checkers.
 
 ```
 > cd examples/my_code
@@ -259,7 +262,10 @@ Found 11 files, including 2 scripts.
 
  File: lib/my_code/multi.ex
 [PipeFunOne 9/7] Use parentheses for one-arity functions in pipes.
+[Dbg 9/32] There should be no calls to dbg.
 [SinglePipe 13/7] Use a function call when a pipeline is only one function long.
+[FilterCount 22/12] `Enum.count/2` is more efficient than `Enum.filter/2 |> Enum.count/1`
+[IOInspect 24/8] There should be no calls to IO.inspect.
 
  File: lib/my_code/pipe_fun_one.ex
 [PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
@@ -270,7 +276,63 @@ Found 11 files, including 2 scripts.
 
  File: test/my_code_test.ex
 [TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
+
+Finished in 0.05 seconds.
 ```
+
+With the switch `--autocorrect` (alias `-a`), correctors that are configured
+with `autocorrect: false` going into the corrections mode.
+
+Use the switch `--task` (alias `-t`) to run a specific task. This switch can be
+used multiple times.
+
+The last two switches are helpful for the task `IOInspect` and `Dbg`. Both of
+the tasks are correctors configured with `autocorrect: false` in the default
+configuration. The following example shows how to run these two tasks.
+
+```
+> cd examples/my_code
+> mix recode -t IOInspect -t Dbg
+Found 18 files, including 3 scripts.
+....................................
+ File: lib/my_code/multi.ex
+[Dbg 9/32] There should be no calls to dbg.
+[IOInspect 24/8] There should be no calls to IO.inspect.
+
+Finished in 0.04 seconds.
+```
+
+To delete all occurrences of `dbg` and `IO.inspect` the following call can be
+used.
+
+```
+> cd examples/my_code
+> mix recode -av -t IOInspect -t Dbg
+Found 18 files, including 3 scripts.
+....................................
+ File: lib/my_code/multi.ex
+Updates: 2
+Changed by: Dbg, IOInspect
+     ...|
+ 7  7   |
+ 8  8   |  def pipe(x) do
+ 9    - |    x |> double |> double() |> dbg()
+    9 + |    x |> double |> double()
+10 10   |  end
+11 11   |
+     ...|
+22 22   |    |> Enum.filter(fn x -> rem(x, 2) == 0 end)
+23 23   |    |> Enum.count()
+24    - |    |> IO.inspect()
+25 24   |  end
+26 25   |end
+     ...|
+
+Finished in 0.04 seconds.
+```
+
+The `-av` stands for the switches `--autocorrect` and `--verbose`. The switch
+`--verbose` causes `recode` to display all changes as a diff on the console.
 
 ### `mix format`
 
