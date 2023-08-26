@@ -48,26 +48,26 @@ defmodule Recode.Task.SinglePipe do
     end
   end
 
-  defp single_pipe({{def, _meta, _args}, _zipper_mea} = zipper, issues, _autocorrect)
+  defp single_pipe(%Zipper{node: {def, _meta, _args}} = zipper, issues, _autocorrect)
        when def in @defs do
     {Zipper.next(zipper), issues}
   end
 
   defp single_pipe(
-         {{:|>, _meta1, [{:|>, _meta2, _args}, _ast]}, _zipper_meta} = zipper,
+         %Zipper{node: {:|>, _meta1, [{:|>, _meta2, _args}, _ast]}} = zipper,
          issues,
          _autocorrect
        ) do
     {skip(zipper), issues}
   end
 
-  defp single_pipe({{:|>, _meta, _ast}, _zipper_meta} = zipper, issues, true) do
+  defp single_pipe(%Zipper{node: {:|>, _meta, _ast}} = zipper, issues, true) do
     zipper = zipper |> Zipper.update(&update/1) |> skip()
 
     {zipper, issues}
   end
 
-  defp single_pipe({{:|>, meta, _ast}, _zipper_meta} = zipper, issues, false) do
+  defp single_pipe(%Zipper{node: {:|>, meta, _ast}} = zipper, issues, false) do
     issue =
       Issue.new(
         SinglePipe,
@@ -80,7 +80,7 @@ defmodule Recode.Task.SinglePipe do
 
   defp single_pipe(zipper, issues, _autocorrect), do: {zipper, issues}
 
-  defp skip({{:|>, _meta, _ast}, _zipper_meta} = zipper) do
+  defp skip(%Zipper{node: {:|>, _meta, _ast}} = zipper) do
     zipper |> Zipper.next() |> skip()
   end
 

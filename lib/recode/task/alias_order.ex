@@ -27,36 +27,31 @@ defmodule Recode.Task.AliasOrder do
 
   @impl Recode.Task
   def run(source, opts) do
-    do_run(source, opts[:autocorrect])
+    source
+    |> Source.get(:quoted)
+    |> Zipper.zip()
+    |> do_run(source, opts[:autocorrect])
   end
 
-  defp do_run(source, true) do
+  defp do_run(zipper, source, false) do
+    {_zipper, groups} =
+      Zipper.traverse_while(zipper, [[]], fn zipper, acc ->
+        alias_groups(zipper, acc)
+      end)
+
+    Source.add_issues(source, issues(groups))
+  end
+
+  defp do_run(zipper, source, true) do
     {zipper, []} =
-      source
-      |> Source.get(:quoted)
-      |> Zipper.zip()
-      |> Zipper.traverse_while([], fn zipper, acc ->
+      Zipper.traverse_while(zipper, [], fn zipper, acc ->
         alias_order(zipper, acc)
       end)
 
     Source.update(source, AliasOrder, :quoted, Zipper.root(zipper))
   end
 
-  defp do_run(source, false) do
-    {_zipper, groups} =
-      source
-      |> Source.get(:quoted)
-      |> Zipper.zip()
-      |> Zipper.traverse_while([[]], fn zipper, acc ->
-        alias_groups(zipper, acc)
-      end)
-
-    issues = issues(groups)
-
-    Source.add_issues(source, issues)
-  end
-
-  defp alias_groups({{:alias, _meta, _args} = ast, _zipper_meta} = zipper, [group | groups]) do
+  defp alias_groups(%Zipper{node: {:alias, _meta, _args} = ast} = zipper, [group | groups]) do
     group = [ast | group]
 
     case AST.get_newlines(ast) do
@@ -137,7 +132,7 @@ defmodule Recode.Task.AliasOrder do
     end)
   end
 
-  defp alias_order({{:alias, _meta, _args} = ast, _zipper_meta} = zipper, acc) do
+  defp alias_order(%Zipper{node: {:alias, _meta, _args} = ast} = zipper, acc) do
     acc = [ast | acc]
 
     case AST.get_newlines(ast) do

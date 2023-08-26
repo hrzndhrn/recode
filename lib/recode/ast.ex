@@ -160,7 +160,7 @@ defmodule Recode.AST do
     ast
     |> Zipper.zip()
     |> Zipper.traverse_while(fn
-      {{expr, meta, args}, _zipper_meta} = zipper ->
+      %Zipper{node: {expr, meta, args}} = zipper ->
         if meta[:line] >= begin_line and meta[:line] <= end_line do
           meta = to_same_line(meta, begin_line)
           {:cont, Zipper.replace(zipper, {expr, meta, args})}
@@ -208,7 +208,7 @@ defmodule Recode.AST do
     ast
     |> Zipper.zip()
     |> Zipper.traverse_while(nil, fn
-      {{_name, meta, _args}, _zipper_meta} = zipper, acc ->
+      %Zipper{node: {_name, meta, _args}} = zipper, acc ->
         line = meta[:line]
 
         case acc do

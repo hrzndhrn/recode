@@ -36,9 +36,8 @@ defmodule Recode.Task.Dbg do
   end
 
   defp traverse(
-         {
-           {:|>, _, [arg, {{:., _, [{:__aliases__, _, [:Kernel]}, :dbg]}, _, _}]},
-           _zipper_meat
+         %Zipper{
+           node: {:|>, _, [arg, {{:., _, [{:__aliases__, _, [:Kernel]}, :dbg]}, _, _}]}
          } =
            zipper,
          issues,
@@ -48,7 +47,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp traverse(
-         {{:|>, _, [arg, {:dbg, _, _}]}, _zipper_meat} = zipper,
+         %Zipper{node: {:|>, _, [arg, {:dbg, _, _}]}} = zipper,
          issues,
          true
        ) do
@@ -56,9 +55,8 @@ defmodule Recode.Task.Dbg do
   end
 
   defp traverse(
-         {
-           {{:., _, [{:__aliases__, meta, [:Kernel]}, :dbg]}, _, _},
-           _zipper_meat
+         %Zipper{
+           node: {{:., _, [{:__aliases__, meta, [:Kernel]}, :dbg]}, _, _}
          } = zipper,
          issues,
          autocorrect
@@ -66,13 +64,13 @@ defmodule Recode.Task.Dbg do
     handle(zipper, issues, meta, autocorrect)
   end
 
-  defp traverse({{:dbg, meta, args}, _zipper_meat} = zipper, issues, autocorrect)
+  defp traverse(%Zipper{node: {:dbg, meta, args}} = zipper, issues, autocorrect)
        when is_list(args) do
     handle(zipper, issues, meta, autocorrect)
   end
 
   defp traverse(
-         {{:&, meta, [{:/, _, [{:dbg, _, _}, _]}]}, _zipper_meat} = zipper,
+         %Zipper{node: {:&, meta, [{:/, _, [{:dbg, _, _}, _]}]}} = zipper,
          issues,
          autocorrect
        ) do
@@ -97,7 +95,7 @@ defmodule Recode.Task.Dbg do
     upup = Zipper.up(up)
 
     case upup do
-      {{:|>, _, [arg, _]}, _meta} -> {Zipper.replace(upup, arg), issues}
+      %Zipper{node: {:|>, _, [arg, _]}} -> {Zipper.replace(upup, arg), issues}
       _else -> handle(up, issues, meta, true)
     end
   end

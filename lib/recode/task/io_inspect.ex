@@ -36,8 +36,9 @@ defmodule Recode.Task.IOInspect do
   end
 
   defp traverse(
-         {{:|>, _, [arg, {{:., _, [{:__aliases__, _, [:IO]}, :inspect]}, _, _}]}, _zipper_meat} =
-           zipper,
+         %Zipper{
+           node: {:|>, _, [arg, {{:., _, [{:__aliases__, _, [:IO]}, :inspect]}, _, _}]}
+         } = zipper,
          issues,
          true
        ) do
@@ -45,7 +46,7 @@ defmodule Recode.Task.IOInspect do
   end
 
   defp traverse(
-         {{{:., _, [{:__aliases__, meta, [:IO]}, :inspect]}, _, args}, _zipper_meat} = zipper,
+         %Zipper{node: {{:., _, [{:__aliases__, meta, [:IO]}, :inspect]}, _, args}} = zipper,
          issues,
          autocorrect
        )
@@ -54,8 +55,9 @@ defmodule Recode.Task.IOInspect do
   end
 
   defp traverse(
-         {{:&, meta, [{:/, _, [{{:., _, [{:__aliases__, _, [:IO]}, :inspect]}, _, _}, _]}]},
-          _zipper_meat} = zipper,
+         %Zipper{
+           node: {:&, meta, [{:/, _, [{{:., _, [{:__aliases__, _, [:IO]}, :inspect]}, _, _}, _]}]}
+         } = zipper,
          issues,
          autocorrect
        ) do
@@ -80,7 +82,7 @@ defmodule Recode.Task.IOInspect do
     upup = Zipper.up(up)
 
     case upup do
-      {{:|>, _, [arg, _]}, _meta} -> {Zipper.replace(upup, arg), issues}
+      %Zipper{node: {:|>, _, [arg, _]}} -> {Zipper.replace(upup, arg), issues}
       _else -> handle(up, issues, meta, true)
     end
   end

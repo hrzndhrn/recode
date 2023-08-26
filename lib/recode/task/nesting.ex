@@ -47,20 +47,20 @@ defmodule Recode.Task.Nesting do
     fn zipper, issues -> traverse_defs(zipper, issues, max_depth) end
   end
 
-  defp traverse_defs({{op, _, _}, _zipper} = zipper, issues, max_depth)
+  defp traverse_defs(%Zipper{node: {op, _, _}} = zipper, issues, max_depth)
        when op in @def_ops do
     {:skip, zipper, check_depth(zipper, issues, max_depth, 0)}
   end
 
   defp traverse_defs(zipper, issues, _max_depth), do: {:cont, zipper, issues}
 
-  defp traverse_depth({{op, _, args}, _zipper_meat} = zipper, {issues, depth}, max_depth)
+  defp traverse_depth(%Zipper{node: {op, _, args}} = zipper, {issues, depth}, max_depth)
        when op in @depth_ops and depth < max_depth do
     issues = args |> Zipper.zip() |> check_depth(issues, max_depth, depth + 1)
     {:skip, zipper, {issues, 0}}
   end
 
-  defp traverse_depth({{op, meta, _}, _zipper_meat} = zipper, {issues, _depth}, max_depth)
+  defp traverse_depth(%Zipper{node: {op, meta, _}} = zipper, {issues, _depth}, max_depth)
        when op in @depth_ops do
     issue = Issue.new(Nesting, "The body is nested too deep (max depth: #{max_depth}).", meta)
     {:skip, zipper, {[issue | issues], 0}}
