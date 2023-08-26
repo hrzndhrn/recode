@@ -49,7 +49,7 @@ in `mix.exs`:
 ```elixir
   def deps do
     [
-      {:recode, "~> 0.4", only: :dev}
+      {:recode, "~> 0.6", only: :dev}
     ]
   end
 ```
