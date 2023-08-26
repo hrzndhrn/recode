@@ -2,7 +2,7 @@ defmodule Recode.Task.IOInspect do
   @shortdoc "There should be no calls to IO.inspect."
 
   @moduledoc """
-  Calls to `IO.inspect/2/3` should only appear in debug sessions.
+  Calls to `IO.inspect/2` should only appear in debug sessions.
 
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
