@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.6.0 - dev
+## 0.6.0 - 2023/08/26
 
 + Add `Recode.Task.Dbg`.
 + Add `Recode.Task.FilterCount`.
 + Add `Recode.Task.IOInspect`.
++ Add `Recode.Task.Nesting`.
 + Add `Recode.Task.TagFIXME`.
 + Add `Recode.Task.TagTODO`.
 + Add mix task `recode.help`.
