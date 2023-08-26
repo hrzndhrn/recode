@@ -212,7 +212,7 @@ defmodule Recode.ContextTest do
           end)
         end)
 
-      assert output |> String.split("\n") |> Enum.count() == 221
+      assert output == File.read!("test/fixtures/context/vars.exs.output")
     end
 
     test "traveses module with vars named alias, import, etc.." do
@@ -233,7 +233,7 @@ defmodule Recode.ContextTest do
           end)
         end)
 
-      assert output |> String.split("\n") |> Enum.count() == 848
+      assert output == File.read!("test/fixtures/context/vars.ex.output")
     end
   end
 
