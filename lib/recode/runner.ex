@@ -7,7 +7,7 @@ defmodule Recode.Runner do
   @type opts :: keyword()
   @type task :: {module(), opts()}
 
-  @callback run(config) :: Rewrite.t()
+  @callback run(config) :: {:ok, integer()} | {:error, :no_source}
   @callback run(String.t(), config) :: String.t()
   @callback run(String.t(), config, Path.t()) :: String.t()
 

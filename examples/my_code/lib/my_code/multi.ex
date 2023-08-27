@@ -1,5 +1,4 @@
 defmodule MyCode.Multi do
-  @moduledoc false
 
   import MyCode.Fun
 

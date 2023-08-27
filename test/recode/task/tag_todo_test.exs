@@ -38,8 +38,21 @@ defmodule Recode.Task.TagTODOTest do
       |> refute_issues()
     end
 
+    test "does not triggers when doc tags are false" do
+      ~s'''
+      defmodule TODO do
+        @moduledoc false
+
+        @doc false
+        def todo(x), do: :TODO
+      end
+      '''
+      |> run_task(TagTODO, include_docs: true)
+      |> refute_issues()
+    end
+
     #
-    # cases NOT raising issues
+    # cases raising issues
     #
 
     test "triggers an issue for a tag in comment" do
@@ -58,6 +71,44 @@ defmodule Recode.Task.TagTODOTest do
         reporter: TagTODO,
         line: 6,
         message: "Found a tag: TODO: add spec"
+      )
+    end
+
+    test "triggers an issue for a tag in @moduledoc" do
+      ~s'''
+      defmodule TODO do
+        @moduledoc """
+        The TODO module
+        TODO: just do it
+        asdf
+        """
+
+        def todo(x), do: :TODO
+      end
+      '''
+      |> run_task(TagTODO, include_docs: true)
+      |> assert_issue_with(
+        reporter: TagTODO,
+        line: 4,
+        message: "Found a tag: TODO: just do it"
+      )
+    end
+
+    test "triggers an issue for a tag in @doc" do
+      ~s'''
+      defmodule TODO do
+        @doc """
+        TODO: just do it
+        asdf
+        """
+        def todo(x), do: :TODO
+      end
+      '''
+      |> run_task(TagTODO, include_docs: true)
+      |> assert_issue_with(
+        reporter: TagTODO,
+        line: 3,
+        message: "Found a tag: TODO: just do it"
       )
     end
   end

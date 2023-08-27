@@ -40,6 +40,7 @@ defmodule Recode.FormatterPlugin do
   @behaviour Mix.Tasks.Format
 
   alias Recode.Config
+  alias Recode.Runner
 
   @table :recode_formatter_plugin
 
@@ -63,7 +64,7 @@ defmodule Recode.FormatterPlugin do
 
     config = Keyword.put(config(), :dot_formatter_opts, formatter_opts)
 
-    Recode.Runner.run(content, config, file)
+    Runner.run(content, config, file)
   end
 
   defp config do
@@ -108,7 +109,7 @@ defmodule Recode.FormatterPlugin do
         config
 
       {:error, :out_of_date} ->
-        Mix.raise("The config is out of date. Run `mix recode.gen.config` to update.")
+        Mix.raise("The config is out of date. Run `mix recode.update.config` to update.")
 
       {:error, :no_tasks} ->
         Mix.raise("No `:tasks` key found in configuration.")

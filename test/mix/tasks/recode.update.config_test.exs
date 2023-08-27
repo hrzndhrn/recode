@@ -17,7 +17,9 @@ defmodule Mix.Tasks.Recode.Gen.UpdateTest do
       File.rm!(@config)
 
       assert config ==
-               Recode.Config.default() |> Keyword.put(:verbose, true) |> Recode.Config.to_string()
+               Recode.Config.default()
+               |> Keyword.put(:verbose, true)
+               |> Recode.Config.to_string()
     end
   end
 

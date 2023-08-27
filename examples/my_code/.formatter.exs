@@ -1,7 +1,7 @@
 [
   # plugins: [],
-  plugins: [Recode.FormatterPlugin],
-  # plugins: [FreedomFormatter],
+  # plugins: [Recode.FormatterPlugin],
+  plugins: [FreedomFormatter],
   # plugins: [FreedomFormatter, Recode.FormatterPlugin],
   trailing_comma: true,
   # recode: [

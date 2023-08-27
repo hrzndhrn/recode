@@ -10,7 +10,7 @@ alias Recode.Task
   # Can also be set/reset with "--verbose"/"--no-verbose".
   verbose: false,
   inputs: ["{config,lib,test}/**/*.{ex,exs}"],
-  formatter: {Recode.Formatter, []},
+  formatters: [Recode.CLIFormatter],
   tasks: [
     {Task.SinglePipe, []},
     {Task.PipeFunOne, []},

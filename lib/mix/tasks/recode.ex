@@ -38,11 +38,8 @@ defmodule Mix.Tasks.Recode do
   use Mix.Task
   use Recode.StopWatch
 
-  import Recode.IO
-
   alias Recode.Config
   alias Recode.Runner
-  alias Rewrite.Source
 
   @opts strict: [
           autocorrect: :boolean,
@@ -63,8 +60,7 @@ defmodule Mix.Tasks.Recode do
   @impl Mix.Task
   @spec run(list()) :: no_return()
   def run(opts) do
-    _stop_watch = StopWatch.init!()
-    StopWatch.start!(:recode)
+    _stop_watch = StopWatch.init(start: :recode)
 
     opts = opts!(opts)
 
@@ -80,27 +76,16 @@ defmodule Mix.Tasks.Recode do
       |> update(:verbose)
       |> put_debug(opts)
 
-    opts
-    |> Runner.run()
-    |> output(opts[:tasks])
-  end
+    case Runner.run(opts) do
+      {:ok, 0} ->
+        exit(:normal)
 
-  @spec output(Rewrite.t(), keyword()) :: no_return()
-  defp output(%Rewrite{sources: sources}, _opts) when map_size(sources) == 0 do
-    Mix.raise("No sources found")
-  end
+      {:ok, exit_code} ->
+        exit({:shutdown, exit_code})
 
-  defp output(%Rewrite{} = project, tasks) do
-    reason =
-      case Rewrite.issues?(project) do
-        false -> :normal
-        true -> {:shutdown, exit_code(project, tasks)}
-      end
-
-    time = (StopWatch.time!(:recode) / 1_000) |> Float.round(2) |> max(0.01)
-    puts([:info, "Finished in #{inspect(time)} seconds."])
-
-    exit(reason)
+      {:error, :no_sources} ->
+        Mix.raise("No sources found")
+    end
   end
 
   defp opts!(opts) do
@@ -108,19 +93,6 @@ defmodule Mix.Tasks.Recode do
       {opts, []} -> opts
       {opts, inputs} -> Keyword.put(opts, :inputs, inputs)
     end
-  end
-
-  defp exit_code(project, tasks) do
-    exit_codes =
-      Enum.into(tasks, %{}, fn {task, config} -> {task, Keyword.get(config, :exit_code, 1)} end)
-
-    Enum.reduce(Rewrite.sources(project), 0, fn source, exit_code ->
-      source
-      |> Source.issues()
-      |> Enum.reduce(exit_code, fn issue, exit_code ->
-        Bitwise.bor(exit_code, Map.get(exit_codes, issue.reporter, 1))
-      end)
-    end)
   end
 
   defp acc_tasks(opts) do
