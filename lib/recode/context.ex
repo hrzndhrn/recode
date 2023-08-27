@@ -105,7 +105,7 @@ defmodule Recode.Context do
           impl: {term() | nil, Macro.t()} | nil
         }
 
-  @type zipper :: Zipper.zipper()
+  @type zipper :: Zipper.t()
 
   @doc """
   Returns the current module of a context.
@@ -347,8 +347,7 @@ defmodule Recode.Context do
 
   defp do_traverse_sub(zipper, context, fun, [{key, value}]) do
     sub_context = Map.put(context, key, value)
-    sub_zipper = sub_zipper(zipper)
-    {%Zipper{node: ast}, %Context{assigns: assigns}} = run_traverse(sub_zipper, sub_context, fun)
+    {%Zipper{node: ast}, %Context{assigns: assigns}} = run_traverse(zipper, sub_context, fun)
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
     {:skip, zipper, context}
@@ -457,10 +456,9 @@ defmodule Recode.Context do
 
   defp do_traverse_sub(zipper, context, acc, fun, [{key, value}]) do
     sub_context = Map.put(context, key, value)
-    sub_zipper = sub_zipper(zipper)
 
     {%Zipper{node: ast}, {%Context{assigns: assigns}, acc}} =
-      run_traverse(sub_zipper, sub_context, acc, fun)
+      run_traverse(zipper, sub_context, acc, fun)
 
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
@@ -576,9 +574,6 @@ defmodule Recode.Context do
     {zipper, context, acc} = fun.(zipper, %Context{context | node: node}, acc)
     {:cont, zipper, {context, acc}}
   end
-
-  # TODO: do we need this?
-  defp sub_zipper(%Zipper{node: ast}), do: Zipper.zip(ast)
 
   defp find_alias(aliases, module) do
     Enum.find_value(aliases, :error, fn
