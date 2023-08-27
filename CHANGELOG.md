@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1 - 2023/08/27
+
++ Use `rewrite` version `~> 0.8`.
+
 ## 0.6.0 - 2023/08/26
 
 + Add `Recode.Task.Dbg`.

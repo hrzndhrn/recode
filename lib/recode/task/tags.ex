@@ -45,7 +45,7 @@ defmodule Recode.Task.Tags do
     Source.add_issues(source, issues)
   end
 
-  defp check_tags({{doc, _meta, args}, _zipper_meta} = zipper, issues, opts)
+  defp check_tags(%Zipper{node: {doc, _meta, args}} = zipper, issues, opts)
        when doc in [:moduledoc, :doc, :shortdoc] do
     issues =
       if opts[:include_docs] && doc?(args) do
@@ -60,7 +60,7 @@ defmodule Recode.Task.Tags do
     {zipper, issues}
   end
 
-  defp check_tags({{_op, meta, _args}, _zipper_meta} = zipper, issues, opts) do
+  defp check_tags(%Zipper{node: {_op, meta, _args}} = zipper, issues, opts) do
     issues =
       meta
       |> comments()

@@ -40,7 +40,7 @@ defmodule Recode.Task.AliasExpansion do
     end
   end
 
-  defp expand_alias({{:alias, meta, _args} = ast, _zipper_meta} = zipper, issues, true) do
+  defp expand_alias(%Zipper{node: {:alias, meta, _args} = ast} = zipper, issues, true) do
     newlines = newlines(meta)
 
     zipper =
@@ -59,7 +59,7 @@ defmodule Recode.Task.AliasExpansion do
     {zipper, issues}
   end
 
-  defp expand_alias({{:alias, meta, _args} = ast, _zipper_meta} = zipper, issues, false) do
+  defp expand_alias(%Zipper{node: {:alias, meta, _args} = ast} = zipper, issues, false) do
     issues =
       case extract(ast) do
         {:ok, _data} ->

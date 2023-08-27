@@ -55,11 +55,11 @@ defmodule Recode.Task.EnforceLineLength do
     Source.update(source, EnforceLineLength, :quoted, Zipper.root(zipper))
   end
 
-  defp same_line({{:with, _meta, _args}, _zipper_meta} = zipper, _opts) do
+  defp same_line(%Zipper{node: {:with, _meta, _args}} = zipper, _opts) do
     {:cont, zipper}
   end
 
-  defp same_line({{name, _meta, args}, _zipper_meta} = zipper, opts) when is_list(args) do
+  defp same_line(%Zipper{node: {name, _meta, args}} = zipper, opts) when is_list(args) do
     cond do
       name in opts[:skip] -> {:skip, zipper}
       name in opts[:ignore] -> {:cont, zipper}

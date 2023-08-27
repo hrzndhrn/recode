@@ -105,7 +105,7 @@ defmodule Recode.Context do
           impl: {term() | nil, Macro.t()} | nil
         }
 
-  @type zipper :: Zipper.zipper()
+  @type zipper :: Zipper.t()
 
   @doc """
   Returns the current module of a context.
@@ -228,7 +228,7 @@ defmodule Recode.Context do
   """
   @spec traverse(zipper(), fun) :: zipper()
         when fun: (zipper(), t() -> {zipper(), t()})
-  def traverse({_ast, _meta} = zipper, fun) when is_function(fun, 2) do
+  def traverse(zipper, fun) when is_function(fun, 2) do
     zipper
     |> run_traverse(%Context{}, fun)
     |> elem(0)
@@ -240,7 +240,7 @@ defmodule Recode.Context do
   @spec traverse(zipper(), acc, fun) :: {zipper(), acc}
         when acc: term(),
              fun: (zipper(), t(), acc -> {zipper(), t(), acc})
-  def traverse({_ast, _meta} = zipper, acc, fun) when is_function(fun, 3) do
+  def traverse(zipper, acc, fun) when is_function(fun, 3) do
     {zipper, {_context, acc}} = run_traverse(zipper, %Context{}, acc, fun)
     {zipper, acc}
   end
@@ -253,12 +253,12 @@ defmodule Recode.Context do
     end)
   end
 
-  defp do_traverse({{:@, _meta, _args} = attribute, _zipper_meta} = zipper, context, fun) do
+  defp do_traverse(%Zipper{node: {:@, _meta, _args} = attribute} = zipper, context, fun) do
     context = add_attribute(context, attribute)
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, fun)
+  defp do_traverse(%Zipper{node: {:alias, meta, args}} = zipper, context, fun)
        when not is_nil(args) do
     aliases = get_aliases(args, meta, context)
     context = add_aliases(context, aliases)
@@ -266,49 +266,54 @@ defmodule Recode.Context do
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:import, meta, [arg, opts]}, _} = zipper, context, fun) do
+  defp do_traverse(%Zipper{node: {:import, meta, [arg, opts]}} = zipper, context, fun) do
     import = get_alias(arg, context)
     context = add_import(context, {import, meta, opts})
 
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:import, meta, args}, _} = zipper, context, fun) when not is_nil(args) do
+  defp do_traverse(%Zipper{node: {:import, meta, args}} = zipper, context, fun)
+       when not is_nil(args) do
     imports = get_aliases(args, meta, context)
     context = add_imports(context, imports)
 
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:use, meta, [arg, opts]}, _} = zipper, context, fun) do
+  defp do_traverse(%Zipper{node: {:use, meta, [arg, opts]}} = zipper, context, fun) do
     use = get_alias(arg, context)
     context = add_use(context, {use, meta, opts})
 
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:use, meta, [arg]}, _} = zipper, context, fun) do
+  defp do_traverse(%Zipper{node: {:use, meta, [arg]}} = zipper, context, fun) do
     use = get_alias(arg, context)
     context = add_use(context, {use, meta, nil})
 
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:require, meta, [arg, opts]}, _} = zipper, context, fun) do
+  defp do_traverse(%Zipper{node: {:require, meta, [arg, opts]}} = zipper, context, fun) do
     require = get_alias(arg, context)
     context = add_require(context, {require, meta, opts})
 
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:require, meta, [arg]}, _} = zipper, context, fun) do
+  defp do_traverse(%Zipper{node: {:require, meta, [arg]}} = zipper, context, fun) do
     require = get_alias(arg, context)
     context = add_require(context, {require, meta, nil})
 
     cont(zipper, context, fun)
   end
 
-  defp do_traverse({{:defmodule, meta, [{:__aliases__, _, name} | _]}, _} = zipper, context, fun) do
+  defp do_traverse(
+         %Zipper{node: {:defmodule, meta, [{:__aliases__, _, name} | _]}} = zipper,
+         context,
+         fun
+       ) do
     case module(context, :meta) == meta do
       true ->
         cont(zipper, context, fun)
@@ -319,11 +324,11 @@ defmodule Recode.Context do
     end
   end
 
-  defp do_traverse({{:defimpl, _meta, _args}, _} = zipper, context, _fun) do
+  defp do_traverse(%Zipper{node: {:defimpl, _meta, _args}} = zipper, context, _fun) do
     {:skip, zipper, context}
   end
 
-  defp do_traverse({{definition, meta, args}, _} = zipper, context, fun)
+  defp do_traverse(%Zipper{node: {definition, meta, args}} = zipper, context, fun)
        when definition in [:def, :defp, :defmacro, :defmacrop] and not is_nil(args) do
     case definition(context, :meta) == meta do
       true ->
@@ -342,8 +347,7 @@ defmodule Recode.Context do
 
   defp do_traverse_sub(zipper, context, fun, [{key, value}]) do
     sub_context = Map.put(context, key, value)
-    sub_zipper = sub_zipper(zipper)
-    {{ast, _}, %Context{assigns: assigns}} = run_traverse(sub_zipper, sub_context, fun)
+    {%Zipper{node: ast}, %Context{assigns: assigns}} = run_traverse(zipper, sub_context, fun)
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
     {:skip, zipper, context}
@@ -357,12 +361,12 @@ defmodule Recode.Context do
     end)
   end
 
-  defp do_traverse({{:@, _meta, _args} = attribute, _zipper_meta} = zipper, context, acc, fun) do
+  defp do_traverse(%Zipper{node: {:@, _meta, _args} = attribute} = zipper, context, acc, fun) do
     context = add_attribute(context, attribute)
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:alias, meta, args}, _zipper_meta} = zipper, context, acc, fun)
+  defp do_traverse(%Zipper{node: {:alias, meta, args}} = zipper, context, acc, fun)
        when not is_nil(args) do
     aliases = get_aliases(args, meta, context)
     context = add_aliases(context, aliases)
@@ -370,14 +374,14 @@ defmodule Recode.Context do
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:import, meta, [arg, opts]}, _zipper_meta} = zipper, context, acc, fun) do
+  defp do_traverse(%Zipper{node: {:import, meta, [arg, opts]}} = zipper, context, acc, fun) do
     import = get_alias(arg, context)
     context = add_import(context, {import, meta, opts})
 
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:import, meta, args}, _} = zipper, context, acc, fun)
+  defp do_traverse(%Zipper{node: {:import, meta, args}} = zipper, context, acc, fun)
        when not is_nil(args) do
     imports = get_aliases(args, meta, context)
     context = add_imports(context, imports)
@@ -385,28 +389,28 @@ defmodule Recode.Context do
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:use, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
+  defp do_traverse(%Zipper{node: {:use, meta, [arg, opts]}} = zipper, context, acc, fun) do
     use = get_alias(arg, context)
     context = add_use(context, {use, meta, opts})
 
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:use, meta, [arg]}, _} = zipper, context, acc, fun) do
+  defp do_traverse(%Zipper{node: {:use, meta, [arg]}} = zipper, context, acc, fun) do
     use = get_alias(arg, context)
     context = add_use(context, {use, meta, nil})
 
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:require, meta, [arg, opts]}, _} = zipper, context, acc, fun) do
+  defp do_traverse(%Zipper{node: {:require, meta, [arg, opts]}} = zipper, context, acc, fun) do
     require = get_alias(arg, context)
     context = add_require(context, {require, meta, opts})
 
     cont(zipper, context, acc, fun)
   end
 
-  defp do_traverse({{:require, meta, [arg]}, _} = zipper, context, acc, fun) do
+  defp do_traverse(%Zipper{node: {:require, meta, [arg]}} = zipper, context, acc, fun) do
     require = get_alias(arg, context)
     context = add_require(context, {require, meta, nil})
 
@@ -414,7 +418,7 @@ defmodule Recode.Context do
   end
 
   defp do_traverse(
-         {{:defmodule, meta, [{:__aliases__, _, name} | _]}, _} = zipper,
+         %Zipper{node: {:defmodule, meta, [{:__aliases__, _, name} | _]}} = zipper,
          context,
          acc,
          fun
@@ -429,11 +433,11 @@ defmodule Recode.Context do
     end
   end
 
-  defp do_traverse({{:defimpl, _meta, _args}, _} = zipper, context, acc, _fun) do
+  defp do_traverse(%Zipper{node: {:defimpl, _meta, _args}} = zipper, context, acc, _fun) do
     {:skip, zipper, {context, acc}}
   end
 
-  defp do_traverse({{definition, meta, args}, _zipper_meta} = zipper, context, acc, fun)
+  defp do_traverse(%Zipper{node: {definition, meta, args}} = zipper, context, acc, fun)
        when definition in [:def, :defp, :defmacro, :defmacrop] and length(args) == 2 do
     case definition(context, :meta) == meta do
       true ->
@@ -452,10 +456,9 @@ defmodule Recode.Context do
 
   defp do_traverse_sub(zipper, context, acc, fun, [{key, value}]) do
     sub_context = Map.put(context, key, value)
-    sub_zipper = sub_zipper(zipper)
 
-    {{ast, _}, {%Context{assigns: assigns}, acc}} =
-      run_traverse(sub_zipper, sub_context, acc, fun)
+    {%Zipper{node: ast}, {%Context{assigns: assigns}, acc}} =
+      run_traverse(zipper, sub_context, acc, fun)
 
     zipper = Zipper.replace(zipper, ast)
     context = Context.assigns(context, assigns)
@@ -562,17 +565,15 @@ defmodule Recode.Context do
 
   defp get_aliases([arg, opts], meta, context), do: [{get_alias(arg, context), meta, opts}]
 
-  defp cont({node, _meta} = zipper, context, fun) do
+  defp cont(%Zipper{node: node} = zipper, context, fun) do
     {zipper, context} = fun.(zipper, %Context{context | node: node})
     {:cont, zipper, context}
   end
 
-  defp cont({node, _meta} = zipper, context, acc, fun) do
+  defp cont(%Zipper{node: node} = zipper, context, acc, fun) do
     {zipper, context, acc} = fun.(zipper, %Context{context | node: node}, acc)
     {:cont, zipper, {context, acc}}
   end
-
-  defp sub_zipper({ast, _meta}), do: {ast, nil}
 
   defp find_alias(aliases, module) do
     Enum.find_value(aliases, :error, fn

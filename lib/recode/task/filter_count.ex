@@ -47,13 +47,13 @@ defmodule Recode.Task.FilterCount do
   end
 
   defp filter_count(
-         {
-           {:|>, _,
-            [
-              {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [arg, fun]},
-              {{:., meta, [{:__aliases__, _, [:Enum]}, :count]}, _, []}
-            ]},
-           _zipper_meta
+         %Zipper{
+           node:
+             {:|>, _,
+              [
+                {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [arg, fun]},
+                {{:., meta, [{:__aliases__, _, [:Enum]}, :count]}, _, []}
+              ]}
          } = zipper,
          issues,
          autocorrect
@@ -66,17 +66,17 @@ defmodule Recode.Task.FilterCount do
   end
 
   defp filter_count(
-         {
-           {:|>, meta,
-            [
-              {:|>, _,
-               [
-                 {expr, _, _} = arg,
-                 {{:., issue_meta, [{:__aliases__, _, [:Enum]}, :filter]}, _, [fun]}
-               ]},
-              {{:., _, [{:__aliases__, _, [:Enum]}, :count]}, _, []}
-            ]},
-           _zipper_meta
+         %Zipper{
+           node:
+             {:|>, meta,
+              [
+                {:|>, _,
+                 [
+                   {expr, _, _} = arg,
+                   {{:., issue_meta, [{:__aliases__, _, [:Enum]}, :filter]}, _, [fun]}
+                 ]},
+                {{:., _, [{:__aliases__, _, [:Enum]}, :count]}, _, []}
+              ]}
          } = zipper,
          issues,
          autocorrect
@@ -104,13 +104,13 @@ defmodule Recode.Task.FilterCount do
   end
 
   defp filter_count(
-         {
-           {{:., _, [{:__aliases__, _, [:Enum]}, :count]}, _,
-            [
-              {:|>, meta,
-               [{expr, _, _} = arg, {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [fun]}]}
-            ]},
-           _zipper_meta
+         %Zipper{
+           node:
+             {{:., _, [{:__aliases__, _, [:Enum]}, :count]}, _,
+              [
+                {:|>, meta,
+                 [{expr, _, _} = arg, {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [fun]}]}
+              ]}
          } = zipper,
          issues,
          autocorrect
@@ -129,12 +129,12 @@ defmodule Recode.Task.FilterCount do
   end
 
   defp filter_count(
-         {
-           {{:., meta, [{:__aliases__, _, [:Enum]}, :count]}, _,
-            [
-              {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [arg, fun]}
-            ]},
-           _zipper_meta
+         %Zipper{
+           node:
+             {{:., meta, [{:__aliases__, _, [:Enum]}, :count]}, _,
+              [
+                {{:., _, [{:__aliases__, _, [:Enum]}, :filter]}, _, [arg, fun]}
+              ]}
          } = zipper,
          issues,
          autocorrect

@@ -47,21 +47,21 @@ defmodule Recode.Task.UnusedVariable do
   end
 
   defp prepend_unused_variable_with_underscore(
-         {{:=, _meta, [var, _other]}, _zipper_meta} = zipper,
+         %Zipper{node: {:=, _meta, [var, _other]}} = zipper,
          issues
        ) do
     process_unused(var, Zipper.top(zipper), zipper, issues)
   end
 
   defp prepend_unused_variable_with_underscore(
-         {{:def, _meta, [{_fun_name, _fun_meta, nil}, _content]}, _zipper_meta} = zipper,
+         %Zipper{node: {:def, _meta, [{_fun_name, _fun_meta, nil}, _content]}} = zipper,
          issues
        ) do
     {zipper, issues}
   end
 
   defp prepend_unused_variable_with_underscore(
-         {{:def, _meta, [{_fun_name, _fun_meta, params}, _content]}, _zipper_meta} = zipper,
+         %Zipper{node: {:def, _meta, [{_fun_name, _fun_meta, params}, _content]}} = zipper,
          issues
        ) do
     {fzipper, fissues} =
@@ -73,14 +73,14 @@ defmodule Recode.Task.UnusedVariable do
   end
 
   defp prepend_unused_variable_with_underscore(
-         {{:defp, _meta, [{_fun_name, _fun_meta, nil}, _content]}, _zipper_meta} = zipper,
+         %Zipper{node: {:defp, _meta, [{_fun_name, _fun_meta, nil}, _content]}} = zipper,
          issues
        ) do
     {zipper, issues}
   end
 
   defp prepend_unused_variable_with_underscore(
-         {{:defp, _meta, [{_fun_name, _fun_meta, params}, _content]}, _zipper_meta} = zipper,
+         %Zipper{node: {:defp, _meta, [{_fun_name, _fun_meta, params}, _content]}} = zipper,
          issues
        ) do
     {fzipper, fissues} =
@@ -91,12 +91,7 @@ defmodule Recode.Task.UnusedVariable do
     {fzipper, fissues}
   end
 
-  defp prepend_unused_variable_with_underscore(
-         zipper,
-         issues
-       ) do
-    {zipper, issues}
-  end
+  defp prepend_unused_variable_with_underscore(zipper, issues), do: {zipper, issues}
 
   defp add_underscore(zipper, var) do
     zipper
@@ -116,7 +111,7 @@ defmodule Recode.Task.UnusedVariable do
     else
       {_zipper, references} =
         Zipper.traverse(zipper, [], fn
-          {{^name, ref_metadata, _value} = ref, _zipper_meta} = zipper, references
+          %Zipper{node: {^name, ref_metadata, _value} = ref} = zipper, references
           when metadata != ref_metadata ->
             {zipper, [ref | references]}
 
