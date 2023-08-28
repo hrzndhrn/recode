@@ -8,12 +8,12 @@
   dry: false,
   # Can also be set/reset with `--verbose`/`--no-verbose`.
   verbose: false,
-  # Can be overwriten by calling `mix recode "lib/**/*.ex"`.
+  # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
   inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
-    # keyword list. A task can be deactived by `active: false`. The execution of
+    # keyword list. A task can be deactivated by `active: false`. The execution of
     # a deactivated task can be forced by calling `mix recode --task ModuleName`.
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
