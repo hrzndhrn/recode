@@ -68,12 +68,12 @@ defmodule Recode.Config do
       dry: <%= @config[:dry] %>,
       # Can also be set/reset with `--verbose`/`--no-verbose`.
       verbose: <%= @config[:verbose] %>,
-      # Can be overwriten by calling `mix recode "lib/**/*.ex"`.
+      # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
       inputs: <%= inspect @config[:inputs] %>,
       formatter: <%= inspect @config[:formatter] %>,
       tasks: [
         # Tasks could be added by a tuple of the tasks module name and an options
-        # keyword list. A task can be deactived by `active: false`. The execution of
+        # keyword list. A task can be deactivated by `active: false`. The execution of
         # a deactivated task can be forced by calling `mix recode --task ModuleName`.
         <%= for task <- @config[:tasks] do %><%= inspect task %>,
         <% end %>

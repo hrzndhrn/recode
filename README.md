@@ -94,12 +94,12 @@ This mix task generates the config file `.recode.exs`.
   dry: false,
   # Can also be set/reset with `--verbose`/`--no-verbose`.
   verbose: false,
-  # Can be overwriten by calling `mix recode "lib/**/*.ex"`.
+  # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
   inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
   formatter: {Recode.Formatter, []},
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
-    # keyword list. A task can be deactived by `active: false`. The execution of
+    # keyword list. A task can be deactivated by `active: false`. The execution of
     # a deactivated task can be forced by calling `mix recode --task ModuleName`.
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
@@ -214,7 +214,7 @@ Changed by: PipeFunOne
  File: lib/my_code/same_line.ex
 [Specs 2/3] Functions should have a @spec type specification.
 
- File: lib/my_code/singel_pipe.ex
+ File: lib/my_code/single_pipe.ex
 Updates: 1
 Changed by: SinglePipe
      ...|
@@ -271,7 +271,7 @@ Found 11 files, including 2 scripts.
  File: lib/my_code/pipe_fun_one.ex
 [PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
 
- File: lib/my_code/singel_pipe.ex
+ File: lib/my_code/single_pipe.ex
 [SinglePipe 7/7] Use a function call when a pipeline is only one function long.
 [SinglePipe 10/25] Use a function call when a pipeline is only one function long.
 
