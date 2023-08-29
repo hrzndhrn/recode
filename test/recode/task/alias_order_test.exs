@@ -1,7 +1,9 @@
 defmodule Recode.Task.AliasOrderTest do
   use RecodeCase
 
+  alias Rewrite.Source
   alias Recode.Task.AliasOrder
+  alias Recode.Task.DirectiveOrder
 
   test "keeps a single alias" do
     """
