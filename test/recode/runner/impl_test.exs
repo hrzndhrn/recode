@@ -40,6 +40,20 @@ defmodule Recode.Runner.ImplTest do
       end)
     end
 
+    test "runs tasks from config (check: false)", %{config: config} do
+      config =
+        Keyword.merge(config,
+          dry: true,
+          autocorrect: true,
+          check: false,
+          tasks: [{SinglePipe, []}]
+        )
+
+      capture_io(fn ->
+        assert %Rewrite{} = Runner.run(config)
+      end)
+    end
+
     test "runs task with the right config", %{config: config} do
       TaskMock
       |> expect(:run, fn source, config ->
