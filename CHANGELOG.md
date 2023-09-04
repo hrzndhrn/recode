@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.2 - 2023/09/04
+
++ Fix runner impl for `mix format`.
++ Fix typos.
+
 ## 0.6.1 - 2023/08/27
 
 + Use `rewrite` version `~> 0.8`.
