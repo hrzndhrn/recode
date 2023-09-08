@@ -21,7 +21,8 @@ defmodule Recode.IO do
     ins: :green,
     issue: :cyan,
     line_num: :color244,
-    warn: :orange
+    warn: :orange,
+    debug: :aqua
   }
 
   @type chardata :: String.t() | maybe_improper_list(char | chardata, String.t() | [])
