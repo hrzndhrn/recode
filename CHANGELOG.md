@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3 - 2023/09/15
+
++ Fix `Recode.FormatterPlugin`.
+
 ## 0.6.2 - 2023/09/04
 
 + Fix runner impl for `mix format`.

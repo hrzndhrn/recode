@@ -442,4 +442,78 @@ defmodule Recode.Task.EnforceLineLengthTest do
     |> run_task(EnforceLineLength, skip: [:assert_raise])
     |> assert_code(expected)
   end
+
+  test "issue 73-1" do
+    code = """
+    defmodule TestModule do
+      defp send_to_api(types, token) do
+        types
+        |> Enum.map(fn type ->
+          Common.request(type, fn et ->
+            ApiEstablishmentTypes.upsert(token, et)
+          end)
+        end)
+      end
+    end
+    """
+
+    expected = """
+    defmodule TestModule do
+      defp send_to_api(types, token) do
+        types
+        |> Enum.map(fn type ->
+          Common.request(type, fn et -> ApiEstablishmentTypes.upsert(token, et) end)
+        end)
+      end
+    end
+    """
+
+    code
+    |> run_task(EnforceLineLength)
+    |> assert_code(expected)
+  end
+
+  test "issue 73-2" do
+    code = """
+    alias Recode.Task
+
+    [
+      # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
+      autocorrect: true,
+      # With "--dry" no changes will be written to the files.
+      # Can also be set/reset with "--dry"/"--no-dry".
+      # If dry is true then verbose is also active.
+      dry: false,
+      # Can also be set/reset with "--verbose"/"--no-verbose".
+      verbose: false,
+      inputs: ["{config,lib,test}/**/*.{ex,exs}"],
+      formatter: {Recode.Formatter, []},
+      tasks: [
+        {Task.AliasOrder, []}
+      ]
+    ]
+    """
+
+    expected = """
+    alias Recode.Task
+
+    [
+      # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
+      autocorrect: true,
+      # With "--dry" no changes will be written to the files.
+      # Can also be set/reset with "--dry"/"--no-dry".
+      # If dry is true then verbose is also active.
+      dry: false,
+      # Can also be set/reset with "--verbose"/"--no-verbose".
+      verbose: false,
+      inputs: ["{config,lib,test}/**/*.{ex,exs}"],
+      formatter: {Recode.Formatter, []},
+      tasks: [{Task.AliasOrder, []}]
+    ]
+    """
+
+    code
+    |> run_task(EnforceLineLength)
+    |> assert_code(expected)
+  end
 end

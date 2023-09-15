@@ -47,7 +47,6 @@ defmodule Recode.FormatterPlugin do
   def features(opts) do
     # This callback will be applied for every file the Elixir formater wants to
     # format. All calls comming from one Process.
-    # Here it is a little misappropriated as `&init/1`.
     _ref = init(opts)
 
     [extensions: [".ex", ".exs"]]

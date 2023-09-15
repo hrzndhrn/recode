@@ -18,7 +18,7 @@
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
     {Recode.Task.Dbg, [autocorrect: false]},
-    {Recode.Task.EnforceLineLength, [active: false]},
+    {Recode.Task.EnforceLineLength, [active: true]},
     {Recode.Task.FilterCount, []},
     {Recode.Task.IOInspect, [autocorrect: false]},
     {Recode.Task.Nesting, []},
