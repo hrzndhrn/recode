@@ -229,8 +229,6 @@ defmodule Recode.Task.AliasOrder do
     Zipper.find(zipper, :prev, fn item -> item == ast end)
   end
 
-  # NOTE: Will be obsolete when the PR is accepted in the sourceror repo.
-  #       The PR will fix Zipper.skip/2
   defp skip(zipper) do
     with nil <- Zipper.right(zipper) do
       Zipper.next(zipper)

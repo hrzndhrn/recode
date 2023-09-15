@@ -15,7 +15,7 @@ defmodule Recode.Runner.Impl do
   end
 
   @impl true
-  def run(content, config, path \\ "source.xe") do
+  def run(content, config, path \\ "source.ex") do
     source = Source.Ex.from_string(content, path)
 
     config
@@ -139,7 +139,10 @@ defmodule Recode.Runner.Impl do
 
         stdin |> Source.Ex.from_string("nofile") |> List.wrap() |> Rewrite.from_sources!()
       else
-        Rewrite.new!(inputs)
+        Rewrite.new!(inputs, [
+          {Source, owner: Recode},
+          {Source.Ex, exclude_plugins: Recode.FormatterPlugin}
+        ])
       end
     end
   end

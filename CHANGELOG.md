@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.3 - 2023/09/15
+
++ Fix `Recode.FormatterPlugin`.
++ Add switch `--debug` (for now undocumented).
+
 ## 0.6.2 - 2023/09/04
 
 + Fix runner impl for `mix format`.

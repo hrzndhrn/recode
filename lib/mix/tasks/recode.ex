@@ -47,6 +47,7 @@ defmodule Mix.Tasks.Recode do
   @opts strict: [
           autocorrect: :boolean,
           config: :string,
+          debug: :boolean,
           dry: :boolean,
           task: :keep,
           verbose: :boolean
@@ -77,6 +78,7 @@ defmodule Mix.Tasks.Recode do
       |> Keyword.merge(Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs]))
       |> Keyword.put(:cli_opts, acc_tasks(opts))
       |> update(:verbose)
+      |> put_debug(opts)
 
     opts
     |> Runner.run()
@@ -197,5 +199,10 @@ defmodule Mix.Tasks.Recode do
       true -> Keyword.put(opts, :verbose, true)
       false -> opts
     end
+  end
+
+  defp put_debug(config, opts) do
+    debug = Keyword.get(opts, :debug, false)
+    Keyword.put(config, :debug, debug)
   end
 end

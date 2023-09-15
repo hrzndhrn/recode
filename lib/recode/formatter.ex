@@ -57,8 +57,12 @@ defmodule Recode.Formatter do
           {Source.t(), module, keyword()},
           opts :: keyword()
         ) :: any()
-  def format(:task, {_project, _config}, {_source, _task_module, _task_opts}, _opts) do
-    write(".")
+  def format(:task, {_project, config}, {source, task_module, _task_opts}, _opts) do
+    if config[:debug] do
+      puts([:aqua, "Run #{task_module} with #{source.path}."])
+    else
+      write(".")
+    end
   end
 
   defp counts(project) do

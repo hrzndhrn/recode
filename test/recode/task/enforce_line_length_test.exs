@@ -442,4 +442,64 @@ defmodule Recode.Task.EnforceLineLengthTest do
     |> run_task(EnforceLineLength, skip: [:assert_raise])
     |> assert_code(expected)
   end
+
+  test "formats nested anonymous fn" do
+    code = """
+    defmodule TestModule do
+      defp send_to_api(types, token) do
+        types
+        |> Enum.map(fn type ->
+          Common.request(type, fn et ->
+            ApiEstablishmentTypes.upsert(token, et)
+          end)
+        end)
+      end
+    end
+    """
+
+    expected = """
+    defmodule TestModule do
+      defp send_to_api(types, token) do
+        types
+        |> Enum.map(fn type ->
+          Common.request(type, fn et -> ApiEstablishmentTypes.upsert(token, et) end)
+        end)
+      end
+    end
+    """
+
+    code
+    |> run_task(EnforceLineLength)
+    |> assert_code(expected)
+  end
+
+  test "formats in keyword list" do
+    code = """
+    alias Recode.Task
+
+    [
+      verbose: false,
+      inputs: ["{config,lib,test}/**/*.{ex,exs}"],
+      formatter: {Recode.Formatter, []},
+      tasks: [
+        {Task.AliasOrder, []}
+      ]
+    ]
+    """
+
+    expected = """
+    alias Recode.Task
+
+    [
+      verbose: false,
+      inputs: ["{config,lib,test}/**/*.{ex,exs}"],
+      formatter: {Recode.Formatter, []},
+      tasks: [{Task.AliasOrder, []}]
+    ]
+    """
+
+    code
+    |> run_task(EnforceLineLength)
+    |> assert_code(expected)
+  end
 end
