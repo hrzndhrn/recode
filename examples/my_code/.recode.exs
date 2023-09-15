@@ -17,17 +17,17 @@
     # a deactivated task can be forced by calling `mix recode --task ModuleName`.
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
-    {Recode.Task.Dbg, [autocorrect: false]},
-    {Recode.Task.EnforceLineLength, [active: true]},
+    {Recode.Task.Dbg, autocorrect: false},
+    {Recode.Task.EnforceLineLength, active: true, exclude: "mix.exs"},
     {Recode.Task.FilterCount, []},
-    {Recode.Task.IOInspect, [autocorrect: false]},
+    {Recode.Task.IOInspect, autocorrect: false},
     {Recode.Task.Nesting, []},
     {Recode.Task.PipeFunOne, []},
     {Recode.Task.SinglePipe, []},
-    {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
-    {Recode.Task.TagFIXME, [exit_code: 2]},
-    {Recode.Task.TagTODO, [exit_code: 4]},
+    {Recode.Task.Specs, exclude: "test/**/*.{ex,exs}", config: [only: :visible]},
+    {Recode.Task.TagFIXME, exit_code: 2},
+    {Recode.Task.TagTODO, exit_code: 4},
     {Recode.Task.TestFileExt, []},
-    {Recode.Task.UnusedVariable, [active: false]}
+    {Recode.Task.UnusedVariable, active: false}
   ]
 ]

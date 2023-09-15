@@ -139,7 +139,10 @@ defmodule Recode.Runner.Impl do
 
         stdin |> Source.Ex.from_string("nofile") |> List.wrap() |> Rewrite.from_sources!()
       else
-        Rewrite.new!(inputs, [{Source, owner: Recode},{Source.Ex, exclude_plugins: Recode.FormatterPlugin}])
+        Rewrite.new!(inputs, [
+          {Source, owner: Recode},
+          {Source.Ex, exclude_plugins: Recode.FormatterPlugin}
+        ])
       end
     end
   end

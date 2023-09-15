@@ -54,6 +54,8 @@ defmodule Recode.FormatterPlugin do
 
   @impl true
   def format(content, formatter_opts) do
+    file = formatter_opts |> Keyword.get(:file, "source.ex") |> Path.relative_to_cwd()
+
     formatter_opts =
       Keyword.update(formatter_opts, :plugins, [], fn plugins ->
         Enum.reject(plugins, fn plugin -> plugin == Recode.FormatterPlugin end)
@@ -61,7 +63,7 @@ defmodule Recode.FormatterPlugin do
 
     config = Keyword.put(config(), :dot_formatter_opts, formatter_opts)
 
-    Recode.Runner.run(content, config)
+    Recode.Runner.run(content, config, file)
   end
 
   defp config do
