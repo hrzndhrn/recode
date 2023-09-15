@@ -11,6 +11,7 @@ defmodule Recode.MixProject do
       elixir: "~> 1.13",
       name: "Recode",
       description: description(),
+      elixirc_paths: elixirc_paths(),
       docs: docs(),
       source_url: @source_url,
       start_permanent: Mix.env() == :prod,
@@ -31,6 +32,13 @@ defmodule Recode.MixProject do
 
   defp description do
     "An experimental linter with autocorrection."
+  end
+
+  defp elixirc_paths do
+    case Mix.env() do
+      :test -> ["lib", "test/support"]
+      _env -> ["lib"]
+    end
   end
 
   defp docs do
