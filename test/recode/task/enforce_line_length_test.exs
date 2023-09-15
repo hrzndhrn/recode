@@ -443,7 +443,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     |> assert_code(expected)
   end
 
-  test "issue 73-1" do
+  test "formats nested anonymous fn" do
     code = """
     defmodule TestModule do
       defp send_to_api(types, token) do
@@ -473,18 +473,11 @@ defmodule Recode.Task.EnforceLineLengthTest do
     |> assert_code(expected)
   end
 
-  test "issue 73-2" do
+  test "formats in keyword list" do
     code = """
     alias Recode.Task
 
     [
-      # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
-      autocorrect: true,
-      # With "--dry" no changes will be written to the files.
-      # Can also be set/reset with "--dry"/"--no-dry".
-      # If dry is true then verbose is also active.
-      dry: false,
-      # Can also be set/reset with "--verbose"/"--no-verbose".
       verbose: false,
       inputs: ["{config,lib,test}/**/*.{ex,exs}"],
       formatter: {Recode.Formatter, []},
@@ -498,13 +491,6 @@ defmodule Recode.Task.EnforceLineLengthTest do
     alias Recode.Task
 
     [
-      # Can also be set/reset with "--autocorrect"/"--no-autocorrect".
-      autocorrect: true,
-      # With "--dry" no changes will be written to the files.
-      # Can also be set/reset with "--dry"/"--no-dry".
-      # If dry is true then verbose is also active.
-      dry: false,
-      # Can also be set/reset with "--verbose"/"--no-verbose".
       verbose: false,
       inputs: ["{config,lib,test}/**/*.{ex,exs}"],
       formatter: {Recode.Formatter, []},
