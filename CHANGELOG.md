@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.4 - 2023/09/15
+
++ Fix `exclude_plugins` arg.
+
 ## 0.6.3 - 2023/09/15
 
 + Fix `Recode.FormatterPlugin`.
