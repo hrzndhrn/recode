@@ -141,7 +141,7 @@ defmodule Recode.Runner.Impl do
       else
         Rewrite.new!(inputs, [
           {Source, owner: Recode},
-          {Source.Ex, exclude_plugins: Recode.FormatterPlugin}
+          {Source.Ex, exclude_plugins: [Recode.FormatterPlugin]}
         ])
       end
     end
