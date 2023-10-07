@@ -6,8 +6,8 @@ defmodule Recode.Runner.ImplTest do
 
   alias Recode.Runner.Impl, as: Runner
   alias Recode.StopWatch
-  alias Recode.Task.SinglePipe
   alias Recode.Task.AliasOrder
+  alias Recode.Task.SinglePipe
   alias Recode.TaskMock
 
   @task_config __recode_task_config__: [checker: true, corrector: true]
