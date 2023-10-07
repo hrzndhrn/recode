@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0 - dev
+
++ Refactor formatter.
+
 ## 0.6.4 - 2023/09/15
 
 + Fix `exclude_plugins` arg.

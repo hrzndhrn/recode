@@ -74,8 +74,6 @@ defmodule Recode.Task.Tags do
 
   defp doc?([{:__block__, _meta, [text]}]), do: text != false
 
-  defp doc?(_expr), do: false
-
   defp doc([{:__block__, meta, [text]}]) do
     doc = Keyword.put(meta, :text, text)
 

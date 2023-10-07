@@ -15,7 +15,7 @@ defmodule Recode.Config do
   # breaking change for handle the config.
   @config_min_version "0.6.0"
 
-  @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatter, :tasks]
+  @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks]
 
   # The default configuration used by mix tasks recode.gen.config and
   # recode.update.config.
@@ -25,7 +25,7 @@ defmodule Recode.Config do
     dry: false,
     verbose: false,
     inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
-    formatter: {Recode.Formatter, []},
+    formatters: [Recode.CLIFormatter],
     tasks: [
       {Recode.Task.AliasExpansion, []},
       {Recode.Task.AliasOrder, []},
@@ -97,8 +97,8 @@ defmodule Recode.Config do
 
       iex> new = [version: "0.0.2", verbose: false, autocorrect: true]
       ...> old = [version: "0.0.1", verbose: true]
-      iex> Recode.Config.merge(new ,old)
-      [{:autocorrect, true}, {:verbose, true}, {:version, "0.0.2"}]
+      iex> Recode.Config.merge(new ,old) |> Enum.sort()
+      [autocorrect: true, verbose: true, version: "0.0.2"]
   """
   def merge(left \\ default(), right) do
     left
@@ -107,17 +107,22 @@ defmodule Recode.Config do
       :tasks, left, right -> merge_tasks(left, right)
       _, _, value -> value
     end)
-    |> Enum.sort()
   end
 
   defp merge_tasks(left, right) do
     left
     |> Keyword.merge(right, fn
-      :config, left, right -> left |> Keyword.merge(right) |> Enum.sort()
-      _, value, [] -> value
-      _, _, value -> value
+      _key, left, [] -> left
+      _key, left, right -> merge_task_config(left, right)
     end)
     |> Enum.sort()
+  end
+
+  defp merge_task_config(left, right) do
+    Keyword.merge(left, right, fn
+      :config, left, right -> left |> Keyword.merge(right) |> Enum.sort()
+      _key, _left, right -> right
+    end)
   end
 
   @doc """

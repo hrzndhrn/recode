@@ -50,7 +50,7 @@ defmodule Recode.ConfigTest do
         ]
       ]
 
-      assert Config.merge(new, old) == [
+      assert new |> Config.merge(old) |> Enum.sort() == [
                autocorrect: true,
                tasks: [
                  {MyApp.RecodeTask, []},
@@ -66,6 +66,26 @@ defmodule Recode.ConfigTest do
                ],
                verbose: true,
                version: "0.0.2"
+             ]
+    end
+
+    test "merges task config" do
+      old = [
+        tasks: [
+          {Test, config: [a: 1, b: 2, c: 3]}
+        ]
+      ]
+
+      new = [
+        tasks: [
+          {Test, config: [b: 2, c: 9, d: 4]}
+        ]
+      ]
+
+      assert Config.merge(new, old) == [
+               tasks: [
+                 {Test, [config: [a: 1, b: 2, c: 3, d: 4]]}
+               ]
              ]
     end
   end

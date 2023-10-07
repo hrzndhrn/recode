@@ -1,46 +1,53 @@
 defmodule Recode.Runner.Impl do
   @moduledoc false
 
+  use Recode.StopWatch
+
   @behaviour Recode.Runner
 
+  alias Recode.EventManager
   alias Recode.Issue
   alias Recode.Task
   alias Rewrite.Source
 
   @impl true
   def run(config) when is_list(config) do
-    config
-    |> tasks()
-    |> do_run(update_config(config))
+    tasks = tasks(config)
+
+    config =
+      config
+      |> update_config()
+      |> start_event_manager()
+
+    project =
+      config
+      |> project()
+      |> notify(:prepared, config, StopWatch.time(:recode))
+
+    tasks
+    |> update_opts(config)
+    |> correctors_first()
+    |> run_tasks(project, config)
+    |> notify(:tasks_finished, config)
+    |> tap(fn project -> write(project, config) end)
+    |> notify(:finished, config, StopWatch.time(:recode))
+    |> tap(fn _project -> stop_event_manager(config) end)
+    |> then(fn project ->
+      case Enum.empty?(project) do
+        true -> {:error, :no_sources}
+        false -> {:ok, exit_code(project, tasks)}
+      end
+    end)
   end
 
   @impl true
   def run(content, config, path \\ "source.ex") do
+    tasks = tasks(config)
+
+    config = update_config(config)
+
     source = Source.Ex.from_string(content, path)
 
-    config
-    |> tasks()
-    |> do_run(update_config(config), source)
-    |> Source.get(:content)
-    |> eof()
-  end
-
-  defp do_run(tasks, config) do
-    project =
-      config
-      |> project()
-      |> format(:project, config)
-
-    tasks
-    |> update_opts(config)
-    |> correst_first()
-    |> run_tasks(project, config)
-    |> format(:tasks_ready, config)
-    |> format(:results, config)
-    |> tap(fn project -> write(project, config) end)
-  end
-
-  def do_run(tasks, config, source) do
     tasks
     |> update_opts(config)
     |> Enum.reduce(source, fn {module, opts}, source ->
@@ -49,26 +56,57 @@ defmodule Recode.Runner.Impl do
         false -> module.run(source, opts)
       end
     end)
+    |> Source.get(:content)
+    |> eof()
   end
 
-  defp run_tasks(tasks, project, config) do
-    tasks
-    |> filter(get_cli_opts(config, :tasks, []))
-    |> Enum.reduce(project, fn {module, opts}, project ->
-      Rewrite.map!(project, fn source ->
-        run_task(source, project, config, module, opts)
+  defp exit_code(project, tasks) do
+    exit_codes =
+      Enum.into(tasks, %{}, fn {task, config} -> {task, Keyword.get(config, :exit_code, 1)} end)
+
+    Enum.reduce(Rewrite.sources(project), 0, fn source, exit_code ->
+      source
+      |> Source.issues()
+      |> Enum.reduce(exit_code, fn issue, exit_code ->
+        Bitwise.bor(exit_code, Map.get(exit_codes, issue.reporter, 1))
       end)
     end)
   end
 
-  defp run_task(source, project, config, module, opts) do
+  defp start_event_manager(config) do
+    {:ok, event_manager} = EventManager.start_link()
+
+    for formatter <- Keyword.fetch!(config, :formatters) do
+      with {:error, error} <- EventManager.add_handler(event_manager, formatter, config) do
+        raise "Can not initialise formatter #{inspect(formatter)}. reason: #{inspect(error)}"
+      end
+    end
+
+    Keyword.put(config, :event_manager, event_manager)
+  end
+
+  defp stop_event_manager(config) do
+    config |> event_manager() |> EventManager.stop()
+  end
+
+  defp run_tasks(tasks, project, config) do
+    Enum.reduce(tasks, project, fn {module, opts}, project ->
+      Rewrite.map!(project, fn source ->
+        run_task(source, config, module, opts)
+      end)
+    end)
+  end
+
+  defp run_task(source, config, module, opts) do
     case exclude?(module, source, config) do
       true ->
         source
 
       false ->
-        _project = format(project, :task, config, {source, module, opts})
-        module.run(source, opts)
+        source
+        |> notify(:task_started, config, module)
+        |> module.run(opts)
+        |> notify(:task_finished, config, module)
     end
   rescue
     error ->
@@ -95,55 +133,36 @@ defmodule Recode.Runner.Impl do
     |> Keyword.get(key, default)
   end
 
-  defp filter(tasks, []), do: tasks
-
-  defp filter(tasks, selected) do
-    Enum.reduce(tasks, [], fn {module, opts}, acc ->
-      name = inspect(module)
-      take = Enum.any?(selected, fn item -> String.ends_with?(name, ".#{item}") end)
-
-      case take do
-        true -> [{module, Keyword.delete(opts, :active)} | acc]
-        false -> acc
-      end
-    end)
+  defp notify(data, event, config) when is_atom(event) do
+    notify(data, {event, data}, config)
   end
 
-  defp format(%Rewrite{} = project, label, config, info \\ nil) do
-    case Keyword.fetch(config, :formatter) do
-      {:ok, {formatter, opts}} ->
-        do_format(formatter, label, project, opts, config, info)
-        project
+  defp notify(data, event, config) do
+    config
+    |> event_manager()
+    |> EventManager.notify(event)
 
-      :error ->
-        project
-    end
+    data
   end
 
-  defp do_format(formatter, label, project, opts, config, nil) do
-    formatter.format(label, {project, config}, opts)
+  defp notify(data, event, config, time) when is_atom(event) do
+    notify(data, {event, data, time}, config)
   end
 
-  defp do_format(formatter, label, project, opts, config, info) do
-    formatter.format(label, {project, config}, info, opts)
-  end
+  defp event_manager(config), do: Keyword.fetch!(config, :event_manager)
 
   defp project(config) do
-    if Keyword.has_key?(config, :project) do
-      config[:project]
+    inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
+
+    if inputs == ["-"] do
+      stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
+
+      stdin |> Source.Ex.from_string("nofile") |> List.wrap() |> Rewrite.from_sources!()
     else
-      inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
-
-      if inputs == ["-"] do
-        stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
-
-        stdin |> Source.Ex.from_string("nofile") |> List.wrap() |> Rewrite.from_sources!()
-      else
-        Rewrite.new!(inputs, [
-          {Source, owner: Recode},
-          {Source.Ex, exclude_plugins: [Recode.FormatterPlugin]}
-        ])
-      end
+      Rewrite.new!(inputs, [
+        {Source, owner: Recode},
+        {Source.Ex, exclude_plugins: [Recode.FormatterPlugin]}
+      ])
     end
   end
 
@@ -160,31 +179,52 @@ defmodule Recode.Runner.Impl do
   defp tasks(config) do
     config
     |> Keyword.fetch!(:tasks)
-    |> tasks(:active)
-    |> tasks(:autocorrect, config[:autocorrect])
-    |> tasks(:check, Keyword.get(config, :check, true))
+    |> tasks_selected(get_cli_opts(config, :tasks, []))
+    |> tasks_active()
+    |> tasks_autocorrect(config[:autocorrect])
+    |> tasks_check(config[:check])
   end
 
-  defp tasks(tasks, :autocorrect, autocorrect) do
+  defp tasks_selected(tasks, []), do: tasks
+
+  defp tasks_selected(tasks, selected) do
+    tasks
+    |> Enum.reduce([], tasks_selected(selected))
+    |> Enum.reverse()
+  end
+
+  defp tasks_selected(selected) do
+    fn {module, opts}, acc ->
+      name = inspect(module)
+      take = Enum.any?(selected, fn item -> String.ends_with?(name, ".#{item}") end)
+
+      case take do
+        true -> [{module, Keyword.delete(opts, :active)} | acc]
+        false -> acc
+      end
+    end
+  end
+
+  defp tasks_autocorrect(tasks, autocorrect) do
     case autocorrect do
       false -> Enum.filter(tasks, fn {task, _opts} -> Task.checker?(task) end)
       true -> tasks
     end
   end
 
-  defp tasks(tasks, :check, false) do
+  defp tasks_check(tasks, false) do
     Enum.reject(tasks, fn {task, _opts} ->
       Task.checker?(task) && !Task.corrector?(task)
     end)
   end
 
-  defp tasks(tasks, :check, true), do: tasks
+  defp tasks_check(tasks, _truthy), do: tasks
 
-  defp tasks(tasks, :active) do
+  defp tasks_active(tasks) do
     Enum.filter(tasks, fn {_task, config} -> Keyword.get(config, :active, true) end)
   end
 
-  defp correst_first(tasks) do
+  defp correctors_first(tasks) do
     groups =
       Enum.group_by(tasks, fn {task, opts} ->
         Task.corrector?(task) && Keyword.get(opts, :autocorrect)

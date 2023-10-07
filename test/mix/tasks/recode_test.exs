@@ -12,7 +12,7 @@ defmodule Mix.Tasks.RecodeTest do
   test "mix recode --config test/fixtures/config.exs" do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
-      ":test" |> source("test.exs") |> project()
+      {:ok, 0}
     end)
 
     capture_io(fn ->
@@ -24,7 +24,7 @@ defmodule Mix.Tasks.RecodeTest do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:verbose] == true
-      ":test" |> source("test.exs") |> project()
+      {:ok, 0}
     end)
 
     capture_io(fn ->
@@ -37,8 +37,7 @@ defmodule Mix.Tasks.RecodeTest do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:inputs] == ["-"]
-
-      ":test" |> source("test.exs") |> project()
+      {:ok, 0}
     end)
 
     capture_io(fn ->
@@ -51,8 +50,7 @@ defmodule Mix.Tasks.RecodeTest do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:inputs] == ["file_1.ex", "file_2.ex"]
-
-      ":test" |> source("test.exs") |> project()
+      {:ok, 0}
     end)
 
     capture_io(fn ->
