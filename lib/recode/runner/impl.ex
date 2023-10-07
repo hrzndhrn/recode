@@ -1,17 +1,16 @@
 defmodule Recode.Runner.Impl do
   @moduledoc false
 
-  use Recode.StopWatch
-
   @behaviour Recode.Runner
 
   alias Recode.EventManager
   alias Recode.Issue
-  alias Recode.Task
   alias Rewrite.Source
 
   @impl true
   def run(config) when is_list(config) do
+    start_recode = time()
+
     tasks = tasks(config)
 
     config =
@@ -22,15 +21,17 @@ defmodule Recode.Runner.Impl do
     project =
       config
       |> project()
-      |> notify(:prepared, config, StopWatch.time(:recode))
+      |> notify(:prepared, config, time(start_recode))
+
+    start_tasks = time()
 
     tasks
     |> update_opts(config)
     |> correctors_first()
     |> run_tasks(project, config)
-    |> notify(:tasks_finished, config)
+    |> notify(:tasks_finished, config, time(start_tasks))
     |> tap(fn project -> write(project, config) end)
-    |> notify(:finished, config, StopWatch.time(:recode))
+    |> notify(:finished, config, time(start_recode))
     |> tap(fn _project -> stop_event_manager(config) end)
     |> then(fn project ->
       case Enum.empty?(project) do
@@ -50,6 +51,7 @@ defmodule Recode.Runner.Impl do
 
     tasks
     |> update_opts(config)
+    |> correctors_first()
     |> Enum.reduce(source, fn {module, opts}, source ->
       case exclude?(module, source, config) do
         true -> source
@@ -90,23 +92,57 @@ defmodule Recode.Runner.Impl do
   end
 
   defp run_tasks(tasks, project, config) do
-    Enum.reduce(tasks, project, fn {module, opts}, project ->
-      Rewrite.map!(project, fn source ->
-        run_task(source, config, module, opts)
-      end)
-    end)
+    sources = sources(project)
+    runner = runner(tasks, config)
+
+    sources =
+      Recode.TaskSupervisor
+      |> Task.Supervisor.async_stream(sources, runner, zip_input_on_exit: true)
+      |> Stream.map(&result/1)
+      |> Enum.into(%{})
+
+    %{project | sources: sources}
   end
 
-  defp run_task(source, config, module, opts) do
-    case exclude?(module, source, config) do
+  defp sources(%Rewrite{sources: sources}) do
+    Stream.map(sources, fn {_path, source} -> source end)
+  end
+
+  defp result({:ok, source}), do: {source.path, source}
+
+  defp result({:exit, {source, {error, stacktrace}}}) when is_exception(error) do
+    source =
+      Source.add_issue(
+        source,
+        Issue.new(
+          Recode.Runner,
+          task: Recode.Runner,
+          error: error,
+          message: Exception.format(:error, error, stacktrace)
+        )
+      )
+
+    {source.path, source}
+  end
+
+  defp runner(tasks, config) do
+    fn source ->
+      Enum.reduce(tasks, source, fn task, source -> run_task(task, source, config) end)
+    end
+  end
+
+  defp run_task({task_module, task_config}, source, config) do
+    case exclude?(task_module, source, config) do
       true ->
         source
 
       false ->
+        start = time()
+
         source
-        |> notify(:task_started, config, module)
-        |> module.run(opts)
-        |> notify(:task_finished, config, module)
+        |> notify(:task_started, config, task_module)
+        |> task_module.run(task_config)
+        |> notify(:task_finished, config, {task_module, time(start)})
     end
   rescue
     error ->
@@ -114,7 +150,7 @@ defmodule Recode.Runner.Impl do
         source,
         Issue.new(
           Recode.Runner,
-          task: module,
+          task: task_module,
           error: error,
           message: Exception.format(:error, error, __STACKTRACE__)
         )
@@ -133,20 +169,20 @@ defmodule Recode.Runner.Impl do
     |> Keyword.get(key, default)
   end
 
-  defp notify(data, event, config) when is_atom(event) do
-    notify(data, {event, data}, config)
+  defp notify(data, event, config, {meta, time}) when is_atom(event) do
+    do_notify(data, {event, data, meta, time}, config)
   end
 
-  defp notify(data, event, config) do
+  defp notify(data, event, config, meta) when is_atom(event) do
+    do_notify(data, {event, data, meta}, config)
+  end
+
+  defp do_notify(data, event, config) do
     config
     |> event_manager()
     |> EventManager.notify(event)
 
     data
-  end
-
-  defp notify(data, event, config, time) when is_atom(event) do
-    notify(data, {event, data, time}, config)
   end
 
   defp event_manager(config), do: Keyword.fetch!(config, :event_manager)
@@ -207,14 +243,14 @@ defmodule Recode.Runner.Impl do
 
   defp tasks_autocorrect(tasks, autocorrect) do
     case autocorrect do
-      false -> Enum.filter(tasks, fn {task, _opts} -> Task.checker?(task) end)
+      false -> Enum.filter(tasks, fn {task, _opts} -> Recode.Task.checker?(task) end)
       true -> tasks
     end
   end
 
   defp tasks_check(tasks, false) do
     Enum.reject(tasks, fn {task, _opts} ->
-      Task.checker?(task) && !Task.corrector?(task)
+      Recode.Task.checker?(task) && !Recode.Task.corrector?(task)
     end)
   end
 
@@ -227,7 +263,7 @@ defmodule Recode.Runner.Impl do
   defp correctors_first(tasks) do
     groups =
       Enum.group_by(tasks, fn {task, opts} ->
-        Task.corrector?(task) && Keyword.get(opts, :autocorrect)
+        Recode.Task.corrector?(task) && Keyword.get(opts, :autocorrect)
       end)
 
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
@@ -293,4 +329,10 @@ defmodule Recode.Runner.Impl do
   defp eof(""), do: ""
 
   defp eof(string), do: String.trim_trailing(string, "\n") <> "\n"
+
+  defp time, do: System.monotonic_time()
+
+  defp time(time) do
+    System.convert_time_unit(System.monotonic_time() - time, :native, :microsecond)
+  end
 end

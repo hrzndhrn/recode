@@ -9,11 +9,11 @@ defmodule Recode.Config do
 
   @config_filename ".recode.exs"
 
-  @config_version "0.6.5"
+  @config_version "0.7.0"
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
-  @config_min_version "0.6.0"
+  @config_min_version "0.7.0"
 
   @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks]
 
@@ -70,7 +70,7 @@ defmodule Recode.Config do
       verbose: <%= @config[:verbose] %>,
       # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
       inputs: <%= inspect @config[:inputs] %>,
-      formatter: <%= inspect @config[:formatter] %>,
+      formatters: <%= inspect @config[:formatters] %>,
       tasks: [
         # Tasks could be added by a tuple of the tasks module name and an options
         # keyword list. A task can be deactivated by `active: false`. The execution of

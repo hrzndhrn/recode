@@ -33,10 +33,11 @@ defmodule Mix.Tasks.Recode do
     * `-t`, `--task`, specifies the task to use. With this option, the task is
       used even if it is specified as `active:  false` in the configuration.
       This option can appear multiple times in a call.
+
+    * `--slowest-tasks` - prints timing information for the N slowest tasks.
   """
 
   use Mix.Task
-  use Recode.StopWatch
 
   alias Recode.Config
   alias Recode.Runner
@@ -47,7 +48,8 @@ defmodule Mix.Tasks.Recode do
           debug: :boolean,
           dry: :boolean,
           task: :keep,
-          verbose: :boolean
+          verbose: :boolean,
+          slowest_tasks: :integer
         ],
         aliases: [
           a: :autocorrect,
@@ -62,8 +64,6 @@ defmodule Mix.Tasks.Recode do
   def run(opts) do
     {:ok, _apps} = Application.ensure_all_started(:recode)
 
-    _stop_watch = StopWatch.init(start: :recode)
-
     opts = opts!(opts)
 
     opts =
@@ -73,7 +73,9 @@ defmodule Mix.Tasks.Recode do
       |> validate_config!()
       |> validate_tasks!()
       |> update_task_configs!()
-      |> Keyword.merge(Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs]))
+      |> Keyword.merge(
+        Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs, :slowest_tasks])
+      )
       |> Keyword.put(:cli_opts, acc_tasks(opts))
       |> update(:verbose)
       |> put_debug(opts)
