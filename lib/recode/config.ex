@@ -9,7 +9,7 @@ defmodule Recode.Config do
 
   @config_filename ".recode.exs"
 
-  @config_version "0.6.4"
+  @config_version "0.6.5"
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
