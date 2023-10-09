@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5 - 2023/10/09
+
++ Start `:recode` appliations in `mix recode` task.
+
 ## 0.6.4 - 2023/09/15
 
 + Fix `exclude_plugins` arg.
