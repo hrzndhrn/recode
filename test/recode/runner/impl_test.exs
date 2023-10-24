@@ -5,10 +5,10 @@ defmodule Recode.Runner.ImplTest do
   import Mox
 
   alias Recode.Runner.Impl, as: Runner
-  alias Recode.StopWatch
   alias Recode.Task.AliasOrder
   alias Recode.Task.SinglePipe
   alias Recode.TaskMock
+  alias Rewrite.Source
 
   @task_config __recode_task_config__: [checker: true, corrector: true]
 
@@ -19,8 +19,6 @@ defmodule Recode.Runner.ImplTest do
     File.cd!("test/fixtures/runner")
 
     config = "config.exs" |> Code.eval_file() |> elem(0)
-
-    StopWatch.init(start: :recode)
 
     on_exit(fn ->
       File.cd(cwd)
@@ -108,7 +106,7 @@ defmodule Recode.Runner.ImplTest do
 
     test "runs task with the right config", %{config: config} do
       TaskMock
-      |> expect(:run, fn source, config ->
+      |> expect(:run, 2, fn source, config ->
         assert config == [autocorrect: true]
         source
       end)
@@ -116,14 +114,17 @@ defmodule Recode.Runner.ImplTest do
 
       config = Keyword.put(config, :tasks, [{TaskMock, []}])
 
-      capture_io(fn ->
-        assert Runner.run(config)
-      end)
+      output =
+        capture_io(fn ->
+          assert Runner.run(config)
+        end)
+
+      assert output =~ "Everything ok"
     end
 
     test "runs task with the right aditional config", %{config: config} do
       TaskMock
-      |> expect(:run, fn source, config ->
+      |> expect(:run, 2, fn source, config ->
         assert config == [autocorrect: true, foo: :bar]
         source
       end)
@@ -138,16 +139,18 @@ defmodule Recode.Runner.ImplTest do
 
     test "runs task with input from stdin", %{config: config} do
       config = Keyword.merge(config, inputs: "-", tasks: [{TaskMock, []}])
-      code = ":foo |> bar()"
+      code = ":foo |> bar()\n"
 
       TaskMock
       |> expect(:run, fn source, _config ->
-        assert source.code == code
-        source
+        assert source.content == code
+        Source.update(source, :content, "bar(:foo)")
       end)
       |> expect(:__attributes__, fn -> @task_config end)
 
-      capture_io(code, fn -> assert Runner.run(config) end)
+      capture_io(code, fn ->
+        assert Runner.run(code, config) == "bar(:foo)\n"
+      end)
     end
 
     test "does not run task with active: false", %{config: config} do

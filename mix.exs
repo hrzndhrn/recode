@@ -1,7 +1,7 @@
 defmodule Recode.MixProject do
   use Mix.Project
 
-  @version "0.6.5"
+  @version "0.7.0"
   @source_url "https://github.com/hrzndhrn/recode"
 
   def project do
@@ -26,7 +26,8 @@ defmodule Recode.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :mix, :ex_unit, :crypto, :iex, :eex]
+      extra_applications: [:logger, :mix, :ex_unit, :crypto, :iex, :eex],
+      mod: {Recode.Application, []}
     ]
   end
 

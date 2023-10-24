@@ -17,10 +17,10 @@ defmodule Recode.CLIFormatter do
         :ok
 
       1 ->
-        puts([:info, "Found 1 file"])
+        puts([:info, "Read 1 file"])
 
       count ->
-        puts([:info, "Found #{count} files"])
+        puts([:info, "Read #{count} files in #{format_time(time)}s"])
     end
 
     {:noreply, config}
@@ -28,7 +28,7 @@ defmodule Recode.CLIFormatter do
 
   def handle_cast({:finished, %Rewrite{} = project, time}, config) when is_integer(time) do
     unless Enum.empty?(project) do
-      puts([:info, "Finished in #{format_time(time)}"])
+      puts([:info, "Finished in #{format_time(time)}s."])
     end
 
     {:noreply, config}
@@ -42,9 +42,9 @@ defmodule Recode.CLIFormatter do
     {:noreply, config}
   end
 
-  def handle_cast({:task_finished, %Source{} = source, task}, config) when is_atom(task) do
+  def handle_cast({:task_finished, %Source{} = source, task, time}, config) when is_atom(task) do
     if config[:debug] do
-      puts([:aqua, "Finished #{task} with #{source.path}."])
+      puts([:aqua, "Finished #{task} with #{source.path} [#{time}μs]."])
     else
       cond do
         issue?(source, task) -> write([:warn, "!"])
@@ -53,16 +53,31 @@ defmodule Recode.CLIFormatter do
       end
     end
 
+    config =
+      Keyword.update(config, :times, [{task, source.path, time}], fn times ->
+        [{task, source.path, time} | times]
+      end)
+
     {:noreply, config}
   end
 
-  def handle_cast({:tasks_finished, %Rewrite{} = project}, config) do
+  def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
     unless Enum.empty?(project) do
       puts(["\n"])
-      format_results(project, config)
+      stats = format_results(project, config)
+      :ok = format_tasks_stats(config, time)
+      :ok = format_slowest_tasks(config[:slowest_tasks], config)
+      :ok = format_stats(project, stats)
+      :ok = format_ok(stats)
     end
 
     {:noreply, config}
+  end
+
+  defp format_tasks_stats(config, time) do
+    executions = length(Keyword.get(config, :times, []))
+
+    puts([:info, "Executed #{executions} tasks in #{format_time(time)}s."])
   end
 
   defp format_results(project, config) do
@@ -70,48 +85,44 @@ defmodule Recode.CLIFormatter do
 
     stats = %{extname_count: %{}, issues: 0, updated: 0, created: 0, moved: 0}
 
-    stats =
-      project
-      |> Rewrite.sources()
-      |> Enum.reduce(stats, fn source, stats ->
-        opts = [
-          issues?: Source.has_issues?(source, :all),
-          code_updated?: Source.updated?(source, :content),
-          path_updated?: Source.updated?(source, :path),
-          created?: Source.from?(source, :string)
-        ]
-
-        format_result(source, verbose, opts)
-
-        stats
-        |> stats_count(:issues, opts[:issues?], Enum.count(source.issues))
-        |> stats_count(:updated, opts[:code_updated?])
-        |> stats_count(:moved, opts[:path_updated?])
-        |> stats_count(:created, opts[:created?])
-        |> Map.update!(:extname_count, fn extname_count ->
-          extname = Path.extname(source.path)
-          Map.update(extname_count, extname, 1, fn count -> count + 1 end)
-        end)
-      end)
-
     project
-    |> Enum.count()
-    |> format_stats(stats)
+    |> Rewrite.sources()
+    |> Enum.reduce(stats, fn source, stats ->
+      opts = [
+        issues?: Source.has_issues?(source, :all),
+        code_updated?: Source.updated?(source, :content),
+        path_updated?: Source.updated?(source, :path),
+        created?: Source.from?(source, :string)
+      ]
+
+      format_result(source, verbose, opts)
+
+      stats
+      |> stats_count(:issues, opts[:issues?], Enum.count(source.issues))
+      |> stats_count(:updated, opts[:code_updated?])
+      |> stats_count(:moved, opts[:path_updated?])
+      |> stats_count(:created, opts[:created?])
+      |> Map.update!(:extname_count, fn extname_count ->
+        extname = Path.extname(source.path)
+        Map.update(extname_count, extname, 1, fn count -> count + 1 end)
+      end)
+    end)
   end
 
-  defp format_stats(file_count, stats) do
+  defp format_stats(project, stats) do
     filte_stats =
       stats
       |> Map.get(:extname_count)
       |> Enum.map_join(", ", fn {extname, count} -> "#{extname}: #{count}" end)
 
-    puts([:info, "Files: #{file_count} ", "(#{filte_stats})"])
+    puts([:info, "Files: #{Enum.count(project)} ", "(#{filte_stats})"])
 
     stats
     |> format_stat(:created, :info, ["Created # file", "Created # files"])
     |> format_stat(:moved, :info, ["Moved # file", "Moved # files"])
     |> format_stat(:updated, :info, ["Updated # file", "Updated # files"])
-    |> format_ok()
+
+    :ok
   end
 
   defp format_ok(%{issues: issues}) do
@@ -253,11 +264,11 @@ defmodule Recode.CLIFormatter do
          _actual,
          true
        ) do
-    [:warn, "Execution of the #{inspect(meta[:task])} task failed with error:\n#{message}\n"]
+    [:error, "Execution of the #{inspect(meta[:task])} task failed with error:\n#{message}\n"]
   end
 
   defp format_issue(%{reporter: Recode.Runner, meta: meta}, _version, _actual, false) do
-    [:warn, "Execution of the #{inspect(meta[:task])} task failed.\n"]
+    [:error, "Execution of the #{inspect(meta[:task])} task failed.\n"]
   end
 
   defp format_issue(issue, version, actual, _verbose) do
@@ -278,6 +289,31 @@ defmodule Recode.CLIFormatter do
     ]
 
     Enum.concat(warn, message)
+  end
+
+  defp format_slowest_tasks(nil, _config), do: :ok
+
+  defp format_slowest_tasks(amount, config) do
+    slowest_tasks =
+      config
+      |> Keyword.get(:times, [])
+      |> Enum.reduce(%{}, fn {task, _path, time}, acc ->
+        Map.update(acc, task, {1, time}, fn {calls, duration} -> {calls + 1, duration + time} end)
+      end)
+      |> Enum.into([], fn {task, {calls, time}} -> {task, calls, round(time / calls)} end)
+      |> Enum.sort_by(&elem(&1, 2), :desc)
+      |> Enum.take(amount)
+      |> Enum.with_index(1)
+      |> Enum.map(fn {{task, calls, time}, index} ->
+        """
+        #{index} - \
+        task: #{inspect(task)}, \
+        calls: #{calls}, \
+        avg: #{format_time(time, :millisecond)}ms
+        """
+      end)
+
+    puts([:info, "\nSlowest tasks:\n", slowest_tasks])
   end
 
   defp changed_by(%Source{history: history}) do

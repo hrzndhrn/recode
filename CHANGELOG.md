@@ -3,6 +3,8 @@
 ## 0.7.0 - dev
 
 + Refactor formatter.
++ Run recode tasks async.
++ Remove `Recode.StopWatch`
 
 ## 0.6.5 - 2023/10/09
 
