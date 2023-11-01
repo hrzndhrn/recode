@@ -168,10 +168,11 @@ defmodule Recode.CLIFormatter do
 
     Escape.puts([:info, "Files: #{Enum.count(project)} ", "(#{filte_stats})"], config)
 
-    stats
-    |> format_stat(:created, :info, ["Created # file", "Created # files"], config)
-    |> format_stat(:moved, :info, ["Moved # file", "Moved # files"], config)
-    |> format_stat(:updated, :info, ["Updated # file", "Updated # files"], config)
+    _stats =
+      stats
+      |> format_stat(:created, :info, ["Created # file", "Created # files"], config)
+      |> format_stat(:moved, :info, ["Moved # file", "Moved # files"], config)
+      |> format_stat(:updated, :info, ["Updated # file", "Updated # files"], config)
 
     :ok
   end
