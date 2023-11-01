@@ -2,9 +2,6 @@ defmodule Backup do
   @inputs "{config,lib,test}/**/*"
   @backup "scripts/backup.bin"
 
-  alias Mix.Generator
-  alias Mix.Shell
-
   def run([]) do
     @inputs
     |> Path.wildcard()
@@ -14,14 +11,16 @@ defmodule Backup do
   end
 
   def run(["restore"]) do
-    Shell.IO.info("restoring form backup #{@backup}")
+    IO.puts("restoring form backup #{@backup}")
 
     Enum.each(["lib", "test", "config"], fn dir -> File.rm_rf!(dir) end)
 
     files = @backup |> File.read!() |> :erlang.binary_to_term()
 
     Enum.each(files, fn {path, data} ->
-      Generator.create_file(path, data)
+      IO.puts("restoring #{path}")
+      path |> Path.dirname() |> File.mkdir_p!()
+      File.write!(path, data)
     end)
   end
 
@@ -31,7 +30,8 @@ defmodule Backup do
 
   defp backup(files) do
     data = :erlang.term_to_binary(files, compressed: 9)
-    Generator.create_file(@backup, data, force: true)
+    File.write!(@backup, data)
+    IO.puts("backup saved to #{@backup}")
   end
 end
 

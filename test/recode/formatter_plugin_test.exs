@@ -13,23 +13,6 @@ defmodule Recode.FormatterPluginTest do
     assert FormatterPlugin.features(recode: [tasks: []]) == [extensions: [".ex", ".exs"]]
   end
 
-  test "raises an error for missing tasks key" do
-    assert_raise Mix.Error, "No `:tasks` key found in configuration.", fn ->
-      FormatterPlugin.features(recode: [])
-    end
-  end
-
-  test "raises an error for missing config" do
-    message = """
-    No configuration for `Recode.FormatterPlugin` found. Run `mix recode.get.config` \
-    to create a config file or add config in `.formatter.exs` under the key `:recode`.
-    """
-
-    assert_raise Mix.Error, message, fn ->
-      FormatterPlugin.features([])
-    end
-  end
-
   test "runs with tasks from the .formatter config" do
     expect(RunnerMock, :run, fn content, config, path ->
       assert content == "code"
@@ -47,9 +30,12 @@ defmodule Recode.FormatterPluginTest do
       :ok
     end)
 
-    FormatterPlugin.features(recode: [tasks: [{SinglePipe, []}]])
+    dot_formatter_opts = [
+      locals_without_parens: [foo: 2],
+      recode: [tasks: [{SinglePipe, []}]]
+    ]
 
-    assert FormatterPlugin.format("code", locals_without_parens: [foo: 2]) == :ok
+    assert FormatterPlugin.format("code", dot_formatter_opts) == :ok
   end
 
   test "removes the FormatterPlugin from plugins" do
@@ -69,12 +55,13 @@ defmodule Recode.FormatterPluginTest do
       :ok
     end)
 
-    FormatterPlugin.features(recode: [tasks: [{SinglePipe, []}]])
+    dot_formatter_opts = [
+      recode: [tasks: [{SinglePipe, []}]],
+      locals_without_parens: [foo: 2],
+      plugins: [FreedomFormatter, Recode.FormatterPlugin]
+    ]
 
-    assert FormatterPlugin.format("code",
-             locals_without_parens: [foo: 2],
-             plugins: [FreedomFormatter, Recode.FormatterPlugin]
-           )
+    assert FormatterPlugin.format("code", dot_formatter_opts)
   end
 
   @tag :tmp_dir
@@ -117,6 +104,23 @@ defmodule Recode.FormatterPluginTest do
     end)
   end
 
+  test "raises an error for missing tasks key" do
+    assert_raise Mix.Error, "No `:tasks` key found in configuration.", fn ->
+      FormatterPlugin.format("", recode: [])
+    end
+  end
+
+  test "raises an error for missing config" do
+    message = """
+    No configuration for `Recode.FormatterPlugin` found. Run `mix recode.get.config` \
+    to create a config file or add config in `.formatter.exs` under the key `:recode`.
+    """
+
+    assert_raise Mix.Error, message, fn ->
+      FormatterPlugin.format("", [])
+    end
+  end
+
   @tag :tmp_dir
   test "throws an exception for an outdated config", %{tmp_dir: dir} do
     File.cd!(dir, fn ->
@@ -129,7 +133,7 @@ defmodule Recode.FormatterPluginTest do
 
       message = "The config is out of date. Run `mix recode.update.config` to update."
 
-      assert_raise Mix.Error, message, fn -> FormatterPlugin.features([]) end
+      assert_raise Mix.Error, message, fn -> FormatterPlugin.format("", []) end
     end)
   end
 end

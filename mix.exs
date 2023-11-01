@@ -94,7 +94,7 @@ defmodule Recode.MixProject do
 
   defp deps do
     [
-      {:bunt, "~> 0.2"},
+      {:escape, "~> 0.1"},
       {:glob_ex, "~> 0.1"},
       {:rewrite, "~> 0.9"},
       # dev/test

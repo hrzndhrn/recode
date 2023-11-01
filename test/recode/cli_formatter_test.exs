@@ -29,7 +29,6 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
             Everything ok
-
            """
   end
 
@@ -66,11 +65,10 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-           Executed 2 tasks in 0.01s.
+           Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Updated 1 file
             Everything ok
-
            """
   end
 
@@ -121,7 +119,6 @@ defmodule Recode.CLIFormatterTest do
            Files: 2 (.ex: 2)
            Updated 2 files
             Everything ok
-
            """
   end
 
@@ -154,7 +151,6 @@ defmodule Recode.CLIFormatterTest do
            Files: 1 (.ex: 1)
            Updated 1 file
             Everything ok
-
            """
   end
 
@@ -225,7 +221,6 @@ defmodule Recode.CLIFormatterTest do
            Files: 1 (.ex: 1)
            Moved 1 file
             Everything ok
-
            """
   end
 
@@ -252,7 +247,6 @@ defmodule Recode.CLIFormatterTest do
            Files: 1 (.ex: 1)
            Created 1 file
             Everything ok
-
            """
   end
 
@@ -279,7 +273,6 @@ defmodule Recode.CLIFormatterTest do
            Files: 1 (.ex: 1)
            Created 1 file
             Everything ok
-
            """
   end
 
@@ -467,7 +460,6 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
             Found 1 issue
-
            """
   end
 
@@ -521,7 +513,6 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
             Everything ok
-
            """
   end
 
