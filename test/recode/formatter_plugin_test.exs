@@ -9,6 +9,11 @@ defmodule Recode.FormatterPluginTest do
 
   setup :verify_on_exit!
 
+  setup do
+    _erase = :persistent_term.erase({Recode.FormatterPlugin, :config})
+    :ok
+  end
+
   test "returns features" do
     assert FormatterPlugin.features(recode: [tasks: []]) == [extensions: [".ex", ".exs"]]
   end

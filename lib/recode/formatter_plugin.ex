@@ -46,7 +46,7 @@ defmodule Recode.FormatterPlugin do
   alias Recode.Config
   alias Recode.Runner
 
-  @table :recode_formatter_plugin
+  @persistent_term_key {__MODULE__, :config}
 
   @impl true
   def features(_opts) do
@@ -55,8 +55,6 @@ defmodule Recode.FormatterPlugin do
 
   @impl true
   def format(content, formatter_opts) do
-    _ref = init(formatter_opts)
-
     file = formatter_opts |> Keyword.get(:file, "source.ex") |> Path.relative_to_cwd()
 
     formatter_opts =
@@ -64,34 +62,20 @@ defmodule Recode.FormatterPlugin do
         Enum.reject(plugins, fn plugin -> plugin == Recode.FormatterPlugin end)
       end)
 
-    config = Keyword.put(config(), :dot_formatter_opts, Keyword.delete(formatter_opts, :recode))
+    config =
+      formatter_opts
+      |> config()
+      |> Keyword.put(:dot_formatter_opts, Keyword.delete(formatter_opts, :recode))
 
     Runner.run(content, config, file)
   end
 
-  defp config do
-    case :ets.lookup(@table, :config) do
-      [{:config, config}] -> config
-      [] -> config()
-    end
-  rescue
-    _error -> config()
-  end
-
-  defp init(opts) do
-    if new_table() == :ok do
+  defp config(opts) do
+    with nil <- :persistent_term.get(@persistent_term_key, nil) do
       config = init_config(opts[:recode])
-      :ets.insert(@table, {:config, config})
+      :ok = :persistent_term.put(@persistent_term_key, config)
+      config
     end
-
-    :ok
-  end
-
-  defp new_table do
-    _ref = :ets.new(@table, [:set, :public, :named_table])
-    :ok
-  rescue
-    _error -> :error
   end
 
   @config_error """
