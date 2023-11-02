@@ -35,6 +35,8 @@ defmodule Mix.Tasks.Recode do
       This option can appear multiple times in a call.
 
     * `--slowest-tasks` - prints timing information for the N slowest tasks.
+
+    * `--color` - enables color in the output.
   """
 
   use Mix.Task
@@ -44,6 +46,7 @@ defmodule Mix.Tasks.Recode do
 
   @opts strict: [
           autocorrect: :boolean,
+          color: :boolean,
           config: :string,
           debug: :boolean,
           dry: :boolean,
@@ -73,9 +76,7 @@ defmodule Mix.Tasks.Recode do
       |> validate_config!()
       |> validate_tasks!()
       |> update_task_configs!()
-      |> Keyword.merge(
-        Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs, :slowest_tasks])
-      )
+      |> merge_opts(opts)
       |> Keyword.put(:cli_opts, acc_tasks(opts))
       |> update(:verbose)
       |> put_debug(opts)
@@ -90,6 +91,13 @@ defmodule Mix.Tasks.Recode do
       {:error, :no_sources} ->
         Mix.raise("No sources found")
     end
+  end
+
+  defp merge_opts(config, opts) do
+    Keyword.merge(
+      config,
+      Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs, :slowest_tasks, :color])
+    )
   end
 
   defp opts!(opts) do

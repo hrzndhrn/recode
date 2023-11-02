@@ -1,4 +1,4 @@
-# Created with GitHubActions version 0.2.16
+# Created with GitHubActions version 0.2.17
 name: CI
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -14,7 +14,7 @@ jobs:
         elixir:
           - '1.13.4'
           - '1.14.5'
-          - '1.15.6'
+          - '1.15.7'
         otp:
           - '22.3'
           - '23.3'
@@ -28,9 +28,9 @@ jobs:
             otp: '22.3'
           - elixir: '1.14.5'
             otp: '26.1'
-          - elixir: '1.15.6'
+          - elixir: '1.15.7'
             otp: '22.3'
-          - elixir: '1.15.6'
+          - elixir: '1.15.7'
             otp: '23.3'
     steps:
       - name: Checkout
@@ -55,7 +55,7 @@ jobs:
         with:
           path: test/support/plts
           key: test/support/plts-${{ runner.os }}-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-        if: ${{ contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1') }}
+        if: ${{ contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1') }}
       - name: Get dependencies
         run: mix deps.get
       - name: Compile dependencies
@@ -63,20 +63,20 @@ jobs:
       - name: Compile project
         run: MIX_ENV=test mix compile --warnings-as-errors
       - name: Check unused dependencies
-        if: ${{ contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1') }}
+        if: ${{ contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1') }}
         run: mix deps.unlock --check-unused
       - name: Check code format
-        if: ${{ contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1') }}
+        if: ${{ contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1') }}
         run: mix format --check-formatted
       - name: Lint code
-        if: ${{ contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1') }}
+        if: ${{ contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1') }}
         run: mix credo --strict
       - name: Run tests
         run: mix test
-        if: ${{ !(contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1')) }}
+        if: ${{ !(contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1')) }}
       - name: Run tests with coverage
         run: mix coveralls.github
-        if: ${{ contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1') }}
+        if: ${{ contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1') }}
       - name: Static code analysis
         run: mix dialyzer
-        if: ${{ contains(matrix.elixir, '1.15.6') && contains(matrix.otp, '26.1') }}
+        if: ${{ contains(matrix.elixir, '1.15.7') && contains(matrix.otp, '26.1') }}

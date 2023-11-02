@@ -4,12 +4,63 @@ defmodule Recode.CLIFormatter do
   use GenServer
 
   import Recode.Formatter
-  import Recode.IO
 
   alias IO.ANSI
   alias Rewrite.Source
 
-  def init(config), do: {:ok, config}
+  @theme %{
+    gainsboro: ANSI.color(4, 4, 4),
+    orange: ANSI.color(5, 3, 0),
+    aquamarine: ANSI.color(2, 5, 4),
+    gray: ANSI.color(59),
+    info: :gainsboro,
+    file: :green,
+    issue: :cyan,
+    warn: :orange,
+    debug: :cyan,
+    ok: :green,
+    updated: :green,
+    correctable: :aquamarine,
+    error: :red,
+    del: :red,
+    del_background: :red_background,
+    ins: :green,
+    ins_background: :green_background,
+    skip: :yellow,
+    separator: :gray,
+    blank: " "
+  }
+
+  @diff_format [
+    colors: [
+      del: [text: :del, space: :del_background],
+      ins: [text: :ins, space: :ins_background],
+      skip: [text: :skip],
+      separator: [text: :separator]
+    ]
+  ]
+
+  @default_config [debug: false, verbose: false]
+
+  def init(config) do
+    coloring =
+      case Keyword.get(config, :color, true) do
+        false -> [emit?: false]
+        true -> [emit?: true, theme: @theme]
+        theme -> [emit?: true, theme: theme]
+      end
+
+    config =
+      config
+      |> Keyword.take([:debug, :verbose])
+      |> merge_into(@default_config)
+      |> Keyword.merge(coloring)
+      |> Keyword.put(:colorizer, Escape.colorizer(coloring))
+
+    {:ok, config}
+  end
+
+  defp merge_into(keywords1, keywords2), do: Keyword.merge(keywords2, keywords1)
 
   def handle_cast({:prepared, %Rewrite{} = project, time}, config) when is_integer(time) do
     case Enum.count(project.sources) do
@@ -17,10 +68,10 @@ defmodule Recode.CLIFormatter do
         :ok
 
       1 ->
-        puts([:info, "Read 1 file"])
+        Escape.puts([:info, "Read 1 file"], config)
 
       count ->
-        puts([:info, "Read #{count} files in #{format_time(time)}s"])
+        Escape.puts([:info, "Read #{count} files in #{format_time(time)}s"], config)
     end
 
     {:noreply, config}
@@ -28,7 +79,7 @@ defmodule Recode.CLIFormatter do
 
   def handle_cast({:finished, %Rewrite{} = project, time}, config) when is_integer(time) do
     unless Enum.empty?(project) do
-      puts([:info, "Finished in #{format_time(time)}s."])
+      Escape.puts([:info, "Finished in #{format_time(time)}s."], config)
     end
 
     {:noreply, config}
@@ -36,7 +87,7 @@ defmodule Recode.CLIFormatter do
 
   def handle_cast({:task_started, %Source{} = source, task}, config) when is_atom(task) do
     if config[:debug] do
-      puts([:aqua, "Start #{task} with #{source.path}."])
+      Escape.puts([:debug, "Start #{task} with #{source.path}."], config)
     end
 
     {:noreply, config}
@@ -44,12 +95,12 @@ defmodule Recode.CLIFormatter do
 
   def handle_cast({:task_finished, %Source{} = source, task, time}, config) when is_atom(task) do
     if config[:debug] do
-      puts([:aqua, "Finished #{task} with #{source.path} [#{time}μs]."])
+      Escape.puts([:debug, "Finished #{task} with #{source.path} [#{time}μs]."], config)
     else
       cond do
-        issue?(source, task) -> write([:warn, "!"])
-        changed?(source, task) -> write([:updated, "!"])
-        true -> write([:ok, "."])
+        issue?(source, task) -> Escape.write([:warn, "!"], config)
+        changed?(source, task) -> Escape.write([:updated, "!"], config)
+        true -> Escape.write([:ok, "."], config)
       end
     end
 
@@ -63,12 +114,12 @@ defmodule Recode.CLIFormatter do
 
   def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
     unless Enum.empty?(project) do
-      puts(["\n"])
+      Escape.puts("")
       stats = format_results(project, config)
       :ok = format_tasks_stats(config, time)
       :ok = format_slowest_tasks(config[:slowest_tasks], config)
-      :ok = format_stats(project, stats)
-      :ok = format_ok(stats)
+      :ok = format_stats(project, stats, config)
+      :ok = format_ok(stats, config)
     end
 
     {:noreply, config}
@@ -77,7 +128,7 @@ defmodule Recode.CLIFormatter do
   defp format_tasks_stats(config, time) do
     executions = length(Keyword.get(config, :times, []))
 
-    puts([:info, "Executed #{executions} tasks in #{format_time(time)}s."])
+    Escape.puts([:info, "Executed #{executions} tasks in #{format_time(time)}s."], config)
   end
 
   defp format_results(project, config) do
@@ -95,7 +146,7 @@ defmodule Recode.CLIFormatter do
         created?: Source.from?(source, :string)
       ]
 
-      format_result(source, verbose, opts)
+      format_result(source, verbose, opts, config)
 
       stats
       |> stats_count(:issues, opts[:issues?], Enum.count(source.issues))
@@ -109,36 +160,43 @@ defmodule Recode.CLIFormatter do
     end)
   end
 
-  defp format_stats(project, stats) do
+  defp format_stats(project, stats, config) do
     filte_stats =
       stats
       |> Map.get(:extname_count)
       |> Enum.map_join(", ", fn {extname, count} -> "#{extname}: #{count}" end)
 
-    puts([:info, "Files: #{Enum.count(project)} ", "(#{filte_stats})"])
+    Escape.puts([:info, "Files: #{Enum.count(project)} ", "(#{filte_stats})"], config)
 
-    stats
-    |> format_stat(:created, :info, ["Created # file", "Created # files"])
-    |> format_stat(:moved, :info, ["Moved # file", "Moved # files"])
-    |> format_stat(:updated, :info, ["Updated # file", "Updated # files"])
+    _stats =
+      stats
+      |> format_stat(:created, :info, ["Created # file", "Created # files"], config)
+      |> format_stat(:moved, :info, ["Moved # file", "Moved # files"], config)
+      |> format_stat(:updated, :info, ["Updated # file", "Updated # files"], config)
 
     :ok
   end
 
-  defp format_ok(%{issues: issues}) do
-    case issues do
-      0 -> puts([:ok, reverse(), " Everything ok \n", reverse_off()])
-      1 -> puts([:warn, reverse(), " Found 1 issue \n", reverse_off()])
-      count -> puts([:warn, reverse(), " Found #{count} issues ", reverse_off()])
-    end
+  defp format_ok(%{issues: issues}, config) do
+    output =
+      case issues do
+        0 -> [:ok, :reverse, :blank, "Everything ok", :blank, :reverse_off]
+        1 -> [:warn, :reverse, :blank, "Found 1 issue", :blank, :reverse_off]
+        count -> [:warn, :reverse, :blank, "Found #{count} issues", :blank, :reverse_off]
+      end
+
+    Escape.puts(output, config)
   end
 
-  defp format_stat(stats, key, kind, templates) do
-    case Map.fetch!(stats, key) do
-      0 -> :noop
-      1 -> puts([kind, templates |> Enum.at(0) |> String.replace("#", "1")])
-      count -> puts([kind, templates |> Enum.at(1) |> String.replace("#", "#{count}")])
-    end
+  defp format_stat(stats, key, kind, templates, config) do
+    output =
+      case Map.fetch!(stats, key) do
+        0 -> []
+        1 -> [kind, templates |> Enum.at(0) |> String.replace("#", "1"), "\n"]
+        count -> [kind, templates |> Enum.at(1) |> String.replace("#", "#{count}"), "\n"]
+      end
+
+    Escape.write(output, config)
 
     stats
   end
@@ -151,7 +209,7 @@ defmodule Recode.CLIFormatter do
 
   defp stats_count(stats, _key, false, _add), do: stats
 
-  defp format_result(source, verbose, opts) do
+  defp format_result(source, verbose, opts, config) do
     issues? = opts[:issues?]
     code_updated? = opts[:code_updated?] and verbose
     path_updated? = opts[:path_updated?] and verbose
@@ -163,13 +221,13 @@ defmodule Recode.CLIFormatter do
     |> format_created(source, created?)
     |> format_updates(source, updated?)
     |> format_path_update(source, path_updated?)
-    |> format_code_update(source, code_updated?)
+    |> format_code_update(source, code_updated?, config)
     |> format_issues(source, issues?, verbose)
     |> then(fn
       [] -> []
       content -> Enum.concat(content, ["\n"])
     end)
-    |> write()
+    |> Escape.write(config)
   end
 
   defp format_file(output, _source, false), do: output
@@ -177,9 +235,11 @@ defmodule Recode.CLIFormatter do
   defp format_file(output, source, true) do
     Enum.concat(output, [
       :file,
-      reverse(),
-      " File: #{source.path || "no file"} ",
-      reverse_off(),
+      :reverse,
+      :blank,
+      "File: #{source.path || "no file"}",
+      :blank,
+      :reverse_off,
       "\n"
     ])
   end
@@ -212,14 +272,21 @@ defmodule Recode.CLIFormatter do
     ])
   end
 
-  defp format_code_update(output, _source, false), do: output
+  defp format_code_update(output, _source, false, _config), do: output
 
-  defp format_code_update(output, source, true) do
+  defp format_code_update(output, source, true, config) do
     Enum.concat([
       output,
       changed_by(source),
       [ANSI.reset()],
-      [source |> Source.diff() |> IO.iodata_to_binary()]
+      [
+        source
+        |> Source.diff(
+          format: @diff_format,
+          colorizer: config[:colorizer]
+        )
+        |> IO.iodata_to_binary()
+      ]
     ])
   end
 
@@ -313,7 +380,7 @@ defmodule Recode.CLIFormatter do
         """
       end)
 
-    puts([:info, "\nSlowest tasks:\n", slowest_tasks])
+    Escape.puts([:info, "\nSlowest tasks:\n", slowest_tasks], config)
   end
 
   defp changed_by(%Source{history: history}) do

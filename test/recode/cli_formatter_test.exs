@@ -25,11 +25,10 @@ defmodule Recode.CLIFormatterTest do
         format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -56,7 +55,7 @@ defmodule Recode.CLIFormatterTest do
         )
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            Updates: 1
            Changed by: test
@@ -66,11 +65,10 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-           Executed 2 tasks in 0.01s.
+           Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Updated 1 file
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -98,7 +96,7 @@ defmodule Recode.CLIFormatterTest do
         format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: lib/a.ex
            Updates: 1
            Changed by: test
@@ -108,7 +106,7 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-            File: lib/b.ex
+           File: lib/b.ex
            Updates: 1
            Changed by: test
            1 1   |defmodule Foo do
@@ -120,8 +118,7 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 2 (.ex: 2)
            Updated 2 files
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -145,7 +142,7 @@ defmodule Recode.CLIFormatterTest do
         format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            Updates: 2
            Changed by: test, test
@@ -153,8 +150,7 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Updated 1 file
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -193,7 +189,7 @@ defmodule Recode.CLIFormatterTest do
 
     output = strip_esc_seq(output)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() =~ "...|"
+    assert output |> strip_esc_seq() =~ "...|"
   end
 
   test "formats results for a project with moved source" do
@@ -215,7 +211,7 @@ defmodule Recode.CLIFormatterTest do
         format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: bar.ex
            Updates: 1
            Changed by: test
@@ -224,8 +220,7 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Moved 1 file
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -244,15 +239,14 @@ defmodule Recode.CLIFormatterTest do
         format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: foo.ex
            New file
 
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Created 1 file
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -271,15 +265,14 @@ defmodule Recode.CLIFormatterTest do
         format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: foo.ex
            New file, created by Test
 
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Created 1 file
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -307,14 +300,14 @@ defmodule Recode.CLIFormatterTest do
 
     output = strip_esc_seq(output)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            [foo 1/2] do not do this
            [bar 2/3] no no no
 
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
-            Found 2 issues
+           Found 2 issues
            """
   end
 
@@ -343,7 +336,7 @@ defmodule Recode.CLIFormatterTest do
 
     output = strip_esc_seq(output)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            [foo 1/2] no
            [foo 2/3] no
@@ -351,7 +344,7 @@ defmodule Recode.CLIFormatterTest do
 
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
-            Found 3 issues
+           Found 3 issues
            """
   end
 
@@ -380,7 +373,7 @@ defmodule Recode.CLIFormatterTest do
 
     output = strip_esc_seq(output)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            [foo 2/1] no
            [foo 2/2] no
@@ -388,7 +381,7 @@ defmodule Recode.CLIFormatterTest do
 
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
-            Found 3 issues
+           Found 3 issues
            """
   end
 
@@ -417,7 +410,7 @@ defmodule Recode.CLIFormatterTest do
 
     output = strip_esc_seq(output)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            Updates: 1
            Changed by: TestTask
@@ -432,7 +425,7 @@ defmodule Recode.CLIFormatterTest do
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
            Updated 1 file
-            Found 2 issues
+           Found 2 issues
            """
   end
 
@@ -459,15 +452,14 @@ defmodule Recode.CLIFormatterTest do
 
     output = strip_esc_seq(output)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            File: test/formatter_test.ex
            Execution of the Test task failed with error:
            Error Message
 
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
-            Found 1 issue
-
+           Found 1 issue
            """
   end
 
@@ -517,11 +509,10 @@ defmodule Recode.CLIFormatterTest do
         assert format({:tasks_finished, project, 10_000})
       end)
 
-    assert output |> strip_esc_seq() |> String.trim_leading() == """
+    assert output |> strip_esc_seq() == """
            Executed 0 tasks in 0.01s.
            Files: 1 (.ex: 1)
-            Everything ok
-
+           Everything ok
            """
   end
 
@@ -656,6 +647,11 @@ defmodule Recode.CLIFormatterTest do
     string
     |> String.replace(~r/\e[^m]+m/, "")
     |> String.split("\n")
-    |> Enum.map_join("\n", &String.trim_trailing/1)
+    |> Enum.map_join("\n", fn string ->
+      ~r/^\s(\w.*)/
+      |> Regex.replace(string, "\\1")
+      |> String.trim_trailing()
+    end)
+    |> String.trim_leading()
   end
 end

@@ -2,9 +2,12 @@
 
 ## 0.7.0 - dev
 
-+ Refactor formatter.
++ Refactor formatter and use `Escape`.
++ Add switch `--color` to mix task recode.
++ Add option `color` to config.
 + Run recode tasks async.
 + Remove `Recode.StopWatch`
++ Refactor `Recode.FormatterPlugin`
 
 ## 0.6.5 - 2023/10/09
 

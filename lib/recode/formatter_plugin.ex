@@ -1,3 +1,7 @@
+defmodule Recode.FormatterPlugin.Config do
+  @moduledoc false
+end
+
 defmodule Recode.FormatterPlugin do
   @moduledoc """
   Defines Recode formatter plugin for `mix format`.
@@ -45,16 +49,14 @@ defmodule Recode.FormatterPlugin do
   @table :recode_formatter_plugin
 
   @impl true
-  def features(opts) do
-    # This callback will be applied for every file the Elixir formater wants to
-    # format. All calls comming from one Process.
-    _ref = init(opts)
-
+  def features(_opts) do
     [extensions: [".ex", ".exs"]]
   end
 
   @impl true
   def format(content, formatter_opts) do
+    _ref = init(formatter_opts)
+
     file = formatter_opts |> Keyword.get(:file, "source.ex") |> Path.relative_to_cwd()
 
     formatter_opts =
@@ -62,22 +64,34 @@ defmodule Recode.FormatterPlugin do
         Enum.reject(plugins, fn plugin -> plugin == Recode.FormatterPlugin end)
       end)
 
-    config = Keyword.put(config(), :dot_formatter_opts, formatter_opts)
+    config = Keyword.put(config(), :dot_formatter_opts, Keyword.delete(formatter_opts, :recode))
 
     Runner.run(content, config, file)
   end
 
   defp config do
-    with [{:config, config}] <- :ets.lookup(@table, :config) do
-      config
+    case :ets.lookup(@table, :config) do
+      [{:config, config}] -> config
+      [] -> config()
     end
+  rescue
+    _error -> config()
   end
 
   defp init(opts) do
-    with :undefined <- :ets.whereis(@table) do
-      _ref = :ets.new(@table, [:set, :public, :named_table])
-      :ets.insert(@table, {:config, init_config(opts[:recode])})
+    if new_table() == :ok do
+      config = init_config(opts[:recode])
+      :ets.insert(@table, {:config, config})
     end
+
+    :ok
+  end
+
+  defp new_table do
+    _ref = :ets.new(@table, [:set, :public, :named_table])
+    :ok
+  rescue
+    _error -> :error
   end
 
   @config_error """

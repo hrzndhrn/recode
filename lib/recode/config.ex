@@ -15,7 +15,7 @@ defmodule Recode.Config do
   # breaking change for handle the config.
   @config_min_version "0.7.0"
 
-  @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks]
+  @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks, :color]
 
   # The default configuration used by mix tasks recode.gen.config and
   # recode.update.config.
@@ -23,6 +23,7 @@ defmodule Recode.Config do
     version: @config_version,
     autocorrect: true,
     dry: false,
+    color: true,
     verbose: false,
     inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
     formatters: [Recode.CLIFormatter],
@@ -36,7 +37,7 @@ defmodule Recode.Config do
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
-      {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
+      {Recode.Task.Specs, [exclude: ["test/**/*.{ex,exs}", "mix.exs"], config: [only: :visible]]},
       {Recode.Task.TagFIXME, exit_code: 2},
       {Recode.Task.TagTODO, exit_code: 4},
       {Recode.Task.TestFileExt, []},
@@ -66,6 +67,8 @@ defmodule Recode.Config do
       # Can also be set/reset with `--dry`/`--no-dry`.
       # If dry is true then verbose is also active.
       dry: <%= @config[:dry] %>,
+      # Enables or disables color in the output.
+      color: <%= @config[:color] %>,
       # Can also be set/reset with `--verbose`/`--no-verbose`.
       verbose: <%= @config[:verbose] %>,
       # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
