@@ -117,7 +117,7 @@ defmodule Recode.FormatterPluginTest do
 
   test "raises an error for missing config" do
     message = """
-    No configuration for `Recode.FormatterPlugin` found. Run `mix recode.get.config` \
+    No configuration for `Recode.FormatterPlugin` found. Run `mix recode.gen.config` \
     to create a config file or add config in `.formatter.exs` under the key `:recode`.
     """
 

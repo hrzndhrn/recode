@@ -80,7 +80,7 @@ defmodule Recode.FormatterPlugin do
 
   @config_error """
   No configuration for `Recode.FormatterPlugin` found. Run \
-  `mix recode.get.config` to create a config file or add config in \
+  `mix recode.gen.config` to create a config file or add config in \
   `.formatter.exs` under the key `:recode`.
   """
   defp init_config(nil) do
