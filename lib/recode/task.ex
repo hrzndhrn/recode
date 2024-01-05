@@ -88,8 +88,10 @@ defmodule Recode.Task do
       Module.register_attribute(__MODULE__, :__recode_task_config__, persist: true)
       Module.register_attribute(__MODULE__, :shortdoc, persist: true)
 
+      @impl Recode.Task
       def init(config), do: {:ok, config}
 
+      @impl Recode.Task
       def __attributes__, do: __MODULE__.__info__(:attributes)
 
       defoverridable init: 1
