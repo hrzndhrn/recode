@@ -82,4 +82,16 @@ defmodule Mix.Tasks.RecodeTest do
       Tasks.Recode.run(["--config", "test/fixtures/config.exs", "no-sources"])
     end
   end
+
+  test "mix recode raises exception for an invalid task config" do
+    message = """
+    Invalid config keys [:invalid] for Recode.Task.Dbg found.
+    Did you want to create a task-specific configuration:
+    {Recode.Task.Dbg, [autocorrect: false, config: [invalid: :key]]}
+    """
+
+    assert_raise Mix.Error, message, fn ->
+      Tasks.Recode.run(["--config", "test/fixtures/invalid_task_config.exs", "no-sources"])
+    end
+  end
 end

@@ -8,6 +8,7 @@
 + Run recode tasks async.
 + Remove `Recode.StopWatch`
 + Refactor `Recode.FormatterPlugin`
++ Improve config validation.
 
 ## 0.6.5 - 2023/10/09
 

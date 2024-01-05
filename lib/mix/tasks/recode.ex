@@ -62,6 +62,15 @@ defmodule Mix.Tasks.Recode do
           v: :verbose
         ]
 
+  @task_config_keys [
+    :active,
+    :autocorrect,
+    :check,
+    :config,
+    :exclude,
+    :exit_code
+  ]
+
   @impl Mix.Task
   @spec run(list()) :: no_return()
   def run(opts) do
@@ -145,11 +154,33 @@ defmodule Mix.Tasks.Recode do
   end
 
   defp validate_tasks!(config) do
-    Enum.each(config[:tasks], fn {task, _config} ->
+    Enum.each(config[:tasks], fn {task, config} ->
       task |> Code.ensure_loaded() |> validate_task!(task)
+      validate_task_config!(task, config)
     end)
 
     config
+  end
+
+  defp validate_task_config!(task, config) do
+    keys = Keyword.keys(config) -- @task_config_keys
+
+    unless Enum.empty?(keys) do
+      config =
+        Enum.reduce(keys, config, fn key, config ->
+          {value, config} = Keyword.pop!(config, key)
+
+          Keyword.update(config, :config, [{key, value}], fn task_config ->
+            Keyword.put(task_config, key, value)
+          end)
+        end)
+
+      Mix.raise("""
+      Invalid config keys #{inspect(keys)} for #{inspect(task)} found.
+      Did you want to create a task-specific configuration:
+      {#{inspect(task)}, #{inspect(config)}}
+      """)
+    end
   end
 
   defp validate_task!({:error, :nofile}, task) do
