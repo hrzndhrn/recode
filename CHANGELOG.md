@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.0 - dev
+## 0.7.0 - 2024/01/07
 
 + Refactor formatter and use `Escape`.
 + Add switch `--color` to mix task recode.

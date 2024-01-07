@@ -45,9 +45,9 @@ defmodule Recode.CLIFormatter do
   def init(config) do
     coloring =
       case Keyword.get(config, :color, true) do
-        false -> [emit?: false]
-        true -> [emit?: true, theme: @theme]
-        theme -> [emit?: true, theme: theme]
+        false -> [emit: false]
+        true -> [emit: true, theme: @theme]
+        theme -> [emit: true, theme: theme]
       end
 
     config =

@@ -49,7 +49,7 @@ in `mix.exs`:
 ```elixir
   def deps do
     [
-      {:recode, "~> 0.6", only: :dev}
+      {:recode, "~> 0.7", only: :dev}
     ]
   end
 ```
@@ -85,7 +85,7 @@ This mix task generates the config file `.recode.exs`.
 
 ```elixir
 [
-  version: "0.6.0",
+  version: "0.7.0",
   # Can also be set/reset with `--autocorrect`/`--no-autocorrect`.
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
@@ -96,7 +96,7 @@ This mix task generates the config file `.recode.exs`.
   verbose: false,
   # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
   inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
-  formatter: {Recode.Formatter, []},
+  formatters: [Recode.CLIFormatter],
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
     # keyword list. A task can be deactivated by `active: false`. The execution of
@@ -104,8 +104,9 @@ This mix task generates the config file `.recode.exs`.
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
     {Recode.Task.Dbg, [autocorrect: false]},
-    {Recode.Task.EnforceLineLength, [active: false]},
+    {Recode.Task.EnforceLineLength, [active: true, exclude: "mix.exs"]},
     {Recode.Task.FilterCount, []},
+    {Recode.Task.IOInspect, [autocorrect: false]},
     {Recode.Task.Nesting, []},
     {Recode.Task.PipeFunOne, []},
     {Recode.Task.SinglePipe, []},
@@ -133,13 +134,16 @@ This mix task runs the linter with autocorrection. The switch `--dry` (alias
 
 ```
 > cd examples/my_code
-> mix recode --dry
-Found 13 files, including 2 scripts.
-...........................................................................................
- File: lib/my_code.ex
+> mix recode --dry --no-color
+Read 19 files in 0.05s
+!.........!........!!...............................!................!...!......
+.......................!...........................!..!!..........!.........!...
+..............!.!......!......!.....!......!...............!..........!...!.....
+...........!!..!.!!.!..
+File: lib/my_code.ex
 [Specs 15/3] Functions should have a @spec type specification.
 
- File: lib/my_code/alias_expansion.ex
+File: lib/my_code/alias_expansion.ex
 Updates: 1
 Changed by: AliasExpansion
 1 1   |defmodule MyCode.AliasExpansion do
@@ -151,7 +155,7 @@ Changed by: AliasExpansion
    ...|
 [Specs 5/3] Functions should have a @spec type specification.
 
- File: lib/my_code/alias_order.ex
+File: lib/my_code/alias_order.ex
 Updates: 2
 Changed by: AliasOrder, AliasExpansion
      ...|
@@ -167,39 +171,51 @@ Changed by: AliasOrder, AliasExpansion
 18 19   |  @doc false
      ...|
 
- File: lib/my_code/fun.ex
+File: lib/my_code/deep.ex
+[Specs 2/3] Functions should have a @spec type specification.
+[Nesting 6/11] The body is nested too deep (max depth: 2).
+
+File: lib/my_code/empty.ex
 Updates: 1
 Changed by: Format
-     ...|
- 2  2   |  @moduledoc false
- 3  3   |
- 4    - |
- 5    - |
- 6    - |
- 7    - |
- 8    - |
- 9  4   |  def noop(x), do: x
-10  5   |end
-     ...|
 
- File: lib/my_code/multi.ex
-Updates: 2
-Changed by: SinglePipe, PipeFunOne
+File: lib/my_code/multi.ex
+Updates: 4
+Changed by: SinglePipe, PipeFunOne, FilterCount, Format
+ 1  1   |defmodule MyCode.Multi do
+ 2    - |
+ 3  2   |  import MyCode.Fun
+ 4  3   |
      ...|
- 7  7   |
- 8  8   |  def pipe(x) do
- 9    - |    x |> double |> double()
-    9 + |    x |> double() |> double()
-10 10   |  end
-11 11   |
-12 12   |  def single(x) do
-13    - |    x |> double()
-   13 + |    double(x)
-14 14   |  end
-15 15   |
+ 6  5   |
+ 7  6   |  def pipe(x) do
+ 8    - |    x |> double |> double() |> dbg()
+    7 + |    x |> double() |> double() |> dbg()
+ 9  8   |  end
+10  9   |
+11 10   |  def single(x) do
+12    - |    x |> double()
+   11 + |    double(x)
+13 12   |  end
+14 13   |
      ...|
+19 18   |  def my_count(list) do
+20 19   |    list
+21    - |    |> Enum.filter(fn x -> rem(x, 2) == 0 end)
+22    - |    |> Enum.count()
+   20 + |    |> Enum.count(fn x -> rem(x, 2) == 0 end)
+23 21   |    |> IO.inspect()
+24 22   |  end
+     ...|
+[Specs 4/3] Functions should have a @spec type specification.
+[Specs 6/3] Functions should have a @spec type specification.
+[Dbg 7/34] There should be no calls to dbg.
+[Specs 10/3] Functions should have a @spec type specification.
+[Specs 14/3] Functions should have a @spec type specification.
+[Specs 18/3] Functions should have a @spec type specification.
+[IOInspect 21/8] There should be no calls to IO.inspect.
 
- File: lib/my_code/pipe_fun_one.ex
+File: lib/my_code/pipe_fun_one.ex
 Updates: 1
 Changed by: PipeFunOne
      ...|
@@ -211,10 +227,10 @@ Changed by: PipeFunOne
  9  9   |end
      ...|
 
- File: lib/my_code/same_line.ex
+File: lib/my_code/same_line.ex
 [Specs 2/3] Functions should have a @spec type specification.
 
- File: lib/my_code/single_pipe.ex
+File: lib/my_code/single_pipe.ex
 Updates: 1
 Changed by: SinglePipe
      ...|
@@ -229,12 +245,76 @@ Changed by: SinglePipe
 11 11   |end
 12 12   |
 
- File: test/my_code_test.exs
+File: lib/my_code/tags.ex
+[TagTODO 3/-] Found a tag: TODO: add docs
+[TagFIXME 6/-] Found a tag: FIXME: add more functions
+[Specs 7/3] Functions should have a @spec type specification.
+
+File: lib/my_code/trailing_comma.ex
+Updates: 2
+Changed by: SinglePipe, Format
+     ...|
+ 3  3   |
+ 4  4   |  def list do
+ 5    - |    [
+    5 + |    Enum.reverse([
+ 6  6   |      100_000,
+ 7  7   |      200_000,
+     ...|
+14 14   |      900_000,
+15 15   |      1_000_000,
+16    - |      2_000_000,
+17    - |    ] |> Enum.reverse()
+   16 + |      2_000_000
+   17 + |    ])
+18 18   |  end
+19 19   |end
+     ...|
+
+File: mix.exs
+Updates: 1
+Changed by: Format
+     ...|
+ 9  9   |      start_permanent: Mix.env() == :prod,
+10 10   |      deps: deps(),
+11    - |      aliases: aliases(),
+   11 + |      aliases: aliases()
+12 12   |    ]
+13 13   |  end
+     ...|
+16 16   |    [
+17 17   |      extra_applications: [:logger],
+18    - |      mod: {Recode.Application, []},
+   18 + |      mod: {Recode.Application, []}
+19 19   |    ]
+20 20   |  end
+     ...|
+23 23   |    [
+24 24   |      backup: ["cmd elixir ./scripts/backup.exs"],
+25    - |      "backup.restore": ["cmd elixir ./scripts/backup.exs restore"],
+   25 + |      "backup.restore": ["cmd elixir ./scripts/backup.exs restore"]
+26 26   |    ]
+27 27   |  end
+     ...|
+32 32   |      # dev/test
+33 33   |      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+34    - |      {:freedom_formatter, "~> 2.1", only: :dev},
+   34 + |      {:freedom_formatter, "~> 2.1", only: :dev}
+35 35   |    ]
+36 36   |  end
+     ...|
+
+File: test/my_code_test.exs
 Updates: 1
 Changed by: TestFileExt
 Moved from: test/my_code_test.ex
 
-Finished in 0.06 seconds.
+Executed 244 tasks in 0.01s.
+Files: 19 (.ex: 15, .exs: 4)
+Moved 1 file
+Updated 8 files
+Found 15 issues
+Finished in 0.06s.
 ```
 
 The switch `--no-autocorrect` runs the linter without any file changes. In this

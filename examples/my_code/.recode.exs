@@ -6,6 +6,8 @@
   # Can also be set/reset with `--dry`/`--no-dry`.
   # If dry is true then verbose is also active.
   dry: false,
+  # Enables or disables color in the output.
+  color: true,
   # Can also be set/reset with `--verbose`/`--no-verbose`.
   verbose: false,
   # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
@@ -18,13 +20,13 @@
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
     {Recode.Task.Dbg, [autocorrect: false]},
-    {Recode.Task.EnforceLineLength, [active: true, exclude: "mix.exs"]},
+    {Recode.Task.EnforceLineLength, [active: false]},
     {Recode.Task.FilterCount, []},
     {Recode.Task.IOInspect, [autocorrect: false]},
     {Recode.Task.Nesting, []},
     {Recode.Task.PipeFunOne, []},
     {Recode.Task.SinglePipe, []},
-    {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
+    {Recode.Task.Specs, [exclude: ["test/**/*.{ex,exs}", "mix.exs"], config: [only: :visible]]},
     {Recode.Task.TagFIXME, [exit_code: 2]},
     {Recode.Task.TagTODO, [exit_code: 4]},
     {Recode.Task.TestFileExt, []},

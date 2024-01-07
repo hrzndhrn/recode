@@ -2,8 +2,8 @@
   # plugins: [],
   # plugins: [Recode.FormatterPlugin],
   # plugins: [FreedomFormatter],
-  plugins: [FreedomFormatter, Recode.FormatterPlugin],
-  trailing_comma: true,
+  # plugins: [FreedomFormatter, Recode.FormatterPlugin],
+  # trailing_comma: true,
   # recode: [
   #   tasks: [
   #     {Recode.Task.PipeFunOne, []},
