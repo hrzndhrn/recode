@@ -94,8 +94,8 @@ defmodule Recode.Task.Tags do
 
   defp find_tags(meta, opts) do
     meta
-    |> Keyword.get(:text, "")
-    |> String.split("\n")
+    |> Keyword.get(:text)
+    |> split_lines()
     |> find_tags(~r/^#?\s*#{opts[:tag]}/, 0, [])
     |> issues(meta, opts)
   end
@@ -115,4 +115,7 @@ defmodule Recode.Task.Tags do
       Issue.new(opts[:reporter], "Found a tag: #{text}", line: line + meta[:line])
     end)
   end
+
+  defp split_lines(nil), do: []
+  defp split_lines(string) when is_binary(string), do: String.split(string, "\n")
 end

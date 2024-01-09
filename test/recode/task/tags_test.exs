@@ -51,7 +51,7 @@ defmodule Recode.Task.TagsTest do
       |> refute_issues()
     end
 
-    test "triggers no issue a comment in a keyword list" do
+    test "triggers no issue for a comment in a keyword list" do
       ~s'''
       defmodule Foo do
         def foo do
@@ -60,6 +60,19 @@ defmodule Recode.Task.TagsTest do
             # a comment
             b: 1
           ]
+        end
+      end
+      '''
+      |> run_task(Tags, tag: "TODO", reporter: Tags)
+      |> refute_issues()
+    end
+
+    test "triggers no issue for @doc nil" do
+      ~s'''
+      defmodule Foo do
+        @doc nil
+        def foo do
+          :foo
         end
       end
       '''

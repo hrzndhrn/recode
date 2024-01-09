@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1 - 2024/01/09
+
++ Fix bug in `Recode.Task.Tags`.
+
 ## 0.7.0 - 2024/01/07
 
 + Refactor formatter and use `Escape`.
