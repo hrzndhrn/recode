@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2 - dev
+
++ Add `Recode.Task.Moduledoc`
+
 ## 0.7.1 - 2024/01/09
 
 + Fix bug in `Recode.Task.Tags`.

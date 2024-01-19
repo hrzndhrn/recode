@@ -1,5 +1,5 @@
 [
-  version: "0.7.0",
+  version: "0.7.2",
   # Can also be set/reset with `--autocorrect`/`--no-autocorrect`.
   autocorrect: true,
   # With "--dry" no changes will be written to the files.

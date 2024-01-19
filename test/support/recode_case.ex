@@ -33,10 +33,25 @@ defmodule RecodeCase do
 
       Enum.each(keyword, fn {key, value} ->
         got = Map.fetch!(issue, key)
+        error = "Expected #{inspect(value)} for #{inspect(key)} in issue, got: #{inspect(got)}"
 
-        assert got == value,
-               "Expected #{inspect(value)} for #{inspect(key)} in issue, got: #{inspect(got)}"
+        assert got == value, error
       end)
+    end
+  end
+
+  defmacro assert_issues_with(source, list) do
+    quote bind_quoted: [source: source, list: list] do
+      assert length(source.issues) == length(list),
+             "Expected #{length(list)} issue(s), got:\n#{inspect(source.issues, pretty: true)}"
+
+      for {{_version, issue}, keyword} <- Enum.zip(source.issues, list),
+          {key, value} <- keyword do
+        got = Map.fetch!(issue, key)
+        error = "Expected #{inspect(value)} for #{inspect(key)} in issue, got: #{inspect(got)}"
+
+        assert got == value, error
+      end
     end
   end
 
@@ -72,6 +87,17 @@ defmodule RecodeCase do
     end
   end
 
+  defmacro assert_config_error(error_tuple, expected_message \\ nil) do
+    quote bind_quoted: [error_tuple: error_tuple, expected_message: expected_message] do
+      if expected_message do
+        assert error_tuple == {:error, expected_message}
+      else
+        assert {:error, error_message} = error_tuple
+        assert is_binary(error_message)
+      end
+    end
+  end
+
   def source(string, path \\ nil) do
     Source.Ex.from_string(string, path)
   end
@@ -87,8 +113,9 @@ defmodule RecodeCase do
   end
 
   def run_task(%Source{} = source, task, opts) do
-    {:ok, opts} = task.init(opts)
-    task.run(source, opts)
+    with {:ok, opts} <- task.init(opts) do
+      task.run(source, opts)
+    end
   end
 
   def formated?(code) do

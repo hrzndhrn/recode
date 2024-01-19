@@ -9,11 +9,11 @@ defmodule Recode.Config do
 
   @config_filename ".recode.exs"
 
-  @config_version "0.7.1"
+  @config_version "0.7.2"
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
-  @config_min_version "0.7.0"
+  @config_min_version "0.7.2"
 
   @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks, :color]
 
@@ -34,6 +34,7 @@ defmodule Recode.Config do
       {Recode.Task.EnforceLineLength, [active: false]},
       {Recode.Task.FilterCount, []},
       {Recode.Task.IOInspect, [autocorrect: false]},
+      {Recode.Task.Moduledoc, []},
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},

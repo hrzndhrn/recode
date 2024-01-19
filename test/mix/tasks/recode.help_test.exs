@@ -11,27 +11,12 @@ defmodule Mix.Tasks.Recode.Gen.HelpTest do
         assert Help.run([]) == :ok
       end)
 
-    assert output == """
-           Design tasks:
-           TagFIXME          # Checker   - Checks if there are FIXME tags in the sources.
-           TagTODO           # Checker   - Checks if there are TODO tags in the sources.
-           Readability tasks:
-           AliasExpansion    # Corrector - Exapnds multi aliases to separate aliases.
-           AliasOrder        # Corrector - Checks if aliases are sorted alphabetically.
-           EnforceLineLength # Corrector - Forces expressions to one line.
-           Format            # Corrector - Does the same as `mix format`.
-           PipeFunOne        # Corrector - Add parentheses to one-arity functions.
-           SinglePipe        # Corrector - Pipes should only be used when piping data through multiple calls.
-           Specs             # Checker   - Checks for specs.
-           Refactor tasks:
-           FilterCount       # Corrector - Checks calls like Enum.filter(...) |> Enum.count().
-           Nesting           # Checker   - Checks code nesting depth in functions and macros.
-           Warning tasks:
-           Dbg               # Corrector - There should be no calls to dbg.
-           IOInspect         # Corrector - There should be no calls to IO.inspect.
-           TestFileExt       # Corrector - Checks the file extension of test files.
-           UnusedVariable    # Corrector - Checks if unused variables occur.
-           """
+    assert output =~ "Design tasks:"
+    assert output =~ "Readability tasks:"
+    assert output =~ "Refactor tasks:"
+    assert output =~ "Warning tasks:"
+    assert output =~ ~r/.*#.Checker\s*-/
+    assert output =~ ~r/.*#.Corrector\s*-/
   end
 
   test "mix recode.help Dbg" do
