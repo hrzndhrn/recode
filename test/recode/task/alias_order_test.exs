@@ -79,6 +79,28 @@ defmodule Recode.Task.AliasOrderTest do
     |> assert_code(expected)
   end
 
+  test "sorts modules with :as" do
+    code = """
+    defmodule MyModule do
+      alias Beta, as: Delta
+      alias __MODULE__, as: Charlie
+      alias Alpha, as: Gamma
+    end
+    """
+
+    expected = """
+    defmodule MyModule do
+      alias Alpha, as: Gamma
+      alias Beta, as: Delta
+      alias __MODULE__, as: Charlie
+    end
+    """
+
+    code
+    |> run_task(AliasOrder, autocorrect: true)
+    |> assert_code(expected)
+  end
+
   test "sorts erlang modules" do
     code = """
     defmodule MyModule do
