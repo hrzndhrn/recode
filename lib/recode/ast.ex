@@ -441,6 +441,18 @@ defmodule Recode.AST do
       ...> end
       iex> alias_info(ast)
       {Foo, [], Baz}
+
+      iex> ast = Sourceror.parse_string!("alias __MODULE__")
+      iex> alias_info(ast)
+      {:__MODULE__, [], nil}
+
+      iex> ast = Sourceror.parse_string!("alias __MODULE__.{Foo, Bar.Baz}")
+      iex> alias_info(ast)
+      {:__MODULE__, [Foo, Bar.Baz], nil}
+
+      iex> ast = Sourceror.parse_string!("alias __MODULE__, as: MyModule")
+      iex> alias_info(ast)
+      {:__MODULE__, [], MyModule}
   """
   @spec alias_info(Macro.t()) :: {module(), [module()], module() | nil}
   def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}]}) do
@@ -464,6 +476,11 @@ defmodule Recode.AST do
     multi = Enum.map(multi, &aliases_concat/1)
 
     {:__MODULE__, multi, nil}
+  end
+
+  def alias_info({:alias, _meta1, [{:__MODULE__, _meta2, _args}, [{_block, as}]]}) do
+    as = aliases_concat(as)
+    {:__MODULE__, [], as}
   end
 
   def alias_info({:alias, _meta1, [{{:., _meta2, [aliases, _opts]}, _meta3, multi}]}) do
