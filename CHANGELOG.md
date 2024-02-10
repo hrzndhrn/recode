@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.7.2 - dev
+## 0.7.2 - 2024/02/10
 
-+ Add `Recode.Task.Moduledoc`
++ Fix AST.alias_info fot `alias __MODULE__, as: MyModule`.
 
 ## 0.7.1 - 2024/01/09
 
