@@ -427,6 +427,17 @@ You can also run Recode together with `mix format` by adding
 ]
 ```
 
+If you are using [ElixirLS](https://github.com/elixir-lsp/elixir-ls), you will
+need to enable `recode` for the test environment:
+
+```elixir
+  def deps do
+    [
+      {:recode, "~> 0.7", only: [:dev, :test]}
+    ]
+  end
+```
+
 ### `mix recode.help`
 
 The task `recode.help` prints all available recode-task with a short description.
