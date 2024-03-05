@@ -24,9 +24,7 @@ defmodule Recode.Task.Moduledoc do
   alias Recode.AST
   alias Recode.Issue
   alias Rewrite.Source
-  alias Sourceror.Zipper
 
-  @skip_def_kinds [:def, :defp, :defmacro, :defmacrop]
   @default_config [ignore_names: []]
   @error_message """
   The config for the Recode.Task.Moduledoc is wrong. The task excepts the option \
@@ -39,9 +37,8 @@ defmodule Recode.Task.Moduledoc do
 
     source
     |> Source.get(:quoted)
-    |> Zipper.zip()
-    |> Zipper.traverse_while([], module(ignore_names))
-    |> update(source)
+    |> check()
+    |> update(source, ignore_names)
   end
 
   @impl Recode.Task
@@ -60,6 +57,83 @@ defmodule Recode.Task.Moduledoc do
     end
   end
 
+  defp check(ast) do
+    AST.reduce_while(ast, [], fn
+      {:defmodule, meta, [aliases, args]}, acc ->
+        module = {AST.module(aliases), meta}
+        block = AST.block(args)
+        acc = [check_module([module], block) | acc]
+        {:skip, acc}
+
+      _ast, acc ->
+        {:cont, acc}
+    end)
+  end
+
+  defp check_module(modules, ast) do
+    AST.reduce_while(ast, modules, fn
+      {:@, _, [{:moduledoc, _, args} | _]}, [module | modules] when not is_nil(module) ->
+        {:cont, [check_moduledoc(args, module) | modules]}
+
+      {:defmodule, meta, [aliases, args]}, acc ->
+        module = {AST.module(aliases), meta}
+        block = AST.block(args)
+        acc = [acc | check_module([module], block)]
+        {:skip, acc}
+
+      _ast, acc ->
+        {:skip, acc}
+    end)
+  end
+
+  defp check_moduledoc([{:__block__, _meta, [text]}], {module, meta}) when is_binary(text) do
+    {module, Keyword.merge(meta, exist: true, empty: String.trim(text) == "")}
+  end
+
+  defp check_moduledoc(_args, {module, meta}) do
+    {module, Keyword.merge(meta, exist: true, empty: false)}
+  end
+
+  defp update([], source, _ignore_names), do: source
+
+  defp update(result, source, ignore_names) do
+    result
+    |> List.flatten()
+    |> Enum.reduce(source, fn module, source -> issue(module, source, ignore_names) end)
+  end
+
+  defp issue({module, meta}, source, ignore_names) do
+    cond do
+      ignore?(AST.name(module), ignore_names) ->
+        source
+
+      Keyword.get(meta, :empty, false) ->
+        add_issue(source, meta, """
+        The @moudledoc attribute for moudle #{module} has no content.\
+        """)
+
+      Keyword.get(meta, :exist, false) ->
+        source
+
+      true ->
+        add_issue(source, meta, """
+        The moudle #{module} is missing @moduledoc.\
+        """)
+    end
+  end
+
+  defp add_issue(source, meta, message) do
+    Source.add_issue(source, Issue.new(Moduledoc, message, meta))
+  end
+
+  defp ignore?(_name, []), do: false
+
+  defp ignore?(name, [ignore_name | ignore_names]) do
+    with false <- Regex.match?(ignore_name, name) do
+      ignore?(name, ignore_names)
+    end
+  end
+
   defp validate_keys(config) do
     with {:error, unknown} <- Keyword.validate(config, @default_config) do
       {:error, "#{@error_message}. Unknown keys: #{inspect(unknown)}"}
@@ -73,83 +147,4 @@ defmodule Recode.Task.Moduledoc do
       _invalid -> false
     end
   end
-
-  defp update({_zipper, []}, source), do: source
-  defp update({_zipper, issues}, source), do: Source.add_issues(source, issues)
-
-  defp module(ignore_names) do
-    fn
-      %Zipper{node: {:defmodule, meta, args}} = zipper, issues ->
-        issues = issues ++ check(zipper, name(args), meta, ignore_names)
-
-        {:skip, zipper, issues}
-
-      zipper, issues ->
-        {:cont, zipper, issues}
-    end
-  end
-
-  defp check(zipper, name, meta, ignore_names) do
-    acc = if ignore?(name, ignore_names), do: [:ignore], else: []
-
-    {_zipper, issues} =
-      zipper
-      |> do_block()
-      |> Zipper.traverse_while(acc, moduledoc(ignore_names))
-
-    issues(issues, name, meta)
-  end
-
-  defp moduledoc(ignore_names) do
-    fn
-      %Zipper{node: {def_kind, _, _}} = zipper, issues when def_kind in @skip_def_kinds ->
-        {:skip, zipper, issues}
-
-      %Zipper{node: {:defmodule, meta, args}} = zipper, issues ->
-        issues = issues ++ check(zipper, name(args), meta, ignore_names)
-
-        {:skip, zipper, issues}
-
-      zipper, [:ignore | _issues] = issues ->
-        {:cont, zipper, issues}
-
-      %Zipper{node: {:@, _, [{:moduledoc, _, _} | _]}} = zipper, issues ->
-        {:cont, zipper, [:exist | issues]}
-
-      zipper, issues ->
-        {:cont, zipper, issues}
-    end
-  end
-
-  defp issues([issue | issues], _name, _meta) when issue in [:exist, :ignore], do: issues
-
-  defp issues(issues, name, meta) do
-    [issue(name, meta) | issues]
-  end
-
-  defp issue(name, meta) do
-    message = "The moudle #{name} is missing @moduledoc."
-    Issue.new(Moduledoc, message, meta)
-  end
-
-  defp do_block(zipper) do
-    Zipper.traverse_while(zipper, fn
-      %Zipper{node: {{:__block__, _, [:do]}, block}} ->
-        {:halt, Zipper.zip(block)}
-
-      zipper ->
-        {:cont, zipper}
-    end)
-  end
-
-  defp ignore?(_name, []), do: false
-
-  defp ignore?(name, [ignore_name | ignore_names]) do
-    with false <- Regex.match?(ignore_name, name) do
-      ignore?(name, ignore_names)
-    end
-  end
-
-  defp name([arg | _args]), do: name(arg)
-  defp name(arg), do: arg |> AST.aliases_concat() |> inspect()
 end

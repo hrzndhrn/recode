@@ -24,6 +24,8 @@ defmodule Recode.AST do
 
   alias Sourceror.Zipper
 
+  @type acc :: any()
+
   @doc """
   Returns `true` if the given AST represents an atom.
 
@@ -72,8 +74,8 @@ defmodule Recode.AST do
   ]
 
   @doc ~S'''
-  Returns `true` when the given `ast` represents an expression that spans over
-  multiple lines.
+  Returns `true` when the given `ast` expression represents an expression that
+  spans over multiple lines.
 
   `multiline?` does not pay attention to do blocks.
 
@@ -85,7 +87,8 @@ defmodule Recode.AST do
       ...>   {:foo, x}
       ...> end
       ...> """
-      ...> |> Sourceror.parse_string!() |> multiline?()
+      ...> |> Sourceror.parse_string!()
+      ...> |> multiline?()
       true
 
       iex> """
@@ -93,7 +96,8 @@ defmodule Recode.AST do
       ...>   {:foo, x}
       ...> end
       ...> """
-      ...> |> Sourceror.parse_string!() |> multiline?()
+      ...> |> Sourceror.parse_string!()
+      ...> |> multiline?()
       false
 
       iex> """
@@ -102,13 +106,15 @@ defmodule Recode.AST do
       ...>   y
       ...> }
       ...> """
-      ...> |> Sourceror.parse_string!() |> multiline?()
+      ...> |> Sourceror.parse_string!()
+      ...> |> multiline?()
       true
 
       iex> """
       ...> {x, y}
       ...> """
-      ...> |> Sourceror.parse_string!() |> multiline?()
+      ...> |> Sourceror.parse_string!()
+      ...> |> multiline?()
       false
   '''
   @spec multiline?(Macro.t() | Macro.metadata()) :: boolean()
@@ -126,6 +132,34 @@ defmodule Recode.AST do
     end
   end
 
+  @doc ~S'''
+  Forces a one line AST expression from a multiline AST expression.
+
+  ## Example
+
+      iex> """
+      ...> x &&
+      ...>   y
+      ...> """
+      ...> |> Sourceror.parse_string!()
+      ...> |> to_same_line()
+      ...> |> Sourceror.to_string()
+      "x && y"
+
+      iex> """
+      ...> def foo,
+      ...>   do:
+      ...>     :foo
+      ...> """
+      ...> |> Sourceror.parse_string!()
+      ...> |> to_same_line()
+      ...> |> Sourceror.to_string()
+      """
+      def foo,
+        do: :foo\
+      """
+  '''
+  @spec to_same_line(Macro.t()) :: Macro.t()
   def to_same_line({op, _meta, [left, right]} = ast) when op in @operators do
     to_same_line(ast, first_line(left), last_line(right))
   end
@@ -175,10 +209,13 @@ defmodule Recode.AST do
   end
 
   @doc ~S'''
-  Returns the line in which the given AST starts.
+  Returns the first line in which the given AST starts.
 
-  Note: The AST must be constructed by `Sourceror` or with the `Code` module and
-  the options `columns: true, token_metadata: true`.
+  > ### Note {: .info}
+  >
+  > The AST must be constructed by `Sourceror` or with the `Code` module and
+  > the options `columns: true, token_metadata: true,
+  > literal_encoder: &{:ok, {:__block__, &2, [&1]}}`.
 
   ## Examples
 
@@ -187,9 +224,11 @@ defmodule Recode.AST do
       ...>   2 -
       ...>   3
       ...> """
-      iex> code |> Sourceror.parse_string!() |> first_line()
+      ...>
+      ...> ast = Sourceror.parse_string(code)
+      ...> first_line(ast)
       1
-      iex> code |> Sourceror.parse_string!() |> last_line()
+      iex> last_line(ast)
       3
       iex> code
       ...> |> Code.string_to_quoted!(
@@ -198,10 +237,16 @@ defmodule Recode.AST do
       ...>   literal_encoder: &{:ok, {:__block__, &2, [&1]}})
       ...> |> last_line()
       3
-
   '''
+  @spec first_line(Macro.t()) :: integer | nil
   def first_line(ast), do: get_line_by(ast, &min/2)
 
+  @doc """
+  Returns the last line in which the given AST ends.
+
+  See `first_line/1` for example and note.
+  """
+  @spec last_line(Macro.t()) :: integer | nil
   def last_line(ast), do: get_line_by(ast, &max/2)
 
   defp get_line_by(ast, fun) do
@@ -383,6 +428,14 @@ defmodule Recode.AST do
 
   @doc """
   Returns a `mfa`-tuple for the given `.`-call.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   Foo.Bar.baz(x)
+      ...> end
+      ...> mfa(ast)
+      {Foo.Bar, :baz, 1}
   """
   @spec mfa({{:., keyword(), list()}, Macro.metadata(), Macro.t()}) ::
           {module(), atom(), non_neg_integer()}
@@ -518,10 +571,25 @@ defmodule Recode.AST do
       iex> aliases_concat({:__aliases__, [], [:Alpha, :Bravo]})
       Alpha.Bravo
   """
-  @spec aliases_concat({:__aliases__, Macro.metadata(), [atom()]}) :: module()
+  @spec aliases_concat({:__aliases__, Macro.metadata(), [atom()]} | list) :: module()
   def aliases_concat({:__aliases__, _meta, aliases}) do
     Module.concat(aliases)
   end
+
+  def aliases_concat([{:__aliases__, _meta, aliases} | _]) do
+    Module.concat(aliases)
+  end
+
+  @doc """
+  Returns the module name as an atom for the given `ast`.
+
+  The function accepts `{:defmodule, meta, args}`, the `args` form the
+  `:defmodule` tuple or the same input as `aliases_concat/1`.
+  """
+  @spec module(Macro.t()) :: module
+  def module(ast)
+  def module({:defmodule, _metag, [arg | _args]}), do: aliases_concat(arg)
+  def module(args), do: aliases_concat(args)
 
   @doc """
   Converts AST representing a name to a string.
@@ -530,11 +598,11 @@ defmodule Recode.AST do
 
   ## Examples
 
-      iex> name([Recode, AST])
-      "Recode.AST"
+      iex> name([Recode, Task])
+      "Recode.Task"
 
-      iex> name(Recode.AST)
-      "Recode.AST"
+      iex> name(Recode.Task)
+      "Recode.Task"
   """
   @spec name(atom() | [atom()]) :: String.t()
   def name(aliases) when is_list(aliases) do
@@ -546,6 +614,73 @@ defmodule Recode.AST do
       name
     end
   end
+
+  @doc ~S'''
+  TODO: add doc
+
+  ## Examples
+
+      iex> ast = Sourceror.parse_string!("""
+      ...> defmodule Foo do
+      ...>   def bar, do: bar
+      ...> end
+      ...> """)
+      ...> block(ast)
+      [
+        {:def, [trailing_comments: [], leading_comments: [], line: 2, column: 3],
+         [
+           {:bar, [trailing_comments: [], leading_comments: [], line: 2, column: 7], nil},
+           [
+             {{:__block__,
+               [trailing_comments: [], leading_comments: [], format: :keyword, line: 2, column: 12],
+               [:do]},
+              {:bar, [trailing_comments: [], leading_comments: [], line: 2, column: 16], nil}}
+           ]
+         ]}
+      ]
+
+      iex> {:defmodule, _meta, [aliases, args]} = Sourceror.parse_string!("""
+      ...> defmodule Foo do
+      ...>   def bar, do: bar
+      ...>   def baz, do: baz
+      ...> end
+      ...> """)
+      ...> block(args) |> length()
+      2
+
+      iex> ast = Sourceror.parse_string!("""
+      ...> if x, do: true, else: false
+      ...> """)
+      ...> block(ast, :else)
+      [false]
+      ...> block(ast)
+      [true]
+      ...> block(ast, :do)
+      [true]
+  '''
+  @spec block(Macro.t(), atom()) :: Macro.t()
+  def block(ast, key \\ :do)
+
+
+  def block({_form, _meta, args}, key) when key in [:do, :else] do
+    do_block(args, key, 0)
+  end
+
+  def block(args, key) when is_list(args) and key in [:do, :else] do
+    do_block(args, key, 0)
+    # Enum.find_value(args, fn arg -> do_block(arg, key) end)
+  end
+
+  defp do_block(list, key, depth) when is_list(list) and depth <= 1 do
+    Enum.find_value(list, fn
+      {{:__block__, _meta_key, [^key]}, {:__block__, _meta_block, block}} -> block
+      {{:__block__, _meta_key, [^key]}, block} -> [block]
+      list when is_list(list) -> do_block(list, key, depth + 1)
+      _item -> false
+    end)
+  end
+
+  defp do_block(_list, _key, _depth), do: false
 
   @doc """
   Returns the value from a `:__block__` with a single argument.
@@ -606,5 +741,168 @@ defmodule Recode.AST do
           {:__block__, meta6, [arity]}
         ]}
      ]}
+  end
+
+  @doc """
+  Performs a depth-first, pre-order traversal of quoted expressions and invokes
+  `fun` for each node in the `ast` with the accumulator `acc`.
+
+  The initial value of the accumulator is `acc`. The function is invoked for each
+  node in the `ast` with the accumulator. The result returned by the function is
+  used as the accumulator for the next iteration. The function returns the last
+  accumulator.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   def foo(x), {:oof, x}
+      ...>   def bar(x), {:rab, x}
+      ...> end
+      ...> AST.reduce(ast, [], fn
+      ...>   {:def, _, [{name, _, _}|_]}, acc -> [name | acc]
+      ...>   ast, acc when is_atom(ast) -> [ast|acc]
+      ...>   _ast, acc -> acc
+      ...> end)
+      [:rab, :bar, :oof, :foo]
+  """
+  @spec reduce(Macro.t(), acc(), (Macro.t(), acc() -> acc())) :: acc()
+  def reduce(ast, acc, fun) do
+    acc
+    |> do_reduce_apply(ast, fun)
+    |> do_reduce(ast, fun)
+  end
+
+  defp do_reduce(acc, {form, _meta, args}, fun) when is_atom(form) do
+    do_reduce_args(acc, args, fun)
+  end
+
+  defp do_reduce(acc, {form, _meta, args}, fun) do
+    acc
+    |> do_reduce_apply(form, fun)
+    |> do_reduce(form, fun)
+    |> do_reduce_args(args, fun)
+  end
+
+  defp do_reduce(acc, {left, right}, fun) do
+    acc
+    |> do_reduce_apply(left, fun)
+    |> do_reduce(left, fun)
+    |> do_reduce_apply(right, fun)
+    |> do_reduce(right, fun)
+  end
+
+  defp do_reduce(acc, ast, fun) when is_list(ast) do
+    do_reduce_args(acc, ast, fun)
+  end
+
+  defp do_reduce(acc, _ast, _fun), do: acc
+
+  defp do_reduce_args(acc, [], _fun), do: acc
+
+  defp do_reduce_args(acc, [arg | args], fun) do
+    acc
+    |> do_reduce_apply(arg, fun)
+    |> do_reduce(arg, fun)
+    |> do_reduce_args(args, fun)
+  end
+
+  defp do_reduce_args(acc, _arg, _fun), do: acc
+
+  @compile {:inline, do_reduce_apply: 3}
+  defp do_reduce_apply(acc, ast, fun), do: fun.(ast, acc)
+
+  @doc """
+  Reduces the `ast` until `fun` returns `{:halt, term}`.
+
+  The return value for `fun` is expected to be
+
+    * `{:cont, acc}` to continue the reduction with the next node in the ast and
+       `acc` as the new accumulator
+
+    * `{:skip, acc}` to continue the reduction while skippin the childrens of
+       current node and `acc` as the new accumulator
+
+    * `{:halt, acc}` to halt the reduction or
+
+  If `fun` returns `{:halt, acc}` the reduction is halted and the function
+  returns `acc`. Otherwise, if the AST is exhausted, the function returns the
+  accumulator of the last `{:cont, acc}`.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   def foo(x), {:oof, x}
+      ...>   def bar(x, y), {:rab, x, y}
+      ...> end
+      ...>
+      ...> AST.reduce_while(ast, [], fn
+      ...>   {:def, _, [{name, _, args}|_]}, acc
+      ...>     -> acc = [name | acc]
+      ...>        if length(args) == 1 do
+      ...>          {:cont, acc}
+      ...>        else
+      ...>          {:skip, acc}
+      ...>        end
+      ...>   ast, acc when is_atom(ast)
+      ...>     -> {:cont, [ast|acc]}
+      ...>   _ast, acc
+      ...>     -> {:cont, acc}
+      ...> end)
+      [:bar, :oof, :foo]
+  """
+  @spec reduce_while(Macro.t(), acc(), (Macro.t(), acc() -> result)) :: acc()
+        when result: {:cont, acc()} | {:halt, acc()} | {:skip, acc()}
+  def reduce_while(ast, acc, fun) do
+    acc
+    |> do_reduce_while_apply(ast, fun)
+    |> do_reduce_while(ast, fun)
+    |> elem(1)
+  end
+
+  defp do_reduce_while({:cont, acc}, {form, _meta, args}, fun) when is_atom(form) do
+    do_reduce_while_args(acc, args, fun)
+  end
+
+  defp do_reduce_while({:cont, acc}, {form, _meta, args}, fun) do
+    acc
+    |> do_reduce_while_apply(form, fun)
+    |> do_reduce_while(form, fun)
+    |> elem(1)
+    |> do_reduce_while_args(args, fun)
+  end
+
+  defp do_reduce_while({:cont, acc}, {left, right}, fun) do
+    acc
+    |> do_reduce_while_apply(left, fun)
+    |> do_reduce_while(left, fun)
+    |> elem(1)
+    |> do_reduce_while_apply(right, fun)
+    |> do_reduce_while(right, fun)
+  end
+
+  defp do_reduce_while({_tag, acc}, ast, fun) when is_list(ast) do
+    do_reduce_while_args(acc, ast, fun)
+  end
+
+  defp do_reduce_while({:skip, acc}, _ast, _fun), do: {:cont, acc}
+  defp do_reduce_while(acc, _ast, _fun), do: acc
+
+  defp do_reduce_while_args(acc, [], _fun), do: {:cont, acc}
+
+  defp do_reduce_while_args(acc, [arg | args], fun) do
+    acc
+    |> do_reduce_while_apply(arg, fun)
+    |> do_reduce_while(arg, fun)
+    |> elem(1)
+    |> do_reduce_while_args(args, fun)
+  end
+
+  defp do_reduce_while_args(acc, _arg, _fun), do: {:cont, acc}
+
+  @compile {:inline, do_reduce_while_apply: 3}
+  defp do_reduce_while_apply(acc, ast, fun) do
+    case fun.(ast, acc) do
+      {tag, _data} = acc when tag in [:cont, :halt, :skip] -> acc
+    end
   end
 end

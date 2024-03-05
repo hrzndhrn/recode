@@ -162,7 +162,22 @@ defmodule Recode.Task.ModuledocTest do
       end
       """
       |> run_task(Moduledoc)
-      |> assert_issue()
+      |> assert_issue_with(message: "The moudle Elixir.Bar.Foo is missing @moduledoc.")
+    end
+
+    test "when @moduldoc is empty" do
+      ~S'''
+      defmodule Bar.Foo do
+        @moduledoc """
+
+        """
+        def baz(x) do
+          {:ok, x}
+        end
+      end
+      '''
+      |> run_task(Moduledoc)
+      |> assert_issue_with(message: "The @moudledoc attribute for moudle Elixir.Bar.Foo has no content.")
     end
 
     test "when @moduldoc is missing in a module and inner modules" do
@@ -181,7 +196,7 @@ defmodule Recode.Task.ModuledocTest do
       end
       """
       |> run_task(Moduledoc)
-      |> assert_issues_with([[line: 1], [line: 3], [line: 6]])
+      |> assert_issues_with([[line: 6], [line: 3], [line: 1]])
     end
 
     test "when @moduldoc is missing in inner modules" do
@@ -201,7 +216,7 @@ defmodule Recode.Task.ModuledocTest do
       end
       """
       |> run_task(Moduledoc)
-      |> assert_issues_with([[line: 4], [line: 7]])
+      |> assert_issues_with([[line: 7], [line: 4]])
     end
 
     test "when @moduldoc is missing in module and innerst module" do
@@ -221,7 +236,7 @@ defmodule Recode.Task.ModuledocTest do
       end
       """
       |> run_task(Moduledoc)
-      |> assert_issues_with([[line: 1], [line: 7]])
+      |> assert_issues_with([[line: 7], [line: 1]])
     end
 
     test "when @moduldoc is missing in inner module" do
@@ -312,6 +327,24 @@ defmodule Recode.Task.ModuledocTest do
       '''
       |> run_task(Moduledoc)
       |> assert_issues_with([[line: 7]])
+    end
+
+    test "when modules are optional" do
+      ~s'''
+      if foo do
+        defmodule Bar.Foo do
+          @moduledoc false
+
+          def baz(x), do: {:baz, x}
+        end
+
+        defmodule Baz do
+          def foo(x), do: {:foo, x}
+        end
+      end
+      '''
+      |> run_task(Moduledoc)
+      |> assert_issues_with([[line: 8]])
     end
   end
 

@@ -33,7 +33,7 @@ defmodule RecodeCase do
 
       Enum.each(keyword, fn {key, value} ->
         got = Map.fetch!(issue, key)
-        error = "Expected #{inspect(value)} for #{inspect(key)} in issue, got: #{inspect(got)}"
+        error = "Expected #{inspect(value)} for key #{inspect(key)} in issue, got: #{inspect(got)}"
 
         assert got == value, error
       end)
@@ -48,7 +48,7 @@ defmodule RecodeCase do
       for {{_version, issue}, keyword} <- Enum.zip(source.issues, list),
           {key, value} <- keyword do
         got = Map.fetch!(issue, key)
-        error = "Expected #{inspect(value)} for #{inspect(key)} in issue, got: #{inspect(got)}"
+        error = "Expected #{inspect(value)} for key #{inspect(key)} in issue, got: #{inspect(got)}"
 
         assert got == value, error
       end
