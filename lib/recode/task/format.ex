@@ -18,6 +18,8 @@ defmodule Recode.Task.Format do
 
   @impl Recode.Task
   def run(source, opts) do
+    opts = Keyword.merge(opts, @default_config)
+
     source
     |> Source.Ex.merge_formatter_opts(exclude_plugins: [Recode.FormatterPlugin])
     |> execute(opts[:autocorrect], opts[:formatter])
@@ -82,7 +84,7 @@ defmodule Recode.Task.Format do
   end
 
   defp validate_keys(config) do
-    with {:error, keys} <- Keyword.validate(config, @default_config) do
+    with {:error, keys} <- Keyword.validate(config, [:autocorrect] ++ @default_config) do
       {:error, {:unknown, keys}}
     end
   end
