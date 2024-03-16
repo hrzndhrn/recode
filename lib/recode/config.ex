@@ -9,7 +9,7 @@ defmodule Recode.Config do
 
   @config_filename ".recode.exs"
 
-  @config_version "0.7.2"
+  @config_version "0.7.3"
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
@@ -140,8 +140,8 @@ defmodule Recode.Config do
           path
           |> Code.eval_file()
           |> elem(0)
-          |> default(:tasks)
-          |> update(:inputs)
+          |> default_tasks()
+          |> update_inputs()
 
         {:ok, config}
 
@@ -177,13 +177,23 @@ defmodule Recode.Config do
     if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
   end
 
-  defp default(config, :tasks) do
-    Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
+  defp default_tasks(config) do
+    if has_task?(config, Format) do
+      config
+    else
+      Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
+    end
   end
 
-  defp update(config, :inputs) do
+  defp update_inputs(config) do
     Keyword.update(config, :inputs, [], fn inputs ->
       inputs |> List.wrap() |> Enum.map(fn input -> GlobEx.compile!(input) end)
     end)
+  end
+
+  defp has_task?(config, module) do
+    config
+    |> Keyword.fetch!(:tasks)
+    |> Keyword.has_key?(module)
   end
 end

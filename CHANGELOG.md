@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3 - 2024/03/..
+
++ Add config for preformatter.
+
 ## 0.7.2 - 2024/02/10
 
 + Fix AST.alias_info fot `alias __MODULE__, as: MyModule`.

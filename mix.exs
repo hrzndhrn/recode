@@ -1,7 +1,7 @@
 defmodule Recode.MixProject do
   use Mix.Project
 
-  @version "0.7.2"
+  @version "0.7.3"
   @source_url "https://github.com/hrzndhrn/recode"
 
   def project do
