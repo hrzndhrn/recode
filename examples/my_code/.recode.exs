@@ -1,5 +1,5 @@
 [
-  version: "0.7.0",
+  version: "0.7.2",
   # Can also be set/reset with `--autocorrect`/`--no-autocorrect`.
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
@@ -17,6 +17,10 @@
     # Tasks could be added by a tuple of the tasks module name and an options
     # keyword list. A task can be deactivated by `active: false`. The execution of
     # a deactivated task can be forced by calling `mix recode --task ModuleName`.
+    # {Recode.Task.Format, []},
+    # {Recode.Task.Format, config: [formatter: :sourceror]},
+    # {Recode.Task.Format, config: [formatter: :elixir]},
+    # {Recode.Task.Format, active: false},
     {Recode.Task.AliasExpansion, []},
     {Recode.Task.AliasOrder, []},
     {Recode.Task.Dbg, [autocorrect: false]},
