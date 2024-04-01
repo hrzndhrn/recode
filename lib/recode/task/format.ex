@@ -7,6 +7,21 @@ defmodule Recode.Task.Format do
   This task runs as first task by any `mix recode` call.
   """
 
+  # The task can be configured like other tasks. This configuration is just for
+  # debuging and not part of the documentation.
+  #
+  # The default, formats code with Sourceror:
+  # {Recode.Task.Format, []},
+  #
+  # formats code with Sourceror:
+  # {Recode.Task.Format, config: [formatter: :sourceror]},
+  #
+  # Formats code with the Elixir formatter:
+  #  {Recode.Task.Format, config: [formatter: :elixir]},
+  #
+  # Deactivates the task:
+  # {Recode.Task.Format, active: false},
+
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
