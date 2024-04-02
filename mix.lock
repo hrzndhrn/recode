@@ -15,6 +15,6 @@
   "makeup_erlang": {:hex, :makeup_erlang, "0.1.5", "e0ff5a7c708dda34311f7522a8758e23bfcd7d8d8068dc312b5eb41c6fd76eba", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}], "hexpm", "94d2e986428585a21516d7d7149781480013c56e30c6a233534bedf38867a59a"},
   "mox": {:hex, :mox, "1.1.0", "0f5e399649ce9ab7602f72e718305c0f9cdc351190f72844599545e4996af73c", [:mix], [], "hexpm", "d44474c50be02d5b72131070281a5d3895c0e7a95c780e90bc0cfe712f633a13"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.4.0", "51f9b613ea62cfa97b25ccc2c1b4216e81df970acd8e16e8d1bdc58fef21370d", [:mix], [], "hexpm", "9c565862810fb383e9838c1dd2d7d2c437b3d13b267414ba6af33e50d2d1cf28"},
-  "rewrite": {:hex, :rewrite, "0.10.0", "5d756b6dc67679e7156ff6055f9654be02dbaeb177aaf1ff6af7ee8da8718248", [:mix], [{:glob_ex, "~> 0.1", [hex: :glob_ex, repo: "hexpm", optional: false]}, {:sourceror, "~> 0.13", [hex: :sourceror, repo: "hexpm", optional: false]}], "hexpm", "68d7808cf549e7bf51b0119a8edc14d50970bad479115249030baa580c1d7b50"},
-  "sourceror": {:hex, :sourceror, "0.14.1", "c6fb848d55bd34362880da671debc56e77fd722fa13b4dcbeac89a8998fc8b09", [:mix], [], "hexpm", "8b488a219e4c4d7d9ff29d16346fd4a5858085ccdd010e509101e226bbfd8efc"},
+  "rewrite": {:hex, :rewrite, "0.10.1", "238073297d122dad6b5501d761cb3bc0ce5bb4ab86e34c826c395f5f44b2f562", [:mix], [{:glob_ex, "~> 0.1", [hex: :glob_ex, repo: "hexpm", optional: false]}, {:sourceror, "~> 1.0", [hex: :sourceror, repo: "hexpm", optional: false]}], "hexpm", "91f8d6fe363033e8ff60097bb5e0b76867667df0b4d67e79c2850444c02d8b19"},
+  "sourceror": {:hex, :sourceror, "1.0.2", "c5e86fdc14881f797749d1fe5df017ca66727a8146e7ee3e736605a3df78f3e6", [:mix], [], "hexpm", "832335e87d0913658f129d58b2a7dc0490ddd4487b02de6d85bca0169ec2bd79"},
 }
