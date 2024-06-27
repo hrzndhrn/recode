@@ -31,6 +31,7 @@ Specs             # Checker   - Checks for specs.
 Refactor tasks:
 FilterCount       # Corrector - Checks calls like Enum.filter(...) |> Enum.count().
 Nesting           # Checker   - Checks code nesting depth in functions and macros.
+RedundantBooleans # Corrector - Removes `do: true, else: false`
 Warning tasks:
 Dbg               # Corrector - There should be no calls to dbg.
 IOInspect         # Corrector - There should be no calls to IO.inspect.
@@ -109,6 +110,7 @@ This mix task generates the config file `.recode.exs`.
     {Recode.Task.IOInspect, [autocorrect: false]},
     {Recode.Task.Nesting, []},
     {Recode.Task.PipeFunOne, []},
+    {Recode.Task.RedundantBooleans, []},
     {Recode.Task.SinglePipe, []},
     {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
     {Recode.Task.TagFIXME, [exit_code: 2]},

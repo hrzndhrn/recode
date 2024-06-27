@@ -57,7 +57,7 @@ defmodule Recode.Task.RedundantBooleans do
     issues =
       case extract(body) do
         {:ok, _expr} ->
-          message = "Avoid if true else false"
+          message = "Avoid `do: true, else: false`"
           issue = Issue.new(RedundantBooleans, message, meta)
           [issue | issues]
 
