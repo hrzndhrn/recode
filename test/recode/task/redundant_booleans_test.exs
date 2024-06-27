@@ -40,7 +40,21 @@ defmodule Recode.Task.RedundantBooleansTest do
       |> assert_code(expected)
     end
 
-    test "keeps code as is" do
+    test "keyword syntax" do
+      code = """
+      if foo?(bar), do: true, else: false
+      """
+
+      expected = """
+      foo?(bar)
+      """
+
+      code
+      |> run_task(RedundantBooleans, autocorrect: true)
+      |> assert_code(expected)
+    end
+
+    test "keeps code as is with reverse booleans" do
       code = """
       if foo?(bar) do
         false
@@ -54,6 +68,28 @@ defmodule Recode.Task.RedundantBooleansTest do
         false
       else
         true
+      end
+      """
+
+      code
+      |> run_task(RedundantBooleans, autocorrect: true)
+      |> assert_code(expected)
+    end
+
+    test "keeps code as is without booleans" do
+      code = """
+      if foo?(bar) do
+        bar
+      else
+        false
+      end
+      """
+
+      expected = """
+      if foo?(bar) do
+        bar
+      else
+        false
       end
       """
 
