@@ -43,33 +43,31 @@ defmodule Recode.Task.Comparisons do
     end
   end
 
-  defp simplify_comparison(%Zipper{node: {conditional, _, args}} = zipper, issues, true)
-       when conditional == :if do
-    case args do
-      [
-        expr,
-        [
-          {{:__block__, _, [:do]},
-           {:__block__, _, [true]}},
-          {{:__block__, _, [:else]},
-           {:__block__, _, [false]}}
-        ]
-      ] ->
+  defp simplify_comparison(%Zipper{node: {:if, _, body}} = zipper, issues, true) do
+    case extract(body) do
+      {:ok, expr} ->
         {Zipper.replace(zipper, expr), issues}
 
-      _ ->
+      :error ->
         {zipper, issues}
     end
   end
 
-  defp simplify_comparison(
-         %Zipper{node: {conditional, _, _args} = _ast} = zipper,
-         issues,
-         false
-       )
-       when conditional in [:if, :unless] do
+  defp simplify_comparison(%Zipper{node: {:if, _, _args} = _ast} = zipper, issues, false) do
     {zipper, issues}
   end
 
   defp simplify_comparison(zipper, issues, _autocorrect), do: {zipper, issues}
+
+  defp extract([
+         expr,
+         [
+           {{:__block__, _, [:do]}, {:__block__, _, [true]}},
+           {{:__block__, _, [:else]}, {:__block__, _, [false]}}
+         ]
+       ]) do
+    {:ok, expr}
+  end
+
+  defp extract(_), do: :error
 end
