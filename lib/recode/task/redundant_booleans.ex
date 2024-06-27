@@ -46,9 +46,7 @@ defmodule Recode.Task.RedundantBooleans do
   defp simplify_comparison(%Zipper{node: {:if, meta, body}} = zipper, issues, true) do
     case extract(body) do
       {:ok, expr} ->
-        expr =
-          expr
-          |> put_leading_comments(meta)
+        expr = put_leading_comments(expr, meta)
 
         {Zipper.replace(zipper, expr), issues}
 
