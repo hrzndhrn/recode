@@ -19,7 +19,7 @@ defmodule Recode.Task.Comparisons do
 
   use Recode.Task, corrector: true, category: :readability
 
-  # alias Recode.Issue
+  alias Recode.Issue
   alias Recode.Task.Comparisons
   alias Rewrite.Source
   alias Sourceror.Zipper
@@ -53,7 +53,18 @@ defmodule Recode.Task.Comparisons do
     end
   end
 
-  defp simplify_comparison(%Zipper{node: {:if, _, _args} = _ast} = zipper, issues, false) do
+  defp simplify_comparison(%Zipper{node: {:if, meta, body}} = zipper, issues, false) do
+    issues =
+      case extract(body) do
+        {:ok, _expr} ->
+          message = "Avoid if true else false"
+          issue = Issue.new(Comparisons, message, meta)
+          [issue | issues]
+
+        :error ->
+          issues
+      end
+
     {zipper, issues}
   end
 
