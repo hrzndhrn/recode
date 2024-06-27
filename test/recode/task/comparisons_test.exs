@@ -22,24 +22,6 @@ defmodule Recode.Task.ComparisonsTest do
       |> assert_code(expected)
     end
 
-    test "greater than" do
-      code = """
-      if foo > bar do
-        true
-      else
-        false
-      end
-      """
-
-      expected = """
-      foo > bar
-      """
-
-      code
-      |> run_task(Comparisons, autocorrect: true)
-      |> assert_code(expected)
-    end
-
     test "predicate" do
       code = """
       if foo?(bar) do
@@ -51,6 +33,28 @@ defmodule Recode.Task.ComparisonsTest do
 
       expected = """
       foo?(bar)
+      """
+
+      code
+      |> run_task(Comparisons, autocorrect: true)
+      |> assert_code(expected)
+    end
+
+    test "keeps code as is" do
+      code = """
+      if foo?(bar) do
+        false
+      else
+        true
+      end
+      """
+
+      expected = """
+      if foo?(bar) do
+        false
+      else
+        true
+      end
       """
 
       code
