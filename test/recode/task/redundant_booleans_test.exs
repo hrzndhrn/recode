@@ -1,7 +1,7 @@
-defmodule Recode.Task.ComparisonsTest do
+defmodule Recode.Task.RedundantBooleansTest do
   use RecodeCase
 
-  alias Recode.Task.Comparisons
+  alias Recode.Task.RedundantBooleans
 
   describe "run/1" do
     test "equals" do
@@ -18,7 +18,7 @@ defmodule Recode.Task.ComparisonsTest do
       """
 
       code
-      |> run_task(Comparisons, autocorrect: true)
+      |> run_task(RedundantBooleans, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -36,7 +36,7 @@ defmodule Recode.Task.ComparisonsTest do
       """
 
       code
-      |> run_task(Comparisons, autocorrect: true)
+      |> run_task(RedundantBooleans, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -58,7 +58,7 @@ defmodule Recode.Task.ComparisonsTest do
       """
 
       code
-      |> run_task(Comparisons, autocorrect: true)
+      |> run_task(RedundantBooleans, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -66,7 +66,7 @@ defmodule Recode.Task.ComparisonsTest do
       """
       foo == bar
       """
-      |> run_task(Comparisons, autocorrect: false)
+      |> run_task(RedundantBooleans, autocorrect: false)
       |> refute_issues()
     end
 
@@ -78,8 +78,8 @@ defmodule Recode.Task.ComparisonsTest do
         false
       end
       """
-      |> run_task(Comparisons, autocorrect: false)
-      |> assert_issue_with(reporter: Comparisons)
+      |> run_task(RedundantBooleans, autocorrect: false)
+      |> assert_issue_with(reporter: RedundantBooleans)
     end
   end
 end

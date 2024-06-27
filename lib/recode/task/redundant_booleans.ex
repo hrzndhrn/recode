@@ -1,8 +1,8 @@
-defmodule Recode.Task.Comparisons do
-  @shortdoc "Removes extraneous conditionals"
+defmodule Recode.Task.RedundantBooleans do
+  @shortdoc "Removes redundant booleans"
 
   @moduledoc """
-  Multi aliases makes module uses harder to search for in large code bases.
+  Redudant booleans make code needlesly verbose.
 
           # preferred
           foo == bar
@@ -20,7 +20,7 @@ defmodule Recode.Task.Comparisons do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
-  alias Recode.Task.Comparisons
+  alias Recode.Task.RedundantBooleans
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -36,7 +36,7 @@ defmodule Recode.Task.Comparisons do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, Comparisons, :quoted, Zipper.root(zipper))
+        Source.update(source, RedundantBooleans, :quoted, Zipper.root(zipper))
 
       false ->
         Source.add_issues(source, issues)
@@ -58,7 +58,7 @@ defmodule Recode.Task.Comparisons do
       case extract(body) do
         {:ok, _expr} ->
           message = "Avoid if true else false"
-          issue = Issue.new(Comparisons, message, meta)
+          issue = Issue.new(RedundantBooleans, message, meta)
           [issue | issues]
 
         :error ->
