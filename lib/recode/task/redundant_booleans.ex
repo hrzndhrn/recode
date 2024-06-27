@@ -31,7 +31,7 @@ defmodule Recode.Task.RedundantBooleans do
       |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
-        simplify_comparison(zipper, issues, opts[:autocorrect])
+        collapse_redundant_booleans(zipper, issues, opts[:autocorrect])
       end)
 
     case opts[:autocorrect] do
@@ -43,7 +43,7 @@ defmodule Recode.Task.RedundantBooleans do
     end
   end
 
-  defp simplify_comparison(%Zipper{node: {:if, meta, body}} = zipper, issues, true) do
+  defp collapse_redundant_booleans(%Zipper{node: {:if, meta, body}} = zipper, issues, true) do
     case extract(body) do
       {:ok, expr} ->
         expr = put_leading_comments(expr, meta)
@@ -55,7 +55,7 @@ defmodule Recode.Task.RedundantBooleans do
     end
   end
 
-  defp simplify_comparison(%Zipper{node: {:if, meta, body}} = zipper, issues, false) do
+  defp collapse_redundant_booleans(%Zipper{node: {:if, meta, body}} = zipper, issues, false) do
     issues =
       case extract(body) do
         {:ok, _expr} ->
@@ -70,7 +70,7 @@ defmodule Recode.Task.RedundantBooleans do
     {zipper, issues}
   end
 
-  defp simplify_comparison(zipper, issues, _autocorrect), do: {zipper, issues}
+  defp collapse_redundant_booleans(zipper, issues, _autocorrect), do: {zipper, issues}
 
   defp extract([
          expr,
