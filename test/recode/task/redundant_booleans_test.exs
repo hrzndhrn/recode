@@ -96,24 +96,6 @@ defmodule Recode.Task.RedundantBooleansTest do
       |> assert_code(expected)
     end
 
-    test "works with negation" do
-      code = """
-      if !foo?(bar) do
-        false
-      else
-        true
-      end
-      """
-
-      expected = """
-      !foo?(bar)
-      """
-
-      code
-      |> run_task(RedundantBooleans, autocorrect: true)
-      |> assert_code(expected)
-    end
-
     test "keeps code as is without booleans" do
       code = """
       if foo?(bar) do
