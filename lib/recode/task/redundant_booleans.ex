@@ -43,9 +43,13 @@ defmodule Recode.Task.RedundantBooleans do
     end
   end
 
-  defp simplify_comparison(%Zipper{node: {:if, _, body}} = zipper, issues, true) do
+  defp simplify_comparison(%Zipper{node: {:if, meta, body}} = zipper, issues, true) do
     case extract(body) do
       {:ok, expr} ->
+        expr =
+          expr
+          |> put_leading_comments(meta)
+
         {Zipper.replace(zipper, expr), issues}
 
       :error ->
@@ -81,4 +85,9 @@ defmodule Recode.Task.RedundantBooleans do
   end
 
   defp extract(_), do: :error
+
+  defp put_leading_comments(expr, meta) do
+    comments = meta[:leading_comments] || []
+    Sourceror.append_comments(expr, comments)
+  end
 end
