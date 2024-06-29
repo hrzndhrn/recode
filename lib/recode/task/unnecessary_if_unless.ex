@@ -69,7 +69,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
     issues =
       case extract(body, conditional) do
         {:ok, _expr} ->
-          message = "Avoid `do: true, else: false`"
+          message = "Avoid unnecessary `if` and `unless`"
           issue = Issue.new(UnnecessaryIfUnless, message, meta)
           [issue | issues]
 
