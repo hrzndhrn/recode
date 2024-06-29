@@ -2,17 +2,13 @@ defmodule Recode.Task.RemoveParens do
   @shortdoc "Removes parens from locals without parens"
 
   @moduledoc """
-  Redudant booleans make code needlesly verbose.
+  Don't use parens for functions that don't need them.
 
           # preferred
-          foo == bar
+          assert true == true
 
           # not preferred
-          if foo == bar do
-            true
-          else
-            false
-          end
+          assert(true == true)
 
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
