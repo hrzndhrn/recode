@@ -82,6 +82,16 @@ defmodule Recode.Task.RedundantBooleans do
     {:ok, expr}
   end
 
+  defp extract([
+         expr,
+         [
+           {{:__block__, _, [:do]}, {:__block__, _, [false]}},
+           {{:__block__, _, [:else]}, {:__block__, _, [true]}}
+         ]
+       ]) do
+    {:ok, {:not, [], [expr]}}
+  end
+
   defp extract(_), do: :error
 
   defp put_leading_comments(expr, meta) do

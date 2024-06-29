@@ -54,9 +54,9 @@ defmodule Recode.Task.RedundantBooleansTest do
       |> assert_code(expected)
     end
 
-    test "keeps code as is with reverse booleans" do
+    test "negates code with reverse booleans" do
       code = """
-      if foo?(bar) do
+      if some_call?() && (some_other_call?() || another_call?()) do
         false
       else
         true
@@ -64,11 +64,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       expected = """
-      if foo?(bar) do
-        false
-      else
-        true
-      end
+      not (some_call?() && (some_other_call?() || another_call?()))
       """
 
       code
