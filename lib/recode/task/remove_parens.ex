@@ -19,8 +19,8 @@ defmodule Recode.Task.RemoveParens do
 
   use Recode.Task, corrector: true, category: :readability
 
-  # alias Recode.Issue
-  alias Recode.Task.UnnecessaryIfUnless
+  alias Recode.Issue
+  alias Recode.Task.RemoveParens
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -39,7 +39,7 @@ defmodule Recode.Task.RemoveParens do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, UnnecessaryIfUnless, :quoted, Zipper.root(zipper))
+        Source.update(source, RemoveParens, :quoted, Zipper.root(zipper))
 
       false ->
         Source.add_issues(source, issues)
@@ -65,6 +65,26 @@ defmodule Recode.Task.RemoveParens do
       end)
 
     {%Zipper{zipper | node: node}, issues}
+  end
+
+  defp remove_parens(
+         locals_without_parens,
+         %Zipper{node: {fun, _, args}} = zipper,
+         issues,
+         false
+       ) do
+    issues =
+      Enum.reduce(locals_without_parens, issues, fn
+        {^fun, arity}, issues when length(args) == arity ->
+          issue = Issue.new(RemoveParens, "Unncecessary parens")
+
+          [issue | issues]
+
+        _, issues ->
+          issues
+      end)
+
+    {zipper, issues}
   end
 
   defp remove_parens(_, zipper, issues, _) do

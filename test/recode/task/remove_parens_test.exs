@@ -30,4 +30,12 @@ defmodule Recode.Task.RemoveParensTest do
     |> run_task(RemoveParens, autocorrect: true)
     |> assert_code(expected)
   end
+
+  test "adds issue" do
+    """
+    assert(true == false)
+    """
+    |> run_task(RemoveParens, autocorrect: false)
+    |> assert_issue()
+  end
 end
