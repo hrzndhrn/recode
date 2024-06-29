@@ -1,4 +1,4 @@
-defmodule Recode.Task.RedundantBooleans do
+defmodule Recode.Task.UnnecessaryIfUnless do
   @shortdoc "Removes redundant booleans"
 
   @moduledoc """
@@ -20,7 +20,7 @@ defmodule Recode.Task.RedundantBooleans do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
-  alias Recode.Task.RedundantBooleans
+  alias Recode.Task.UnnecessaryIfUnless
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -36,7 +36,7 @@ defmodule Recode.Task.RedundantBooleans do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, RedundantBooleans, :quoted, Zipper.root(zipper))
+        Source.update(source, UnnecessaryIfUnless, :quoted, Zipper.root(zipper))
 
       false ->
         Source.add_issues(source, issues)
@@ -70,7 +70,7 @@ defmodule Recode.Task.RedundantBooleans do
       case extract(body, conditional) do
         {:ok, _expr} ->
           message = "Avoid `do: true, else: false`"
-          issue = Issue.new(RedundantBooleans, message, meta)
+          issue = Issue.new(UnnecessaryIfUnless, message, meta)
           [issue | issues]
 
         :error ->

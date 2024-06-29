@@ -1,7 +1,7 @@
-defmodule Recode.Task.RedundantBooleansTest do
+defmodule Recode.Task.UnnecessaryIfUnlessTest do
   use RecodeCase
 
-  alias Recode.Task.RedundantBooleans
+  alias Recode.Task.UnnecessaryIfUnless
 
   describe "run/1" do
     test "equals" do
@@ -18,7 +18,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -36,7 +36,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -50,7 +50,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -68,7 +68,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -88,7 +88,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -110,7 +110,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -128,7 +128,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -146,7 +146,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
 
       code
-      |> run_task(RedundantBooleans, autocorrect: true)
+      |> run_task(UnnecessaryIfUnless, autocorrect: true)
       |> assert_code(expected)
     end
 
@@ -154,7 +154,7 @@ defmodule Recode.Task.RedundantBooleansTest do
       """
       foo == bar
       """
-      |> run_task(RedundantBooleans, autocorrect: false)
+      |> run_task(UnnecessaryIfUnless, autocorrect: false)
       |> refute_issues()
     end
 
@@ -166,8 +166,8 @@ defmodule Recode.Task.RedundantBooleansTest do
         false
       end
       """
-      |> run_task(RedundantBooleans, autocorrect: false)
-      |> assert_issue_with(reporter: RedundantBooleans)
+      |> run_task(UnnecessaryIfUnless, autocorrect: false)
+      |> assert_issue_with(reporter: UnnecessaryIfUnless)
     end
   end
 end
