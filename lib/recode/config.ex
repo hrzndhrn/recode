@@ -42,6 +42,7 @@ defmodule Recode.Config do
       {Recode.Task.TagFIXME, exit_code: 2},
       {Recode.Task.TagTODO, exit_code: 4},
       {Recode.Task.TestFileExt, []},
+      {Recode.Task.UnnecessaryIfUnless, []},
       {Recode.Task.UnusedVariable, [active: false]}
     ]
   ]

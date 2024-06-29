@@ -61,6 +61,7 @@ defmodule Recode.MixProject do
           Recode.Task.TagFIXME,
           Recode.Task.TagTODO,
           Recode.Task.TestFileExt,
+          Recode.Task.UnnecessaryIfInless,
           Recode.Task.UnusedVariable
         ]
       ]
