@@ -31,7 +31,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
       |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
-        collapse_redundant_booleans(zipper, issues, opts[:autocorrect])
+        remove_unecessary_if_unless(zipper, issues, opts[:autocorrect])
       end)
 
     case opts[:autocorrect] do
@@ -43,7 +43,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
     end
   end
 
-  defp collapse_redundant_booleans(
+  defp remove_unecessary_if_unless(
          %Zipper{node: {conditional, meta, body}} = zipper,
          issues,
          true
@@ -60,7 +60,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
     end
   end
 
-  defp collapse_redundant_booleans(
+  defp remove_unecessary_if_unless(
          %Zipper{node: {conditional, meta, body}} = zipper,
          issues,
          false
@@ -80,7 +80,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
     {zipper, issues}
   end
 
-  defp collapse_redundant_booleans(zipper, issues, _autocorrect), do: {zipper, issues}
+  defp remove_unecessary_if_unless(zipper, issues, _autocorrect), do: {zipper, issues}
 
   defp extract(
          [
