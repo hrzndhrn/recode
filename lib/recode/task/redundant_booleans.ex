@@ -82,44 +82,23 @@ defmodule Recode.Task.RedundantBooleans do
 
   defp collapse_redundant_booleans(zipper, issues, _autocorrect), do: {zipper, issues}
 
-  defp extract([
-         expr,
+  defp extract(
          [
-           {{:__block__, _, [:do]}, {:__block__, _, [true]}},
-           {{:__block__, _, [:else]}, {:__block__, _, [false]}}
-         ]
-       ], :if) do
-    {:ok, expr}
-  end
-
-  defp extract([
-         expr,
-         [
-           {{:__block__, _, [:do]}, {:__block__, _, [false]}},
-           {{:__block__, _, [:else]}, {:__block__, _, [true]}}
-         ]
-       ], :unless) do
-    {:ok, expr}
-  end
-
-  defp extract([
-         expr,
-         [
-           {{:__block__, _, [:do]}, {:__block__, _, [false]}},
-           {{:__block__, _, [:else]}, {:__block__, _, [true]}}
-         ]
-       ], :if) do
-    {:ok, {:not, [], [expr]}}
-  end
-
-  defp extract([
-         expr,
-         [
-           {{:__block__, _, [:do]}, {:__block__, _, [true]}},
-           {{:__block__, _, [:else]}, {:__block__, _, [false]}}
-         ]
-       ], :unless) do
-    {:ok, {:not, [], [expr]}}
+           expr,
+           [
+             {{:__block__, _, [:do]}, {:__block__, _, [left]}},
+             {{:__block__, _, [:else]}, {:__block__, _, [right]}}
+           ]
+         ],
+         conditional
+       )
+       when is_boolean(left) and is_boolean(right) do
+    case {conditional, left, right} do
+      {:if, true, false} -> {:ok, expr}
+      {:if, false, true} -> {:ok, {:not, [], [expr]}}
+      {:unless, true, false} -> {:ok, {:not, [], [expr]}}
+      {:unless, false, true} -> {:ok, expr}
+    end
   end
 
   defp extract(_, _), do: :error
