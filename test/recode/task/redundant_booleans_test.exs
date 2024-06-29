@@ -114,6 +114,42 @@ defmodule Recode.Task.RedundantBooleansTest do
       |> assert_code(expected)
     end
 
+    test "works with unless" do
+      code = """
+      unless foo?(bar) do
+        false
+      else
+        true
+      end
+      """
+
+      expected = """
+      foo?(bar)
+      """
+
+      code
+      |> run_task(RedundantBooleans, autocorrect: true)
+      |> assert_code(expected)
+    end
+
+    test "negates unless" do
+      code = """
+      unless foo?(bar) do
+        true
+      else
+        false
+      end
+      """
+
+      expected = """
+      not foo?(bar)
+      """
+
+      code
+      |> run_task(RedundantBooleans, autocorrect: true)
+      |> assert_code(expected)
+    end
+
     test "reports no issues" do
       """
       foo == bar
