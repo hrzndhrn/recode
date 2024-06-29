@@ -46,21 +46,28 @@ defmodule Recode.Task.RemoveParens do
     end
   end
 
-  defp remove_parens(locals_without_parens, %Zipper{} = zipper, issues, true) do
+  defp remove_parens(
+         locals_without_parens,
+         %Zipper{node: {fun, _, args} = node} = zipper,
+         issues,
+         true
+       ) do
     node =
-      with {fun, _, args} = node <- Zipper.node(zipper) do
-        Enum.reduce(locals_without_parens, node, fn
-          {^fun, arity}, node when length(args) == arity ->
-            {fun, meta, args} = node
-            meta = Keyword.delete(meta, :closing)
+      Enum.reduce(locals_without_parens, node, fn
+        {^fun, arity}, node when length(args) == arity ->
+          {fun, meta, args} = node
+          meta = Keyword.delete(meta, :closing)
 
-            {fun, meta, args}
+          {fun, meta, args}
 
-          _, node ->
-            node
-        end)
-      end
+        _, node ->
+          node
+      end)
 
     {%Zipper{zipper | node: node}, issues}
+  end
+
+  defp remove_parens(_, zipper, issues, _) do
+    {zipper, issues}
   end
 end
