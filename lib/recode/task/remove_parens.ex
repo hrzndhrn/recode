@@ -42,45 +42,36 @@ defmodule Recode.Task.RemoveParens do
     end
   end
 
-  defp remove_parens(
-         locals_without_parens,
-         %Zipper{node: {fun, _, args} = node} = zipper,
-         issues,
-         true
-       ) do
-    node =
-      Enum.reduce(locals_without_parens, node, fn
-        {^fun, arity}, node when length(args) == arity ->
-          {fun, meta, args} = node
-          meta = Keyword.delete(meta, :closing)
+  defp local_without_parens?(locals_without_parens, fun, [_ | _] = args) do
+    arity = length(args)
 
-          {fun, meta, args}
-
-        _, node ->
-          node
-      end)
-
-    {%Zipper{zipper | node: node}, issues}
+    Enum.any?(locals_without_parens, fn
+      {^fun, :*} -> true
+      {^fun, ^arity} -> true
+      _other -> false
+    end)
   end
 
+  defp local_without_parens?(_locals_without_parens, _fun, _args), do: false
+
   defp remove_parens(
          locals_without_parens,
-         %Zipper{node: {fun, _, args}} = zipper,
+         %Zipper{node: {fun, meta, args}} = zipper,
          issues,
-         false
+         autocorrect?
        ) do
-    issues =
-      Enum.reduce(locals_without_parens, issues, fn
-        {^fun, arity}, issues when length(args) == arity ->
-          issue = Issue.new(RemoveParens, "Unncecessary parens")
+    if local_without_parens?(locals_without_parens, fun, args) do
+      if autocorrect? do
+        node = {fun, Keyword.delete(meta, :closing), args}
+        {Zipper.replace(zipper, node), issues}
+      else
+        issue = Issue.new(RemoveParens, "Unncecessary parens")
 
-          [issue | issues]
-
-        _, issues ->
-          issues
-      end)
-
-    {zipper, issues}
+        {zipper, [issue | issues]}
+      end
+    else
+      {zipper, issues}
+    end
   end
 
   defp remove_parens(_, zipper, issues, _) do
