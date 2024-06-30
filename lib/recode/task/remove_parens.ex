@@ -42,18 +42,6 @@ defmodule Recode.Task.RemoveParens do
     end
   end
 
-  defp local_without_parens?(locals_without_parens, fun, [_ | _] = args) do
-    arity = length(args)
-
-    Enum.any?(locals_without_parens, fn
-      {^fun, :*} -> true
-      {^fun, ^arity} -> true
-      _other -> false
-    end)
-  end
-
-  defp local_without_parens?(_locals_without_parens, _fun, _args), do: false
-
   defp remove_parens(
          locals_without_parens,
          %Zipper{node: {fun, meta, args}} = zipper,
@@ -66,7 +54,6 @@ defmodule Recode.Task.RemoveParens do
         {Zipper.replace(zipper, node), issues}
       else
         issue = Issue.new(RemoveParens, "Unncecessary parens")
-
         {zipper, [issue | issues]}
       end
     else
@@ -77,4 +64,16 @@ defmodule Recode.Task.RemoveParens do
   defp remove_parens(_, zipper, issues, _) do
     {zipper, issues}
   end
+
+  defp local_without_parens?(locals_without_parens, fun, [_ | _] = args) do
+    arity = length(args)
+
+    Enum.any?(locals_without_parens, fn
+      {^fun, :*} -> true
+      {^fun, ^arity} -> true
+      _other -> false
+    end)
+  end
+
+  defp local_without_parens?(_locals_without_parens, _fun, _args), do: false
 end
