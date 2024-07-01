@@ -1,5 +1,5 @@
 defmodule Recode.Task.RemoveParensTest do
-  use RecodeCase, async: true
+  use RecodeCase, async: false
 
   alias Recode.Task.RemoveParens
 
