@@ -3,6 +3,7 @@ defmodule Recode.Runner.ImplTest do
 
   import ExUnit.CaptureIO
   import Mox
+  import Strip
 
   alias Recode.Runner.Impl, as: Runner
   alias Recode.Task.AliasOrder
@@ -246,12 +247,5 @@ defmodule Recode.Runner.ImplTest do
 
       assert Runner.run(code, config, "foo/source.ex") == code
     end
-  end
-
-  defp strip_esc_seq(string) do
-    string
-    |> String.replace(~r/\e[^m]+m/, "")
-    |> String.split("\n")
-    |> Enum.map_join("\n", &String.trim_trailing/1)
   end
 end

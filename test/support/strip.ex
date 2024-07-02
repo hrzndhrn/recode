@@ -1,13 +1,5 @@
 defmodule Strip do
-  # def strip_meta(value, opts \\ [])
-
-  # def strip_meta(struct, opts) when is_struct(struct) do
-  #   IO.inspect("strip_meta struct")
-  #   # raise "uups"
-  #   struct
-  #   |> Map.from_struct()
-  #   |> Enum.into(%{}, fn value -> strip_meta(value, opts) end)
-  # end
+  @moduledoc false
 
   def strip_meta(quoted, opts) when not is_struct(quoted) do
     Macro.prewalk(quoted, fn quoted -> do_strip_meta(quoted, opts) end)
@@ -22,4 +14,16 @@ defmodule Strip do
   end
 
   defp do_strip_meta(quoted, _opts), do: quoted
+
+  def strip_esc_seq(string) do
+    string
+    |> String.replace(~r/\e[^m]+m/, "")
+    |> String.split("\n")
+    |> Enum.map_join("\n", fn string ->
+      ~r/^\s(\w.*)/
+      |> Regex.replace(string, "\\1")
+      |> String.trim_trailing()
+    end)
+    |> String.trim_leading()
+  end
 end
