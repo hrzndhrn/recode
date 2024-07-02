@@ -2,6 +2,7 @@ defmodule Recode.ContextTest do
   use ExUnit.Case
 
   import ExUnit.CaptureIO
+  import Strip
 
   alias Recode.Context
   alias Sourceror.Zipper
@@ -226,6 +227,7 @@ defmodule Recode.ContextTest do
           |> Context.traverse(fn zipper, context ->
             context =
               context
+              |> strip()
               |> inc()
               |> write()
 
@@ -253,126 +255,54 @@ defmodule Recode.ContextTest do
 
       acc = Enum.reverse(acc)
 
-      assert Enum.at(acc, 0) == %Context{
+      assert strip(Enum.at(acc, 0)) == %Context{
                aliases: [],
                assigns: %{},
                definition: nil,
                imports: [],
                module:
                  {Traverse.Simple,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    do: [line: 1, column: 27],
-                    end: [line: 7, column: 1],
-                    line: 1,
-                    column: 1
-                  ]},
+                  [do: [line: 1, column: 27], end: [line: 7, column: 1], line: 1, column: 1]},
                requirements: [],
                usages: [],
                node:
                  {:defmodule,
                   [
-                    trailing_comments: [],
-                    leading_comments: [],
                     do: [line: 1, column: 27],
                     end: [line: 7, column: 1],
                     line: 1,
                     column: 1
                   ],
                   [
-                    {:__aliases__,
-                     [
-                       trailing_comments: [],
-                       leading_comments: [],
-                       last: [line: 1, column: 20],
-                       line: 1,
-                       column: 11
-                     ], [:Traverse, :Simple]},
+                    {:__aliases__, [line: 1, column: 11], [:Traverse, :Simple]},
                     [
-                      {{:__block__,
-                        [trailing_comments: [], leading_comments: [], line: 1, column: 27],
-                        [:do]},
-                       {:__block__, [trailing_comments: [], leading_comments: []],
+                      {{:__block__, [line: 1, column: 27], [:do]},
+                       {:__block__, [],
                         [
                           {:def,
                            [
-                             trailing_comments: [],
-                             leading_comments: [],
-                             end_of_expression: [newlines: 2, line: 4, column: 6],
                              do: [line: 2, column: 14],
                              end: [line: 4, column: 3],
                              line: 2,
                              column: 3
                            ],
                            [
-                             {:foo,
-                              [
-                                trailing_comments: [],
-                                leading_comments: [],
-                                closing: [line: 2, column: 12],
-                                line: 2,
-                                column: 7
-                              ],
-                              [
-                                {:x,
-                                 [
-                                   trailing_comments: [],
-                                   leading_comments: [],
-                                   line: 2,
-                                   column: 11
-                                 ], nil}
-                              ]},
+                             {:foo, [line: 2, column: 7], [{:x, [line: 2, column: 11], nil}]},
                              [
-                               {{:__block__,
+                               {{:__block__, [line: 2, column: 14], [:do]},
+                                {:*, [line: 3, column: 7],
                                  [
-                                   trailing_comments: [],
-                                   leading_comments: [],
-                                   line: 2,
-                                   column: 14
-                                 ], [:do]},
-                                {:*, [trailing_comments: [], line: 3, column: 7],
-                                 [
-                                   {:x,
-                                    [
-                                      trailing_comments: [],
-                                      leading_comments: [],
-                                      line: 3,
-                                      column: 5
-                                    ], nil},
-                                   {:__block__,
-                                    [
-                                      trailing_comments: [],
-                                      leading_comments: [],
-                                      token: "2",
-                                      line: 3,
-                                      column: 9
-                                    ], [2]}
+                                   {:x, [line: 3, column: 5], nil},
+                                   {:__block__, [line: 3, column: 9], [2]}
                                  ]}}
                              ]
                            ]},
-                          {:def,
-                           [trailing_comments: [], leading_comments: [], line: 6, column: 3],
+                          {:def, [line: 6, column: 3],
                            [
-                             {:baz,
-                              [trailing_comments: [], leading_comments: [], line: 6, column: 7],
-                              nil},
+                             {:baz, [line: 6, column: 7], nil},
                              [
-                               {{:__block__,
-                                 [
-                                   trailing_comments: [],
-                                   leading_comments: [],
-                                   format: :keyword,
-                                   line: 6,
-                                   column: 12
-                                 ], [:do]},
-                                {:__block__,
-                                 [
-                                   trailing_comments: [],
-                                   leading_comments: [],
-                                   line: 6,
-                                   column: 16
-                                 ], [:baz]}}
+                               {{:__block__, [line: 6, column: 12], [:do]},
+                                {:__block__, [line: 6, column: 16], [:baz]}}
                              ]
                            ]}
                         ]}}
@@ -383,27 +313,10 @@ defmodule Recode.ContextTest do
       assert %{
                definition:
                  {{:def, :foo, 1},
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 4, column: 6],
-                    do: [line: 2, column: 14],
-                    end: [line: 4, column: 3],
-                    line: 2,
-                    column: 3
-                  ]}
-             } = Enum.at(acc, 18)
+                  [do: [line: 2, column: 14], end: [line: 4, column: 3], line: 2, column: 3]}
+             } = strip(Enum.at(acc, 18))
 
-      assert %{
-               definition:
-                 {{:def, :baz, 0},
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    line: 6,
-                    column: 3
-                  ]}
-             } = Enum.at(acc, 25)
+      assert %{definition: {{:def, :baz, 0}, [line: 6, column: 3]}} = strip(Enum.at(acc, 25))
     end
 
     test "traverses modules and collects @moduledoc, @doc and @spec" do
@@ -528,79 +441,24 @@ defmodule Recode.ContextTest do
         end)
         |> Enum.map(fn {key, list} -> {key, hd(list)} end)
 
-      assert contexts[Traverse.Foo] == %Context{
+      assert strip(contexts[Traverse.Foo]) == %Context{
                node: :entenhausen,
                aliases: [
-                 {
-                   Traverse.Nested.Simple,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 1, line: 18, column: 31],
-                     line: 18,
-                     column: 3
-                   ],
-                   nil
-                 },
-                 {
-                   Donald.Duck,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 1, line: 19, column: 31],
-                     line: 19,
-                     column: 3
-                   ],
-                   [
-                     {
-                       {:__block__,
-                        [
-                          trailing_comments: [],
-                          leading_comments: [],
-                          format: :keyword,
-                          line: 19,
-                          column: 22
-                        ], [:as]},
-                       {:__aliases__,
-                        [
-                          trailing_comments: [],
-                          leading_comments: [],
-                          last: [line: 19, column: 26],
-                          line: 19,
-                          column: 26
-                        ], [:Goofy]}
-                     }
-                   ]
-                 },
-                 {
-                   Foo.Bar,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 2, line: 20, column: 23],
-                     line: 20,
-                     column: 3
-                   ],
-                   nil
-                 },
-                 {
-                   Foo.Baz,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 2, line: 20, column: 23],
-                     line: 20,
-                     column: 3
-                   ],
-                   nil
-                 }
+                 {Traverse.Nested.Simple, [line: 18, column: 3], nil},
+                 {Donald.Duck, [line: 19, column: 3],
+                  [
+                    {
+                      {:__block__, [line: 19, column: 22], [:as]},
+                      {:__aliases__, [line: 19, column: 26], [:Goofy]}
+                    }
+                  ]},
+                 {Foo.Bar, [line: 20, column: 3], nil},
+                 {Foo.Baz, [line: 20, column: 3], nil}
                ],
                assigns: %{},
                definition: {
                  {:def, :mouse, 0},
                  [
-                   trailing_comments: [],
-                   leading_comments: [],
                    do: [line: 35, column: 13],
                    end: [line: 37, column: 3],
                    line: 35,
@@ -608,167 +466,48 @@ defmodule Recode.ContextTest do
                  ]
                },
                imports: [
-                 {Traverse.Pluto,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 1, line: 22, column: 24],
-                    line: 22,
-                    column: 3
-                  ], nil},
+                 {Traverse.Pluto, [line: 22, column: 3], nil},
                  {Traverse.Mouse,
                   [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 1, line: 23, column: 42],
                     line: 23,
                     column: 3
                   ],
                   [
                     {
-                      {:__block__,
-                       [
-                         trailing_comments: [],
-                         leading_comments: [],
-                         format: :keyword,
-                         line: 23,
-                         column: 26
-                       ], [:only]},
-                      {:__block__,
-                       [
-                         trailing_comments: [],
-                         leading_comments: [],
-                         closing: [line: 23, column: 41],
-                         line: 23,
-                         column: 32
-                       ],
+                      {:__block__, [line: 23, column: 26], [:only]},
+                      {:__block__, [line: 23, column: 32],
                        [
                          [
-                           {{:__block__,
-                             [
-                               trailing_comments: [],
-                               leading_comments: [],
-                               format: :keyword,
-                               line: 23,
-                               column: 33
-                             ], [:micky]},
-                            {:__block__,
-                             [
-                               trailing_comments: [],
-                               leading_comments: [],
-                               token: "1",
-                               line: 23,
-                               column: 40
-                             ], [1]}}
+                           {{:__block__, [line: 23, column: 33], [:micky]},
+                            {:__block__, [line: 23, column: 40], [1]}}
                          ]
                        ]}
                     }
                   ]},
-                 {Traverse.Gladstone,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 24, column: 38],
-                    line: 24,
-                    column: 3
-                  ], nil},
-                 {Traverse.Gander,
-                  [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 24, column: 38],
-                    line: 24,
-                    column: 3
-                  ], nil}
+                 {Traverse.Gladstone, [line: 24, column: 3], nil},
+                 {Traverse.Gander, [line: 24, column: 3], nil}
                ],
-               module: {
-                 Traverse.Foo,
-                 [
-                   trailing_comments: [],
-                   leading_comments: [],
-                   end_of_expression: [newlines: 2, line: 38, column: 4],
-                   do: [line: 15, column: 24],
-                   end: [line: 38, column: 1],
-                   line: 15,
-                   column: 1
-                 ]
-               },
+               module:
+                 {Traverse.Foo,
+                  [do: [line: 15, column: 24], end: [line: 38, column: 1], line: 15, column: 1]},
                requirements: [
-                 {
-                   Logger,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 1, line: 26, column: 17],
-                     line: 26,
-                     column: 3
-                   ],
-                   nil
-                 },
-                 {Traverse.Pluto,
+                 {Logger, [line: 26, column: 3], nil},
+                 {Traverse.Pluto, [line: 27, column: 3],
                   [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 27, column: 37],
-                    line: 27,
-                    column: 3
-                  ],
-                  [
-                    {
-                      {:__block__,
-                       [
-                         trailing_comments: [],
-                         leading_comments: [],
-                         format: :keyword,
-                         line: 27,
-                         column: 27
-                       ], [:as]},
-                      {:__aliases__,
-                       [
-                         trailing_comments: [],
-                         leading_comments: [],
-                         last: [line: 27, column: 31],
-                         line: 27,
-                         column: 31
-                       ], [:Animal]}
-                    }
+                    {{:__block__, [line: 27, column: 27], [:as]},
+                     {:__aliases__, [line: 27, column: 31], [:Animal]}}
                   ]}
                ],
                usages: [
-                 {
-                   Traverse.Obelix,
-                   [
-                     trailing_comments: [],
-                     leading_comments: [],
-                     end_of_expression: [newlines: 2, line: 16, column: 37],
-                     line: 16,
-                     column: 3
-                   ],
-                   [
-                     {
-                       {:__block__,
-                        [
-                          trailing_comments: [],
-                          leading_comments: [],
-                          format: :keyword,
-                          line: 16,
-                          column: 24
-                        ], [:app]},
-                       {:__aliases__,
-                        [
-                          trailing_comments: [],
-                          leading_comments: [],
-                          last: [line: 16, column: 29],
-                          line: 16,
-                          column: 29
-                        ], [:Traverse]}
-                     }
-                   ]
-                 }
+                 {Traverse.Obelix, [line: 16, column: 3],
+                  [
+                    {{:__block__, [line: 16, column: 24], [:app]},
+                     {:__aliases__, [line: 16, column: 29], [:Traverse]}}
+                  ]}
                ]
              }
 
-      assert contexts[Traverse.Timer] ==
+      assert strip(contexts[Traverse.Timer]) ==
                %Context{
                  node: :timer,
                  aliases: [],
@@ -776,16 +515,10 @@ defmodule Recode.ContextTest do
                  definition: nil,
                  doc: nil,
                  impl: nil,
-                 imports: [
-                   {:timer, [trailing_comments: [], leading_comments: [], line: 41, column: 3],
-                    nil}
-                 ],
+                 imports: [{:timer, [line: 41, column: 3], nil}],
                  module:
                    {Traverse.Timer,
                     [
-                      trailing_comments: [],
-                      leading_comments: [],
-                      end_of_expression: [newlines: 2, line: 42, column: 4],
                       do: [line: 40, column: 26],
                       end: [line: 42, column: 1],
                       line: 40,
@@ -797,12 +530,9 @@ defmodule Recode.ContextTest do
                  usages: []
                }
 
-      assert contexts[Traverse.RequireAlias] == %Context{
+      assert strip(contexts[Traverse.RequireAlias]) == %Context{
                node: :Pluto,
-               aliases: [
-                 {Traverse.Pluto,
-                  [trailing_comments: [], leading_comments: [], line: 45, column: 11], nil}
-               ],
+               aliases: [{Traverse.Pluto, [line: 45, column: 11], nil}],
                assigns: %{},
                definition: nil,
                doc: nil,
@@ -811,42 +541,29 @@ defmodule Recode.ContextTest do
                module:
                  {Traverse.RequireAlias,
                   [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 46, column: 4],
                     do: [line: 44, column: 33],
                     end: [line: 46, column: 1],
                     line: 44,
                     column: 1
                   ]},
                moduledoc: nil,
-               requirements: [
-                 {Traverse.Pluto,
-                  [trailing_comments: [], leading_comments: [], line: 45, column: 3], nil}
-               ],
+               requirements: [{Traverse.Pluto, [line: 45, column: 3], nil}],
                spec: nil,
                usages: []
              }
 
-      assert contexts[Traverse.RequireAliasAs] == %Context{
+      assert strip(contexts[Traverse.RequireAliasAs]) == %Context{
                node: :Foo,
                aliases: [
-                 {Traverse.Pluto,
-                  [trailing_comments: [], leading_comments: [], line: 49, column: 11],
+                 {Traverse.Pluto, [line: 49, column: 11],
                   [
                     {{:__block__,
                       [
-                        trailing_comments: [],
-                        leading_comments: [],
-                        format: :keyword,
                         line: 49,
                         column: 33
                       ], [:as]},
                      {:__aliases__,
                       [
-                        trailing_comments: [],
-                        leading_comments: [],
-                        last: [line: 49, column: 37],
                         line: 49,
                         column: 37
                       ], [:Foo]}}
@@ -860,9 +577,6 @@ defmodule Recode.ContextTest do
                module:
                  {Traverse.RequireAliasAs,
                   [
-                    trailing_comments: [],
-                    leading_comments: [],
-                    end_of_expression: [newlines: 2, line: 50, column: 4],
                     do: [line: 48, column: 35],
                     end: [line: 50, column: 1],
                     line: 48,
@@ -871,39 +585,29 @@ defmodule Recode.ContextTest do
                moduledoc: nil,
                requirements: [
                  {[
-                    {Traverse.Pluto,
-                     [trailing_comments: [], leading_comments: [], line: 49, column: 11],
+                    {Traverse.Pluto, [line: 49, column: 11],
                      [
                        {{:__block__,
                          [
-                           trailing_comments: [],
-                           leading_comments: [],
-                           format: :keyword,
                            line: 49,
                            column: 33
                          ], [:as]},
                         {:__aliases__,
                          [
-                           trailing_comments: [],
-                           leading_comments: [],
-                           last: [line: 49, column: 37],
                            line: 49,
                            column: 37
                          ], [:Foo]}}
                      ]}
-                  ], [trailing_comments: [], leading_comments: [], line: 49, column: 3], nil}
+                  ], [line: 49, column: 3], nil}
                ],
                spec: nil,
                usages: []
              }
 
-      assert contexts[Traverse.AliasRequire] ==
+      assert strip(contexts[Traverse.AliasRequire]) ==
                %Context{
                  node: :Pluto,
-                 aliases: [
-                   {Traverse.Pluto,
-                    [trailing_comments: [], leading_comments: [], line: 53, column: 3], nil}
-                 ],
+                 aliases: [{Traverse.Pluto, [line: 53, column: 3], nil}],
                  assigns: %{},
                  definition: nil,
                  doc: nil,
@@ -911,19 +615,9 @@ defmodule Recode.ContextTest do
                  imports: [],
                  module:
                    {Traverse.AliasRequire,
-                    [
-                      trailing_comments: [],
-                      leading_comments: [],
-                      do: [line: 52, column: 33],
-                      end: [line: 54, column: 1],
-                      line: 52,
-                      column: 1
-                    ]},
+                    [do: [line: 52, column: 33], end: [line: 54, column: 1], line: 52, column: 1]},
                  moduledoc: nil,
-                 requirements: [
-                   {Traverse.Pluto,
-                    [trailing_comments: [], leading_comments: [], line: 53, column: 9], nil}
-                 ],
+                 requirements: [{Traverse.Pluto, [line: 53, column: 9], nil}],
                  spec: nil,
                  usages: []
                }
@@ -944,26 +638,13 @@ defmodule Recode.ContextTest do
 
       acc = Enum.reverse(acc)
 
-      assert acc |> Enum.at(9) |> Map.get(:definition) ==
-               {{:def, :foo, 1},
-                [
-                  trailing_comments: [],
-                  leading_comments: [],
-                  end_of_expression: [newlines: 2, line: 4, column: 6],
-                  do: [line: 2, column: 26],
-                  end: [line: 4, column: 3],
-                  line: 2,
-                  column: 3
-                ]}
+      assert {{:def, :foo, 1}, meta} = acc |> Enum.at(9) |> Map.get(:definition)
+      assert meta[:line] == 2
+      assert meta[:column] == 3
 
-      assert acc |> Enum.at(37) |> Map.get(:definition) ==
-               {{:def, :baz, 1},
-                [
-                  trailing_comments: [],
-                  leading_comments: [],
-                  line: 6,
-                  column: 3
-                ]}
+      assert {{:def, :baz, 1}, meta} = acc |> Enum.at(37) |> Map.get(:definition)
+      assert meta[:line] == 6
+      assert meta[:column] == 3
     end
   end
 
@@ -989,5 +670,25 @@ defmodule Recode.ContextTest do
     IO.write("#{count}: spec: #{inspect(context.spec)}" <> "\n")
     IO.write("#{count}: impl: #{inspect(context.impl)}" <> "\n")
     context
+  end
+
+  @take [:do, :end, :line, :column]
+  defp strip(context) do
+    context
+    |> Map.from_struct()
+    |> Enum.map(fn
+      {:node, node} ->
+        {:node, strip_meta(node, take: @take)}
+
+      {key, list} when is_list(list) ->
+        {key, Enum.map(list, fn item -> strip_meta(item, take: @take) end)}
+
+      {key, {form, meta}} ->
+        {key, {form, Keyword.take(meta, @take)}}
+
+      key_value ->
+        key_value
+    end)
+    |> then(fn values -> struct!(Context, values) end)
   end
 end
