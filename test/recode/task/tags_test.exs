@@ -80,6 +80,16 @@ defmodule Recode.Task.TagsTest do
       |> refute_issues()
     end
 
+    test "triggers no issue for doc function" do
+      ~s'''
+      defmodule Foo do
+        def doc(:x), do: :x
+      end
+      '''
+      |> run_task(Tags, tag: "TODO", reporter: Tags)
+      |> refute_issues()
+    end
+
     #
     # cases raising issues
     #
