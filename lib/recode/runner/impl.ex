@@ -79,9 +79,10 @@ defmodule Recode.Runner.Impl do
     {:ok, event_manager} = EventManager.start_link()
 
     for formatter <- Keyword.fetch!(config, :formatters) do
-      with {:error, error} <- EventManager.add_handler(event_manager, formatter, config) do
-        raise "Can not initialise formatter #{inspect(formatter)}. reason: #{inspect(error)}"
-      end
+      _formatter =
+        with {:error, error} <- EventManager.add_handler(event_manager, formatter, config) do
+          raise "Can not initialise formatter #{inspect(formatter)}. reason: #{inspect(error)}"
+        end
     end
 
     Keyword.put(config, :event_manager, event_manager)
