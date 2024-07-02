@@ -54,12 +54,10 @@ defmodule Recode.Task.AliasOrder do
   defp alias_groups(%Zipper{node: {:alias, _meta, _args} = ast} = zipper, [group | groups]) do
     group = [ast | group]
 
-    case AST.get_newlines(ast) do
-      1 ->
-        {:skip, zipper, [group | groups]}
-
-      _newlines ->
-        {:skip, zipper, [[], Enum.reverse(group) | groups]}
+    if AST.get_newlines(ast) > 1 || !Zipper.skip(zipper) do
+      {:skip, zipper, [[], Enum.reverse(group) | groups]}
+    else
+      {:skip, zipper, [group | groups]}
     end
   end
 
@@ -135,13 +133,11 @@ defmodule Recode.Task.AliasOrder do
   defp alias_order(%Zipper{node: {:alias, _meta, _args} = ast} = zipper, acc) do
     acc = [ast | acc]
 
-    case AST.get_newlines(ast) do
-      1 ->
-        {:skip, zipper, acc}
-
-      _newlines ->
-        zipper = update(zipper, acc)
-        {:skip, zipper, []}
+    if AST.get_newlines(ast) > 1 || !Zipper.skip(zipper) do
+      zipper = update(zipper, acc)
+      {:skip, zipper, []}
+    else
+      {:skip, zipper, acc}
     end
   end
 

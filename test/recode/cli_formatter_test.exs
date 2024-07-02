@@ -2,6 +2,7 @@ defmodule Recode.CLIFormatterTest do
   use ExUnit.Case
 
   import ExUnit.CaptureIO
+  import Strip
 
   alias Recode.CLIFormatter
   alias Recode.Issue
@@ -641,17 +642,5 @@ defmodule Recode.CLIFormatterTest do
     Enum.reduce(opts, source, fn {key, value}, source ->
       Map.put(source, key, value)
     end)
-  end
-
-  defp strip_esc_seq(string) do
-    string
-    |> String.replace(~r/\e[^m]+m/, "")
-    |> String.split("\n")
-    |> Enum.map_join("\n", fn string ->
-      ~r/^\s(\w.*)/
-      |> Regex.replace(string, "\\1")
-      |> String.trim_trailing()
-    end)
-    |> String.trim_leading()
   end
 end

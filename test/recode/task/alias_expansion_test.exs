@@ -64,7 +64,6 @@ defmodule Recode.Task.AliasExapnasionTest do
         # a comment
         alias Bar
         alias Foo.{Zumsel, Baz}
-        # another comment
 
         def zoo, do: :zoo
       end
@@ -76,8 +75,6 @@ defmodule Recode.Task.AliasExapnasionTest do
         alias Bar
         alias Foo.Zumsel
         alias Foo.Baz
-
-        # another comment
 
         def zoo, do: :zoo
       end

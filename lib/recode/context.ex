@@ -9,7 +9,8 @@ defmodule Recode.Context do
 
       iex> alias Rewrite.Source
       ...> alias Recode.Context
-      ...> """
+      ...>
+      ...> code = """
       ...> defmodule MyApp.Foo do
       ...>   def foo, do: :foo
       ...> end
@@ -22,56 +23,38 @@ defmodule Recode.Context do
       ...>   end
       ...> end
       ...> """
-      ...> |> Source.Ex.from_string()
-      ...> |> Source.get(:quoted)
-      ...> |> Zipper.zip()
-      ...> |> Context.traverse(nil, fn
-      ...>   zipper, context, nil ->
-      ...>     case context.definition do
-      ...>       {{:def, :bar, 1}, _meta} -> {zipper, context, context}
-      ...>       _def -> {zipper, context, nil}
-      ...>     end
-      ...>   zipper, context, acc ->
-      ...>     {zipper, context, acc}
-      ...> end)
-      ...> |> elem(1) |> Map.put(:node, nil)
-      %Context{
-        node: nil,
-        aliases: [
-          {MyApp.Foo,
-           [
-             trailing_comments: [],
-             leading_comments: [],
-             end_of_expression: [newlines: 2, line: 6, column: 18],
-             line: 6,
-             column: 3
-           ], nil}
-        ],
-        assigns: %{},
-        definition:
-          {{:def, :bar, 1},
-           [
-             trailing_comments: [],
-             leading_comments: [],
-             do: [line: 8, column: 14],
-             end: [line: 10, column: 3],
-             line: 8,
-             column: 3
-           ]},
-        imports: [],
-        module:
-          {MyApp.Bar,
-           [
-             trailing_comments: [],
-             leading_comments: [],
-             do: [line: 5, column: 21],
-             end: [line: 11, column: 1],
-             line: 5,
-             column: 1
-           ]},
-        requirements: [],
-        usages: []
-      }
+      ...> 
+      ...> context = 
+      ...>   code 
+      ...>   |> Source.Ex.from_string()
+      ...>   |> Source.get(:quoted)
+      ...>   |> Zipper.zip()
+      ...>   |> Context.traverse(nil, fn
+      ...>     zipper, context, nil ->
+      ...>       case context.definition do
+      ...>         {{:def, :bar, 1}, _meta} -> {zipper, context, context}
+      ...>         _def -> {zipper, context, nil}
+      ...>       end
+      ...>     zipper, context, acc ->
+      ...>       {zipper, context, acc}
+      ...>   end)
+      ...>   |> elem(1)
+      ...> 
+      ...> context |> Map.from_struct() |> Map.keys() |> Enum.sort()
+      [
+        :aliases,
+        :assigns, 
+        :definition, 
+        :doc, 
+        :impl,
+        :imports, 
+        :module, 
+        :moduledoc, 
+        :node, 
+        :requirements, 
+        :spec, 
+        :usages
+      ]
   '''
 
   alias Recode.Context
