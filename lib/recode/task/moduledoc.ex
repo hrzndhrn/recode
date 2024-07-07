@@ -1,21 +1,23 @@
 defmodule Recode.Task.Moduledoc do
-  @shortdoc "There should be a @moduledoc in the module."
+  @moduledoc false
 
-  @moduledoc """
-  Any module should contain a `@moudledoc` attribute.
-
-  For a public module, comprehensive documentation should be available. The
-  module documentation helps the user of your package, contributors, and your
-  future self understand what the module is for.
-
-  For private modules, it is also okay to set `@moduled false`. Modules marked
-  in this way are not displayed in the documentation.
-
-  ## Options
-
-    * `ignore_names` - accepts a regex or a list of regexes to recognize modules
-      that this task ignores.
-  """
+  # @shortdoc "There should be a @moduledoc in the module."
+  #
+  # @moduledoc """
+  # Any module should contain a `@moudledoc` attribute.
+  #
+  # For a public module, comprehensive documentation should be available. The
+  # module documentation helps the user of your package, contributors, and your
+  # future self understand what the module is for.
+  #
+  # For private modules, it is also okay to set `@moduled false`. Modules marked
+  # in this way are not displayed in the documentation.
+  #
+  # ## Options
+  #
+  #   * `ignore_names` - accepts a regex or a list of regexes to recognize modules
+  #     that this task ignores.
+  # """
 
   use Recode.Task, corrector: false, category: :readability
 
