@@ -1,7 +1,7 @@
-defmodule Recode.Task.RemoveParensTest do
+defmodule Recode.Task.LocalsWithoutParensTest do
   use RecodeCase, async: false
 
-  alias Recode.Task.RemoveParens
+  alias Recode.Task.LocalsWithoutParens
 
   @moduletag :tmp_dir
 

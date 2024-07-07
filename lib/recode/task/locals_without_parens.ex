@@ -1,5 +1,5 @@
-defmodule Recode.Task.RemoveParens do
-  @shortdoc "Removes parens from locals without parens"
+defmodule Recode.Task.LocalsWithoutParens do
+  @shortdoc "Removes parens from locals without parens."
 
   @moduledoc """
   Don't use parens for functions that don't need them.
@@ -9,6 +9,10 @@ defmodule Recode.Task.RemoveParens do
 
           # not preferred
           assert(true == true)
+
+  The task uses the `:locals_without_parens` from the formatter config in `.formatter.exs`.
+  See also: ["Importing-dependencies-configuration"](https://hexdocs.pm/mix/Mix.Tasks.Format.html#module-importing-dependencies-configuration)
+  in the docs for [`mix format`](https://hexdocs.pm/mix/Mix.Tasks.Format.html#content).
 
   This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
