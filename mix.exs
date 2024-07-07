@@ -54,6 +54,8 @@ defmodule Recode.MixProject do
           Recode.Task.EnforceLineLength,
           Recode.Task.FilterCount,
           Recode.Task.Format,
+          Recode.Task.IOInspect,
+          Recode.Task.LocalsWithoutParens,
           Recode.Task.Nesting,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,
@@ -61,7 +63,7 @@ defmodule Recode.MixProject do
           Recode.Task.TagFIXME,
           Recode.Task.TagTODO,
           Recode.Task.TestFileExt,
-          Recode.Task.UnnecessaryIfInless,
+          Recode.Task.UnnecessaryIfUnless,
           Recode.Task.UnusedVariable
         ]
       ]
