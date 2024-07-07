@@ -1,8 +1,11 @@
 # Changelog
 
-## 0.7.3 - 2024/03/..
+## 0.7.3 -  dev
 
 + Add config for preformatter.
++ Add `Recode.Task.UnnecessaryIfUnless`
++ Add `Recode.Task.LocalsWithoutParens`
++ Fix `Recode.Task.Tags`
 
 ## 0.7.2 - 2024/02/10
 
