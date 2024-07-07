@@ -35,6 +35,7 @@ defmodule Recode.Config do
       {Recode.Task.FilterCount, []},
       {Recode.Task.IOInspect, [autocorrect: false]},
       # {Recode.Task.Moduledoc, []},
+      {Recode.Task.LocalsWithoutParens, []},
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
