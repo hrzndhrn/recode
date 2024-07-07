@@ -3,10 +3,41 @@ defmodule Recode.ConfigTest do
 
   doctest Recode.Config
 
+  import GlobEx.Sigils
+
   alias Recode.Config
 
   test "version in Config.default() is equal to the version in mix.exs" do
     assert Config.default()[:version] == Mix.Project.config()[:version]
+  end
+
+  @exclude_tasks [Recode.Task.Format, Recode.Task.Moduledoc, Recode.Task.Tags]
+  test "all tasks in config" do
+    tasks =
+      Config.default()
+      |> Keyword.get(:tasks)
+      |> Enum.map(fn {task, _} -> task |> inspect() |> Macro.underscore() end)
+
+    files =
+      ~g|lib/recode/task/**/*.ex|
+      |> GlobEx.ls()
+      |> Enum.map(fn path ->
+        ~r/^lib.(.*).ex$/
+        |> Regex.run(path)
+        |> Enum.at(1)
+      end)
+
+    exclude = Enum.map(@exclude_tasks, fn task -> Macro.underscore(task) end)
+
+    missing = files -- tasks
+    missing = missing -- exclude
+    missing = Enum.map(missing, fn module -> Macro.camelize(module) end)
+
+    assert Enum.empty?(missing), """
+    The default config is missing entries for #{inspect(missing)}.
+
+    You can add these to the `@default_config` in `Recode.Config`.
+    """
   end
 
   describe "read/1" do
