@@ -15,6 +15,7 @@ defmodule Recode.Task.RemoveParens do
 
   use Recode.Task, corrector: true, category: :readability
 
+  alias Mix.Tasks.Format
   alias Recode.Issue
   alias Recode.Task.RemoveParens
   alias Rewrite.Source
@@ -22,7 +23,7 @@ defmodule Recode.Task.RemoveParens do
 
   @impl Recode.Task
   def run(source, opts) do
-    formatter_opts = Mix.Tasks.Format.formatter_opts_for_file(source.path || "nofile")
+    {_formatter, formatter_opts} = Format.formatter_for_file(source.path || "nofile")
     locals_without_parens = Keyword.get(formatter_opts, :locals_without_parens, [])
 
     {zipper, issues} =
