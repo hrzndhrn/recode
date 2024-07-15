@@ -113,7 +113,7 @@ defmodule Recode.Task.ModuledocTest do
       |> refute_issues()
     end
 
-    test "when @moduldoc in all modules" do
+    test "when @moduldoc is set in all modules" do
       ~s'''
       defmodule Bar.Foo do
         @moduledoc "BarFoo ..."
@@ -177,7 +177,9 @@ defmodule Recode.Task.ModuledocTest do
       end
       '''
       |> run_task(Moduledoc)
-      |> assert_issue_with(message: "The @moudledoc attribute for moudle Elixir.Bar.Foo has no content.")
+      |> assert_issue_with(
+        message: "The @moudledoc attribute for moudle Elixir.Bar.Foo has no content."
+      )
     end
 
     test "when @moduldoc is missing in a module and inner modules" do

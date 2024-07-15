@@ -56,6 +56,7 @@ defmodule Recode.MixProject do
           Recode.Task.Format,
           Recode.Task.IOInspect,
           Recode.Task.LocalsWithoutParens,
+          Recode.Task.Moduledoc,
           Recode.Task.Nesting,
           Recode.Task.PipeFunOne,
           Recode.Task.SinglePipe,

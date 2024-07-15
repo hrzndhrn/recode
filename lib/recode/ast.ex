@@ -26,6 +26,27 @@ defmodule Recode.AST do
 
   @type acc :: any()
 
+  @typedoc """
+  Abstract Syntax Tree (AST)
+  """
+  @type t ::
+          atom
+          | number
+          | binary
+          | [t()]
+          | {t(), t()}
+          | expr
+
+  @typedoc """
+  The metadata of an expression in the AST.
+  """
+  @type metadata :: keyword
+
+  @typedoc """
+  An expression in the AST.
+  """
+  @type expr :: {atom | expr, metadata, atom | [t()]}
+
   @doc """
   Returns `true` if the given AST represents an atom.
 
@@ -34,7 +55,9 @@ defmodule Recode.AST do
       iex> ":atom" |> Code.string_to_quoted!() |> atom?()
       true
 
-      iex> ":atom" |> Sourceror.parse_string!() |> atom?()
+      iex> ast = Sourceror.parse_string!(":atom")
+      {:__block__, [trailing_comments: [], leading_comments: [], line: 1, column: 1], [:atom]}
+      ...> atom?(ast)
       true
 
       iex> "42" |> Sourceror.parse_string!() |> atom?()
@@ -46,7 +69,7 @@ defmodule Recode.AST do
       iex> atom?(ast)
       true
   """
-  @spec atom?(Macro.t()) :: boolean()
+  @spec atom?(t()) :: boolean()
   def atom?(atom) when is_atom(atom), do: true
 
   def atom?({:__block__, _meta, [atom]}) when is_atom(atom), do: true
@@ -117,7 +140,7 @@ defmodule Recode.AST do
       ...> |> multiline?()
       false
   '''
-  @spec multiline?(Macro.t() | Macro.metadata()) :: boolean()
+  @spec multiline?(t() | metadata()) :: boolean()
   def multiline?({op, _meta, [left, right]}) when op in @operators do
     last_line(right) > first_line(left)
   end
@@ -159,7 +182,7 @@ defmodule Recode.AST do
         do: :foo\
       """
   '''
-  @spec to_same_line(Macro.t()) :: Macro.t()
+  @spec to_same_line(t()) :: t()
   def to_same_line({op, _meta, [left, right]} = ast) when op in @operators do
     to_same_line(ast, first_line(left), last_line(right))
   end
@@ -238,7 +261,7 @@ defmodule Recode.AST do
       ...> |> last_line()
       3
   '''
-  @spec first_line(Macro.t()) :: integer | nil
+  @spec first_line(t()) :: integer | nil
   def first_line(ast), do: get_line_by(ast, &min/2)
 
   @doc """
@@ -246,7 +269,7 @@ defmodule Recode.AST do
 
   See `first_line/1` for example and note.
   """
-  @spec last_line(Macro.t()) :: integer | nil
+  @spec last_line(t()) :: integer | nil
   def last_line(ast), do: get_line_by(ast, &max/2)
 
   defp get_line_by(ast, fun) do
@@ -280,7 +303,7 @@ defmodule Recode.AST do
       iex> ast |> update_definition(args: [{:y, [], nil}]) |> Macro.to_string()
       "def foo(y), do: x"
   '''
-  @spec update_definition(Macro.t(), updates :: keyword()) :: Macro.t()
+  @spec update_definition(t(), updates :: keyword()) :: t()
   def update_definition(
         {:def, meta, [{:when, meta1, [{name, meta2, args}, expr1]}, expr2]},
         updates
@@ -315,7 +338,7 @@ defmodule Recode.AST do
       ...> |> Macro.to_string()
       "@spec bar(integer()) :: term()"
   """
-  @spec update_spec(Macro.t(), updates :: keyword()) :: Macro.t()
+  @spec update_spec(t(), updates :: keyword()) :: t()
   def update_spec(
         {:@, meta,
          [
@@ -394,7 +417,7 @@ defmodule Recode.AST do
       ...> |> Macro.to_string()
       "bar(x)"
   """
-  @spec update_call(Macro.t(), updates :: keyword()) :: Macro.t()
+  @spec update_call(t(), updates :: keyword()) :: t()
   def update_call({name, meta, args}, updates) do
     name = Keyword.get(updates, :name, name)
     meta = Keyword.get(updates, :meta, meta)
@@ -414,7 +437,7 @@ defmodule Recode.AST do
       iex> update_dot_call(ast, name: :bar)
       {{:., [], [{:__aliases__, [alias: false], [:Foo]}, :bar]}, [], [{:x, [], Recode.ASTTest}]}
   """
-  @spec update_dot_call(Macro.t(), updates :: keyword()) :: Macro.t()
+  @spec update_dot_call(t(), updates :: keyword()) :: t()
   def update_dot_call(
         {{:., meta, [{:__aliases__, meta1, module}, name]}, meta2, args},
         updates
@@ -437,7 +460,7 @@ defmodule Recode.AST do
       ...> mfa(ast)
       {Foo.Bar, :baz, 1}
   """
-  @spec mfa({{:., keyword(), list()}, Macro.metadata(), Macro.t()}) ::
+  @spec mfa({{:., keyword(), list()}, metadata(), t()}) ::
           {module(), atom(), non_neg_integer()}
   def mfa({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, args}) do
     {Module.concat(aliases), fun, length(args)}
@@ -447,7 +470,7 @@ defmodule Recode.AST do
   Puts the given value `newlines` under the key `nevlines` in
   `meta[:end_of_expression]`.
   """
-  @spec put_newlines({term(), Macro.metadata(), Macro.t()}, integer()) ::
+  @spec put_newlines({term(), metadata(), t()}, integer()) ::
           {term(), keyword(), list()}
   def put_newlines({name, meta, args}, newlines) do
     meta =
@@ -461,7 +484,7 @@ defmodule Recode.AST do
   @doc """
   Returns the `newlines` value from `meta[:end_of_expression]`, or `nil`.
   """
-  @spec get_newlines(Macro.t()) :: integer()
+  @spec get_newlines(t()) :: integer()
   def get_newlines({_name, meta, _args}) do
     case Keyword.fetch(meta, :end_of_expression) do
       {:ok, end_of_expression} -> Keyword.get(end_of_expression, :newlines)
@@ -507,7 +530,7 @@ defmodule Recode.AST do
       iex> alias_info(ast)
       {:__MODULE__, [], MyModule}
   """
-  @spec alias_info(Macro.t()) :: {module(), [module()], module() | nil}
+  @spec alias_info(t()) :: {module(), [module()], module() | nil}
   def alias_info({:alias, _meta1, [{:__aliases__, _meta2, aliases}]}) do
     aliases =
       Enum.map(aliases, fn
@@ -571,7 +594,7 @@ defmodule Recode.AST do
       iex> aliases_concat({:__aliases__, [], [:Alpha, :Bravo]})
       Alpha.Bravo
   """
-  @spec aliases_concat({:__aliases__, Macro.metadata(), [atom()]} | list) :: module()
+  @spec aliases_concat({:__aliases__, metadata(), [atom()]} | list) :: module()
   def aliases_concat({:__aliases__, _meta, aliases}) do
     Module.concat(aliases)
   end
@@ -586,7 +609,7 @@ defmodule Recode.AST do
   The function accepts `{:defmodule, meta, args}`, the `args` form the
   `:defmodule` tuple or the same input as `aliases_concat/1`.
   """
-  @spec module(Macro.t()) :: module
+  @spec module(t()) :: module
   def module(ast)
   def module({:defmodule, _metag, [arg | _args]}), do: aliases_concat(arg)
   def module(args), do: aliases_concat(args)
@@ -616,7 +639,7 @@ defmodule Recode.AST do
   end
 
   @doc ~S'''
-  TODO: add doc
+  Returns the `:do` or `:else` block arguments of the given `expr`.
 
   ## Examples
 
@@ -625,28 +648,22 @@ defmodule Recode.AST do
       ...>   def bar, do: bar
       ...> end
       ...> """)
-      ...> block(ast)
-      [
-        {:def, [trailing_comments: [], leading_comments: [], line: 2, column: 3],
-         [
-           {:bar, [trailing_comments: [], leading_comments: [], line: 2, column: 7], nil},
-           [
-             {{:__block__,
-               [trailing_comments: [], leading_comments: [], format: :keyword, line: 2, column: 12],
-               [:do]},
-              {:bar, [trailing_comments: [], leading_comments: [], line: 2, column: 16], nil}}
-           ]
-         ]}
-      ]
+      ...> block = block(ast)
+      ...> Sourceror.to_string({:__block__,[], block})
+      "def bar, do: bar"
 
-      iex> {:defmodule, _meta, [aliases, args]} = Sourceror.parse_string!("""
+      iex> {:defmodule, _meta, [_aliases, args]} = Sourceror.parse_string!("""
       ...> defmodule Foo do
       ...>   def bar, do: bar
       ...>   def baz, do: baz
       ...> end
       ...> """)
-      ...> block(args) |> length()
-      2
+      ...> block = block(args) 
+      ...> Sourceror.to_string({:__block__,[], block})
+      """
+      def bar, do: bar
+      def baz, do: baz\
+      """
 
       iex> ast = Sourceror.parse_string!("""
       ...> if x, do: true, else: false
@@ -657,10 +674,13 @@ defmodule Recode.AST do
       [true]
       ...> block(ast, :do)
       [true]
-  '''
-  @spec block(Macro.t(), atom()) :: Macro.t()
-  def block(ast, key \\ :do)
 
+      iex> ast = Sourceror.parse_string!("x == y")
+      ...> block(ast)
+      nil
+  '''
+  @spec block(expr(), :do | :else) :: t()
+  def block(expr, key \\ :do)
 
   def block({_form, _meta, args}, key) when key in [:do, :else] do
     do_block(args, key, 0)
@@ -693,7 +713,7 @@ defmodule Recode.AST do
       ...> |> Enum.map(&get_value/1)
       [1, 2]
   """
-  @spec get_value(Macro.t()) :: term
+  @spec get_value(t()) :: term
   def get_value({:__block__, _meta, [value]}), do: value
 
   @doc """
@@ -708,13 +728,13 @@ defmodule Recode.AST do
       ...> |> Enum.map(&get_value/1)
       ["0", "0"]
   """
-  @spec put_value(Macro.t(), term()) :: Macro.t()
+  @spec put_value(t(), term()) :: t()
   def put_value({:__block__, meta, [_value]}, value), do: {:__block__, meta, [value]}
 
   @doc """
   Updates the function name of a capture.
   """
-  @spec update_capture(Macro.t(), name: atom()) :: Macro.t()
+  @spec update_capture(t(), name: atom()) :: t()
   def update_capture(
         {:&, meta1, [{:/, meta2, [{_name, meta3, nil}, {:__block__, meta4, [arity]}]}]},
         name: name
@@ -765,7 +785,7 @@ defmodule Recode.AST do
       ...> end)
       [:rab, :bar, :oof, :foo]
   """
-  @spec reduce(Macro.t(), acc(), (Macro.t(), acc() -> acc())) :: acc()
+  @spec reduce(t(), acc(), (t(), acc() -> acc())) :: acc()
   def reduce(ast, acc, fun) do
     acc
     |> do_reduce_apply(ast, fun)
@@ -850,7 +870,7 @@ defmodule Recode.AST do
       ...> end)
       [:bar, :oof, :foo]
   """
-  @spec reduce_while(Macro.t(), acc(), (Macro.t(), acc() -> result)) :: acc()
+  @spec reduce_while(t(), acc(), (t(), acc() -> result)) :: acc()
         when result: {:cont, acc()} | {:halt, acc()} | {:skip, acc()}
   def reduce_while(ast, acc, fun) do
     acc
