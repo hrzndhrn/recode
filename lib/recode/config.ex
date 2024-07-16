@@ -34,8 +34,8 @@ defmodule Recode.Config do
       {Recode.Task.EnforceLineLength, [active: false]},
       {Recode.Task.FilterCount, []},
       {Recode.Task.IOInspect, [autocorrect: false]},
-      # {Recode.Task.Moduledoc, []},
       {Recode.Task.LocalsWithoutParens, []},
+      {Recode.Task.Moduledoc, []},
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
@@ -106,9 +106,9 @@ defmodule Recode.Config do
       iex> Recode.Config.merge(new ,old) |> Enum.sort()
       [autocorrect: true, verbose: true, version: "0.0.2"]
   """
+  @spec merge(config, config) :: config
   def merge(left \\ default(), right) do
-    left
-    |> Keyword.merge(right, fn
+    Keyword.merge(left, right, fn
       :version, version, _ -> version
       :tasks, left, right -> merge_tasks(left, right)
       _, _, value -> value

@@ -234,6 +234,18 @@ defmodule Recode.Task.TagsTest do
         message: "Found a tag: TODO: add b"
       )
     end
+
+    test "ignores doc function" do
+      ~s'''
+      defmodule Foo do
+        def doc([{:__block__, meta, [text]}]) do
+          text
+        end
+      end
+      '''
+      |> run_task(Tags, tag: "TODO", reporter: Tags)
+      |> refute_issues()
+    end
   end
 
   describe "init/1" do

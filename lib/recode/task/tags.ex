@@ -72,7 +72,7 @@ defmodule Recode.Task.Tags do
 
   defp check_tags(zipper, issues, _opts), do: {zipper, issues}
 
-  defp doc?([{:__block__, _meta, [text]}]), do: text != false
+  defp doc?([{:__block__, _meta, [text]}]), do: is_binary(text)
   defp doc?(_ast), do: false
 
   defp doc([{:__block__, meta, [text]}]) do

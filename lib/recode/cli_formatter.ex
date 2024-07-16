@@ -153,10 +153,7 @@ defmodule Recode.CLIFormatter do
       |> stats_count(:updated, opts[:code_updated?])
       |> stats_count(:moved, opts[:path_updated?])
       |> stats_count(:created, opts[:created?])
-      |> Map.update!(:extname_count, fn extname_count ->
-        extname = Path.extname(source.path)
-        Map.update(extname_count, extname, 1, fn count -> count + 1 end)
-      end)
+      |> extname_count(source)
     end)
   end
 
@@ -208,6 +205,13 @@ defmodule Recode.CLIFormatter do
   end
 
   defp stats_count(stats, _key, false, _add), do: stats
+
+  defp extname_count(stats, source) do
+    Map.update!(stats, :extname_count, fn extname_count ->
+      extname = Path.extname(source.path)
+      Map.update(extname_count, extname, 1, fn count -> count + 1 end)
+    end)
+  end
 
   defp format_result(source, verbose, opts, config) do
     issues? = opts[:issues?]

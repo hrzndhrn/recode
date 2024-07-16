@@ -82,8 +82,8 @@ defmodule Recode.Task.FilterCount do
          autocorrect
        ) do
     if autocorrect do
-      arg = prune_data(arg)
-      fun = prune_data(fun)
+      arg = purne_meta(arg)
+      fun = purne_meta(fun)
 
       quoted =
         case expr do
@@ -91,10 +91,9 @@ defmodule Recode.Task.FilterCount do
             quoted_count_pipe(fun, meta, arg)
 
           _else ->
-            case in_pipe?(zipper) do
-              true -> quoted_count_pipe(fun, meta, arg)
-              false -> quoted_count(fun, arg)
-            end
+            zipper
+            |> in_pipe?()
+            |> quoted_count(fun, meta, arg)
         end
 
       {Zipper.replace(zipper, quoted), issues}
@@ -148,6 +147,9 @@ defmodule Recode.Task.FilterCount do
 
   defp filter_count(zipper, issues, _autocorrect), do: {zipper, issues}
 
+  defp quoted_count(true = _in_pipe?, fun, meta, arg), do: quoted_count_pipe(fun, meta, arg)
+  defp quoted_count(false = _in_pipe?, fun, _meta, arg), do: quoted_count(fun, arg)
+
   defp quoted_count(fun, arg) do
     {{:., [], [{:__aliases__, [], [:Enum]}, :count]}, [], [arg, fun]}
   end
@@ -156,7 +158,7 @@ defmodule Recode.Task.FilterCount do
     {:|>, meta, [arg, {{:., [], [{:__aliases__, [], [:Enum]}, :count]}, [], [fun]}]}
   end
 
-  defp prune_data({expr, _meta, args}), do: {expr, [], args}
+  defp purne_meta({expr, _meta, args}), do: {expr, [], args}
 
   defp in_pipe?(zipper) do
     match?({:|>, _, _}, zipper |> Zipper.up() |> Zipper.node())

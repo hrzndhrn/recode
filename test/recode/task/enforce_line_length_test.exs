@@ -502,4 +502,15 @@ defmodule Recode.Task.EnforceLineLengthTest do
     |> run_task(EnforceLineLength)
     |> assert_code(expected)
   end
+
+  test "ignores inline do block" do
+    code = """
+    def foo,
+      do: :foo
+    """
+
+    code
+    |> run_task(EnforceLineLength)
+    |> assert_code(code)
+  end
 end
