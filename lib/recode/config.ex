@@ -3,17 +3,15 @@ defmodule Recode.Config do
   Functions to read and merge the `Recode` configuration.
   """
 
-  alias Recode.Task.Format
-
   @type config :: keyword()
 
   @config_filename ".recode.exs"
 
-  @config_version "0.7.3"
+  @config_version "0.8.0"
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
-  @config_min_version "0.7.1"
+  @config_min_version "0.8.0"
 
   @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks, :color]
 
@@ -42,7 +40,7 @@ defmodule Recode.Config do
       {Recode.Task.Specs, [exclude: ["test/**/*.{ex,exs}", "mix.exs"], config: [only: :visible]]},
       {Recode.Task.TagFIXME, exit_code: 2},
       {Recode.Task.TagTODO, exit_code: 4},
-      {Recode.Task.TestFileExt, []},
+      {Recode.Task.TestFile, []},
       {Recode.Task.UnnecessaryIfUnless, []},
       {Recode.Task.UnusedVariable, [active: false]}
     ]
@@ -96,8 +94,8 @@ defmodule Recode.Config do
   @doc """
   Merges two configs into one.
 
-  The merge will do a deep merge. The merge will do a deep merge. The merge
-  takes the version from the `right` config.
+  The merge will do a deep merge. The merge takes the version from the `right` 
+  config.
 
   ## Examples
 
@@ -132,6 +130,16 @@ defmodule Recode.Config do
   end
 
   @doc """
+  Deletes the given `tasks` from the `config`.
+  """
+  @spec delete_tasks(config, [module()]) :: config
+  def delete_tasks(config, tasks) do
+    Keyword.update(config, :tasks, [], fn current_tasks ->
+      Keyword.drop(current_tasks, tasks)
+    end)
+  end
+
+  @doc """
   Reads the `Recode` cofiguration from the given `path`.
   """
   @spec read(Path.t()) :: {:ok, config()} | {:error, :not_found}
@@ -142,7 +150,6 @@ defmodule Recode.Config do
           path
           |> Code.eval_file()
           |> elem(0)
-          |> default_tasks()
           |> update_inputs()
 
         {:ok, config}
@@ -179,23 +186,9 @@ defmodule Recode.Config do
     if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
   end
 
-  defp default_tasks(config) do
-    if has_task?(config, Format) do
-      config
-    else
-      Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
-    end
-  end
-
   defp update_inputs(config) do
     Keyword.update(config, :inputs, [], fn inputs ->
       inputs |> List.wrap() |> Enum.map(fn input -> GlobEx.compile!(input) end)
     end)
-  end
-
-  defp has_task?(config, module) do
-    config
-    |> Keyword.fetch!(:tasks)
-    |> Keyword.has_key?(module)
   end
 end

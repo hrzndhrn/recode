@@ -17,6 +17,7 @@ defmodule Mix.Tasks.Recode.Update.Config do
 
   @config_filename ".recode.exs"
   @deprecated_configs [:formatter]
+  @removed_tasks [Recode.Task.TestFileExt]
 
   @doc false
   def run([]), do: do_run(false)
@@ -31,6 +32,7 @@ defmodule Mix.Tasks.Recode.Update.Config do
         |> elem(0)
         |> delete(@deprecated_configs)
         |> Recode.Config.merge()
+        |> Recode.Config.delete_tasks(@removed_tasks)
 
       Mix.Generator.create_file(@config_filename, Recode.Config.to_string(config), force: force)
     else

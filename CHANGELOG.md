@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.0 - dev
+
++ Use `rewrite` version `~> 1.0`.
++ Add callback and default implementation `Recode.Task.update_source/3`
++ Add callback and default implementation `Recode.Task.new_issue/1` and 
+  `Recode.Task.new_issue/2` 
++ Rename `Recode.Task.TestFileExt` to `Recode.Task.TestFile`
++ Updte `mix recode.update.config` to remove deprecated tasks
+
 ## 0.7.3 - 2024/07/25
 
 + Add config for preformatter.

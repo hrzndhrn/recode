@@ -19,32 +19,30 @@ defmodule Recode.Task.LocalsWithoutParens do
 
   use Recode.Task, corrector: true, category: :readability
 
-  alias Mix.Tasks.Format
-  alias Recode.Issue
-  alias Recode.Task.RemoveParens
+  alias Rewrite.DotFormatter
   alias Rewrite.Source
   alias Sourceror.Zipper
 
   @impl Recode.Task
   def run(source, opts) do
-    {_formatter, formatter_opts} = Format.formatter_for_file(source.path || "nofile")
-    locals_without_parens = Keyword.get(formatter_opts, :locals_without_parens, [])
+    locals_without_parens =
+      opts
+      |> Keyword.fetch!(:dot_formatter)
+      |> DotFormatter.formatter_opts_for_file(source.path || "nofile")
+      |> Keyword.get(:locals_without_parens, [])
+      |> Enum.concat(Code.Formatter.locals_without_parens())
 
-    {zipper, issues} =
-      source
-      |> Source.get(:quoted)
-      |> Zipper.zip()
-      |> Zipper.traverse([], fn zipper, issues ->
-        remove_parens(locals_without_parens, zipper, issues, opts[:autocorrect])
-      end)
+    source
+    |> Source.get(:quoted)
+    |> Zipper.zip()
+    |> Zipper.traverse([], fn zipper, issues ->
+      remove_parens(locals_without_parens, zipper, issues, opts[:autocorrect])
+    end)
+    |> update(source, opts)
+  end
 
-    case opts[:autocorrect] do
-      true ->
-        Source.update(source, RemoveParens, :quoted, Zipper.root(zipper))
-
-      false ->
-        Source.add_issues(source, issues)
-    end
+  defp update({zipper, issues}, source, opts) do
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp remove_parens(
@@ -58,7 +56,7 @@ defmodule Recode.Task.LocalsWithoutParens do
         node = {fun, Keyword.delete(meta, :closing), args}
         {Zipper.replace(zipper, node), issues}
       else
-        issue = Issue.new(RemoveParens, "Unncecessary parens")
+        issue = new_issue("Unncecessary parens")
         {zipper, [issue | issues]}
       end
     else

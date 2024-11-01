@@ -21,7 +21,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -29,7 +29,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     """
     %{foo: 42}
     """
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> refute_update()
   end
 
@@ -45,7 +45,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
       foobarbazbangbuzwurzumsel: 42
     }
     """
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> refute_update()
   end
 
@@ -65,7 +65,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -83,7 +83,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -104,7 +104,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -130,7 +130,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -151,7 +151,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -179,7 +179,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -190,7 +190,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
       {a, b}
     end
     """
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> refute_update()
   end
 
@@ -214,7 +214,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -225,7 +225,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
       :bar -> {:bar, x}
     end
     """
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> refute_update()
   end
 
@@ -250,7 +250,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -268,7 +268,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -279,7 +279,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
       {:y, y} -> inspect("y = #{y}")
     end
     """
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> refute_update()
   end
 
@@ -301,7 +301,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -339,7 +339,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength, ignore: [:fn])
+    |> run_task(EnforceLineLength, ignore: [:fn], autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -370,7 +370,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -403,7 +403,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength, ignore: [:fn])
+    |> run_task(EnforceLineLength, ignore: [:fn], autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -439,7 +439,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     assert formated?(code)
 
     code
-    |> run_task(EnforceLineLength, skip: [:assert_raise])
+    |> run_task(EnforceLineLength, skip: [:assert_raise], autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -469,7 +469,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     """
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -499,7 +499,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     """
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(expected)
   end
 
@@ -510,7 +510,7 @@ defmodule Recode.Task.EnforceLineLengthTest do
     """
 
     code
-    |> run_task(EnforceLineLength)
+    |> run_task(EnforceLineLength, autocorrect: true)
     |> assert_code(code)
   end
 end

@@ -9,8 +9,6 @@ defmodule Recode.Task.Dbg do
 
   use Recode.Task, corrector: true, category: :warning
 
-  alias Recode.Issue
-  alias Recode.Task.Dbg
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -22,17 +20,11 @@ defmodule Recode.Task.Dbg do
     |> Zipper.traverse([], fn zipper, issues ->
       traverse(zipper, issues, opts[:autocorrect])
     end)
-    |> update(source, opts[:autocorrect])
+    |> update(source, opts)
   end
 
-  defp update({zipper, _issues}, source, true) do
-    Source.update(source, Dbg, :quoted, Zipper.root(zipper))
-  end
-
-  defp update({_zipper, []}, source, false), do: source
-
-  defp update({_zipper, issues}, source, false) do
-    Source.add_issues(source, issues)
+  defp update({zipper, issues}, source, opts) do
+    update_source(source, opts, issues: issues, quoted: zipper)
   end
 
   defp traverse(
@@ -86,7 +78,8 @@ defmodule Recode.Task.Dbg do
   end
 
   defp handle(zipper, issues, meta, false) do
-    issue = Issue.new(Dbg, @shortdoc, meta)
+    issue = new_issue(@shortdoc, meta)
+
     {zipper, [issue | issues]}
   end
 

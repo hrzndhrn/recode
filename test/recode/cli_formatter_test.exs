@@ -43,7 +43,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -83,12 +83,12 @@ defmodule Recode.CLIFormatterTest do
     source_a =
       code
       |> from_string(path: "lib/a.ex")
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     source_b =
       code
       |> from_string(path: "lib/b.ex")
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     project = Rewrite.from_sources!([source_a, source_b])
 
@@ -133,8 +133,8 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
-      |> Source.update(:test, :content, code)
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
+      |> Source.update(:content, code, by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -179,7 +179,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -203,7 +203,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string(path: "foo.ex")
-      |> Source.update(:test, :path, "bar.ex")
+      |> Source.update(:path, "bar.ex", by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -400,7 +400,7 @@ defmodule Recode.CLIFormatterTest do
         Issue.new(:foo, "do not do this", line: 1, column: 2),
         Issue.new(:bar, "no no no", line: 2, column: 3)
       ])
-      |> Source.update(TestTask, :content, String.replace(code, ":foo", ":bar"))
+      |> Source.update(:content, String.replace(code, ":foo", ":bar"), by: TestTask)
 
     project = Rewrite.from_sources!([source])
 
@@ -441,7 +441,7 @@ defmodule Recode.CLIFormatterTest do
       code
       |> from_string()
       |> Source.add_issue(
-        Issue.new(Recode.Runner, task: Test, error: :error, message: "Error Message")
+        Issue.new(Recode.Runner, "Error Message", meta: [task: Test, error: :error])
       )
 
     project = Rewrite.from_sources!([source])
@@ -598,7 +598,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(TaTask, :content, String.replace(code, ":foo", ":bar"))
+      |> Source.update(:content, String.replace(code, ":foo", ":bar"), by: TaTask)
 
     output =
       capture_io(fn ->
@@ -635,7 +635,7 @@ defmodule Recode.CLIFormatterTest do
   defp from_string(string, opts \\ []) do
     {path, opts} = Keyword.pop(opts, :path, "test/formatter_test.ex")
 
-    source = Source.Ex.from_string(string, path)
+    source = Source.Ex.from_string(string, path: path)
 
     opts = Keyword.put_new(opts, :from, :file)
 
