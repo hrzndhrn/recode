@@ -102,12 +102,14 @@ defmodule Recode.MixProject do
     [
       {:escape, "~> 0.1"},
       {:glob_ex, "~> 0.1"},
-      {:rewrite, "~> 1.0"},
+      # {:rewrite, "~> 1,1"},
+      {:rewrite, path: "../rewrite/"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:excoveralls, "~> 0.15", only: :test},
+      {:freedom_formatter, "~> 2.1", only: :test},
       {:mox, "~> 1.0", only: :test}
     ] ++
       if System.get_env("CI") == "true" do
