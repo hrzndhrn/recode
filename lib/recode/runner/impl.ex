@@ -23,7 +23,7 @@ defmodule Recode.Runner.Impl do
       config
       |> project()
       |> notify(:prepared, config, time(start_recode))
-      |> Rewrite.format!(by: Recode.Taks.Format)
+      |> Rewrite.format!(by: Recode.Task.Format)
 
     start_tasks = time()
 
@@ -55,7 +55,7 @@ defmodule Recode.Runner.Impl do
     source =
       content
       |> Source.Ex.from_string(path: path)
-      |> Source.format!(by: Recode.Tasks.Format, dot_formatter: dot_formatter)
+      |> Source.format!(by: Recode.Task.Format, dot_formatter: dot_formatter)
 
     tasks
     |> update_opts(config)
