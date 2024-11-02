@@ -55,7 +55,7 @@ defmodule Recode.Task.AliasExpansion do
     issues =
       case extract(ast) do
         {:ok, _data} ->
-          issue = new_issue("Avoid multi aliasses.", meta)
+          issue = new_issue("Avoid multi aliases.", meta)
           [issue | issues]
 
         :error ->
