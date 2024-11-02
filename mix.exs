@@ -109,7 +109,6 @@ defmodule Recode.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:excoveralls, "~> 0.15", only: :test},
-      {:freedom_formatter, "~> 2.1", only: :test},
       {:mox, "~> 1.0", only: :test}
     ] ++
       if System.get_env("CI") == "true" do
