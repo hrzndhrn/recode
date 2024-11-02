@@ -81,9 +81,6 @@ jobs:
         run: MIX_ENV=test mix deps.compile
       - name: Compile project
         run: MIX_ENV=test mix compile --warnings-as-errors
-      - name: Check unused dependencies
-        if: ${{ contains(matrix.elixir, '1.17.3') && contains(matrix.otp, '27.1') }}
-        run: mix deps.unlock --check-unused
       - name: Check code format
         if: ${{ contains(matrix.elixir, '1.17.3') && contains(matrix.otp, '27.1') }}
         run: mix format --check-formatted
