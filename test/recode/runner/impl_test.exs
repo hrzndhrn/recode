@@ -326,47 +326,49 @@ defmodule Recode.Runner.ImplTest do
       end
     end
 
-    test "formats files with .formatter.exs and respects plugins", context do
-      in_tmp context do
-        config = config(dry: false, tasks: [{SinglePipe, []}], inputs: "**")
+    if function_exported?(FreedomFormatter, :features, 1) do
+      test "formats files with .formatter.exs and respects plugins", context do
+        in_tmp context do
+          config = config(dry: false, tasks: [{SinglePipe, []}], inputs: "**")
 
-        File.write!(".formatter.exs", """
-        [
-         inputs: "**",
-         locals_without_parens: [foo: 1],
-         plugins: [FreedomFormatter],
-          trailing_comma: true
-        ]
-        """)
+          File.write!(".formatter.exs", """
+          [
+           inputs: "**",
+           locals_without_parens: [foo: 1],
+           plugins: [FreedomFormatter],
+            trailing_comma: true
+          ]
+          """)
 
-        File.write!("foo.ex", """
-        [
-        :foo,
-        :bar,
-        :baz,
-        ] |> foo
-        """)
+          File.write!("foo.ex", """
+          [
+          :foo,
+          :bar,
+          :baz,
+          ] |> foo
+          """)
 
-        capture_io(fn ->
-          assert {:ok, 0} = Runner.run(config)
-        end)
+          capture_io(fn ->
+            assert {:ok, 0} = Runner.run(config)
+          end)
 
-        assert File.read!("foo.ex") == """
-               foo [
-                 :foo,
-                 :bar,
-                 :baz,
-               ]
-               """
+          assert File.read!("foo.ex") == """
+                 foo [
+                   :foo,
+                   :bar,
+                   :baz,
+                 ]
+                 """
 
-        assert File.read!(".formatter.exs") == """
-               [
-                 inputs: "**",
-                 locals_without_parens: [foo: 1],
-                 plugins: [FreedomFormatter],
-                 trailing_comma: true,
-               ]
-               """
+          assert File.read!(".formatter.exs") == """
+                 [
+                   inputs: "**",
+                   locals_without_parens: [foo: 1],
+                   plugins: [FreedomFormatter],
+                   trailing_comma: true,
+                 ]
+                 """
+        end
       end
     end
   end
@@ -432,38 +434,42 @@ defmodule Recode.Runner.ImplTest do
       end
     end
 
-    test "formats code with .formatter.exs and respects plugins", context do
-      in_tmp context do
-        config = config(dry: false, tasks: [{SinglePipe, []}], inputs: "**")
+    if function_exported?(FreedomFormatter, :features, 1) do
+      test "formats code with .formatter.exs and respects plugins", context do
+        in_tmp context do
+          config = config(dry: false, tasks: [{SinglePipe, []}], inputs: "**")
 
-        File.write!(".formatter.exs", """
-        [
-          inputs: "**",
-          locals_without_parens: [foo: 1],
-          plugins: [FreedomFormatter],
-          trailing_comma: true
-        ]
-        """)
+          File.write!(".formatter.exs", """
+          [
+            inputs: "**",
+            locals_without_parens: [foo: 1],
+            plugins: [FreedomFormatter],
+            trailing_comma: true
+          ]
+          """)
 
-        code = """
-        [
-        :foo,
-        :bar,
-        :baz,
-        ] |> foo
-        """
+          code = """
+          [
+          :foo,
+          :bar,
+          :baz,
+          ] |> foo
+          """
 
-        # Fake here what `mix format` does.
-        dot_formatter = DotFormatter.read!()
-        config = Keyword.put(config, :formatter_opts, DotFormatter.formatter_opts(dot_formatter))
+          # Fake here what `mix format` does.
+          dot_formatter = DotFormatter.read!()
 
-        assert Runner.run(code, config, "my_code.exs") == """
-               foo [
-                 :foo,
-                 :bar,
-                 :baz,
-               ]
-               """
+          config =
+            Keyword.put(config, :formatter_opts, DotFormatter.formatter_opts(dot_formatter))
+
+          assert Runner.run(code, config, "my_code.exs") == """
+                 foo [
+                   :foo,
+                   :bar,
+                   :baz,
+                 ]
+                 """
+        end
       end
     end
   end
