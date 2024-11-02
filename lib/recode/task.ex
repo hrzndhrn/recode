@@ -33,7 +33,7 @@ defmodule Recode.Task do
   The `opts` containing:
 
     * The configuration for the task defined in the recode-config. When the 
-      `c:init/1` is implemeted then the `opts` returned by this callback are in 
+      `c:init/1` is implemented then the `opts` returned by this callback are in 
       the `opts`.
    
     * `:dot_formatter` - the `%Rewrite.DotFormatter{}` for the project.
@@ -61,7 +61,7 @@ defmodule Recode.Task do
 
   The default implementation of this callback applies any element from the 
   `updates` keyword list to the `source` with the given `opts`. The keys 
-  `:issue` and `:issues` wll be applied with `Rewrite.Source.add_issue/2` and 
+  `:issue` and `:issues` wlll be applied with `Rewrite.Source.add_issue/2` and 
   `Rewrite.Source.add_issues/2` respectively. Any other key will be applied with
   `Rewrite.Source.update/4`, when `opts` contains `autocorrect: true`.
 
@@ -78,7 +78,7 @@ defmodule Recode.Task do
   The default implementation of this callback creates an `Recode.Issue` struct
   with `reporter: __MODULE__`.
   """
-  @callback new_issue(mwessage :: String.t(), opts :: Keyword.t()) :: Issue.t()
+  @callback new_issue(message :: String.t(), opts :: Keyword.t()) :: Issue.t()
 
   @doc """
   Creates a new issue with the given `opts`.

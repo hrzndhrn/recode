@@ -8,7 +8,7 @@ defmodule Recode.Task.TestFile do
 
     * files ending with `*_test.ex`.
 
-    * filtes in `test` folders, missing `*_test.exs` and containing a module 
+    * files in `test` folders, missing `*_test.exs` and containing a module 
       `*Test`.
 
   """
