@@ -56,7 +56,7 @@ defmodule Recode.Task.LocalsWithoutParens do
         node = {fun, Keyword.delete(meta, :closing), args}
         {Zipper.replace(zipper, node), issues}
       else
-        issue = new_issue("Unncecessary parens")
+        issue = new_issue("Unnecessary parens")
         {zipper, [issue | issues]}
       end
     else
