@@ -55,7 +55,7 @@ defmodule Recode.Runner.Impl do
     source =
       content
       |> Source.Ex.from_string(path: path)
-      |> Source.format!(by: Recode.Taks.Format, dot_formatter: dot_formatter)
+      |> Source.format!(by: Recode.Tasks.Format, dot_formatter: dot_formatter)
 
     tasks
     |> update_opts(config)
