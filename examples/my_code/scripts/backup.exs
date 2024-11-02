@@ -13,7 +13,7 @@ defmodule Backup do
   def run(["restore"]) do
     IO.puts("restoring form backup #{@backup}")
 
-    Enum.each(["lib", "test", "config"], fn dir -> File.rm_rf!(dir) end)
+    Enum.each(["lib", "test", "config", "priv"], fn dir -> File.rm_rf!(dir) end)
 
     files = @backup |> File.read!() |> :erlang.binary_to_term()
 
