@@ -220,9 +220,12 @@ defmodule Recode.Runner.Impl do
   end
 
   defp dot_formatter do
-    case DotFormatter.read(remove_plugins: [Recode.FormatterPlugin]) do
-      {:ok, dot_formatter} -> dot_formatter
-      {:error, _error} -> DotFormatter.default()
+    with true <- File.exists?(".formatter.exs"),
+         {:ok, dot_formatter} <- DotFormatter.read(remove_plugins: [Recode.FormatterPlugin]) do
+      dot_formatter
+    else
+      false -> DotFormatter.default()
+      {:error, error} -> error |> Exception.message() |> Mix.raise()
     end
   end
 
