@@ -61,7 +61,7 @@ defmodule Recode.Task do
 
   The default implementation of this callback applies any element from the 
   `updates` keyword list to the `source` with the given `opts`. The keys 
-  `:issue` and `:issues` wlll be applied with `Rewrite.Source.add_issue/2` and 
+  `:issue` and `:issues` will be applied with `Rewrite.Source.add_issue/2` and 
   `Rewrite.Source.add_issues/2` respectively. Any other key will be applied with
   `Rewrite.Source.update/4`, when `opts` contains `autocorrect: true`.
 
