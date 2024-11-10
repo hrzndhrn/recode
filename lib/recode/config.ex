@@ -23,7 +23,7 @@ defmodule Recode.Config do
     dry: false,
     color: true,
     verbose: false,
-    inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
+    inputs: :formatter,
     formatters: [Recode.CLIFormatter],
     tasks: [
       {Recode.Task.AliasExpansion, []},
@@ -72,6 +72,9 @@ defmodule Recode.Config do
       color: <%= @config[:color] %>,
       # Can also be set/reset with `--verbose`/`--no-verbose`.
       verbose: <%= @config[:verbose] %>,
+      # Inputs can be a path, glob expression or list of paths and glob expressions.
+      # With the atom :formatter the inputs from .formatter.exs are
+      # used. also allowed in the list mentioned above.
       # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
       inputs: <%= inspect @config[:inputs] %>,
       formatters: <%= inspect @config[:formatters] %>,
@@ -146,11 +149,7 @@ defmodule Recode.Config do
   def read(path \\ @config_filename) when is_binary(path) do
     case File.exists?(path) do
       true ->
-        config =
-          path
-          |> Code.eval_file()
-          |> elem(0)
-          |> update_inputs()
+        config = path |> Code.eval_file() |> elem(0)
 
         {:ok, config}
 
@@ -184,11 +183,5 @@ defmodule Recode.Config do
 
   defp validate_tasks(config) do
     if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
-  end
-
-  defp update_inputs(config) do
-    Keyword.update(config, :inputs, [], fn inputs ->
-      inputs |> List.wrap() |> Enum.map(fn input -> GlobEx.compile!(input) end)
-    end)
   end
 end
