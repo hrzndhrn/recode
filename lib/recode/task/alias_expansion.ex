@@ -16,8 +16,6 @@ defmodule Recode.Task.AliasExpansion do
 
   use Recode.Task, corrector: true, category: :readability
 
-  alias Recode.Issue
-  alias Recode.Task.AliasExpansion
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -31,13 +29,7 @@ defmodule Recode.Task.AliasExpansion do
         expand_alias(zipper, issues, opts[:autocorrect])
       end)
 
-    case opts[:autocorrect] do
-      true ->
-        Source.update(source, AliasExpansion, :quoted, Zipper.root(zipper))
-
-      false ->
-        Source.add_issues(source, issues)
-    end
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp expand_alias(%Zipper{node: {:alias, meta, _args} = ast} = zipper, issues, true) do
@@ -63,8 +55,7 @@ defmodule Recode.Task.AliasExpansion do
     issues =
       case extract(ast) do
         {:ok, _data} ->
-          message = "Avoid multi aliases."
-          issue = Issue.new(AliasExpansion, message, meta)
+          issue = new_issue("Avoid multi aliases.", meta)
           [issue | issues]
 
         :error ->

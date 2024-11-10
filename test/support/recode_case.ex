@@ -3,6 +3,7 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
+  alias Rewrite.DotFormatter
   alias Rewrite.Source
 
   using do
@@ -103,7 +104,7 @@ defmodule RecodeCase do
   end
 
   def source(string, path \\ nil) do
-    Source.Ex.from_string(string, path)
+    Source.Ex.from_string(string, path: path)
   end
 
   def project(%Source{} = source) do
@@ -118,6 +119,7 @@ defmodule RecodeCase do
 
   def run_task(%Source{} = source, task, opts) do
     with {:ok, opts} <- task.init(opts) do
+      opts = Keyword.put_new(opts, :dot_formatter, DotFormatter.default())
       task.run(source, opts)
     end
   end

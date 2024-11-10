@@ -120,4 +120,38 @@ defmodule Recode.ConfigTest do
              ]
     end
   end
+
+  describe "delete_tasks/2" do
+    test "merges configs" do
+      config = [
+        tasks: [
+          {Recode.Task.One, []},
+          {Recode.Task.Two, []},
+          {Recode.Task.Three, []}
+        ]
+      ]
+
+      assert Config.delete_tasks(config, [Recode.Task.Two]) ==
+               [
+                 tasks: [
+                   {Recode.Task.One, []},
+                   {Recode.Task.Three, []}
+                 ]
+               ]
+
+      assert Config.delete_tasks(config, [Recode.Task.One, Recode.Task.Three]) ==
+               [
+                 tasks: [
+                   {Recode.Task.Two, []}
+                 ]
+               ]
+
+      assert Config.delete_tasks(config, [Recode.Task.One, Recode.Task.Three, Recode.Task.Six]) ==
+               [
+                 tasks: [
+                   {Recode.Task.Two, []}
+                 ]
+               ]
+    end
+  end
 end
