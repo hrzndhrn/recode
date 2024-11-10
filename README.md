@@ -9,8 +9,6 @@ A linter with autocorrection.
 [`sourceror`](https://github.com/doorgan/sourceror) package by @doorgan.
 
 This library is still under development, breaking changes are expected.
-The same is true for `sourceror` and most of `recode`'s functionality is based
-on `sourceror`.
 
 `recode` can correct and check the following things:
 
@@ -37,7 +35,7 @@ Nesting             # Checker   - Checks code nesting depth in functions and mac
 Warning tasks:
 Dbg                 # Corrector - There should be no calls to dbg.
 IOInspect           # Corrector - There should be no calls to IO.inspect.
-TestFileExt         # Corrector - Checks the file extension of test files.
+TestFile         # Corrector - Checks the file extension of test files.
 UnusedVariable      # Corrector - Checks if unused variables occur.
 ```
 
@@ -116,7 +114,7 @@ This mix task generates the config file `.recode.exs`.
     {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
     {Recode.Task.TagFIXME, [exit_code: 2]},
     {Recode.Task.TagTODO, [exit_code: 4]},
-    {Recode.Task.TestFileExt, []},
+    {Recode.Task.TestFile, []},
     {Recode.Task.UnnecessaryIfUnless, []},
     {Recode.Task.UnusedVariable, [active: false]}
   ]
@@ -310,7 +308,7 @@ Changed by: Format
 
 File: test/my_code_test.exs
 Updates: 1
-Changed by: TestFileExt
+Changed by: TestFile
 Moved from: test/my_code_test.ex
 
 Executed 244 tasks in 0.01s.
@@ -360,7 +358,7 @@ Found 11 files, including 2 scripts.
 [SinglePipe 10/25] Use a function call when a pipeline is only one function long.
 
  File: test/my_code_test.ex
-[TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
+[TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 
 Finished in 0.05 seconds.
 ```
@@ -456,6 +454,30 @@ Calls to dbg/2 should only appear in debug sessions.
 
 This task rewrites the code when mix recode runs with autocorrect: true.
 ```
+
+## Code style and formatting
+
+Code style and formatting are essential aspects of writing clean and 
+maintainable code. Different developers and teams may have varying preferences 
+when it comes to how code should be structured and formatted. Tools like 
+`recode` can help enforce consistency and improve readability by applying 
+predefined rules to the codebase. However, it's important to remember that 
+these rules are not set in stone and may not necessarily reflect the best 
+practices for every project.
+
+Ultimately, the goal of code formatting is to make the code more 
+understandable and maintainable. It can help identify potential issues and 
+improve the overall quality of the code. While `recode` offers a set of rules to 
+follow, developers are free to choose which rules they want to apply based on 
+their own preferences and the requirements of the project.
+
+It's worth noting that discussions around code style and formatting can be 
+subjective, and there is no one-size-fits-all solution. Developers should feel 
+empowered to make informed decisions about which formatting rules to apply and 
+adapt them as needed to suit their specific needs. There are numerous 
+resources available online that provide insights into code formatting best 
+practices, allowing developers to explore different approaches and find what 
+works best for them.
 
 
 ## Differences to Credo

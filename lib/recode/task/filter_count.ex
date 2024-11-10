@@ -22,7 +22,6 @@ defmodule Recode.Task.FilterCount do
 
   use Recode.Task, corrector: true, category: :refactor
 
-  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -34,15 +33,15 @@ defmodule Recode.Task.FilterCount do
     |> Zipper.traverse([], fn zipper, issues ->
       filter_count(zipper, issues, opts[:autocorrect])
     end)
-    |> update(source, opts[:autocorrect])
+    |> update(source, opts)
   end
 
   defp update({zipper, _issues}, source, true) do
     Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
   end
 
-  defp update({_zipper, issues}, source, false) do
-    Source.add_issues(source, issues)
+  defp update({zipper, issues}, source, opts) do
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp filter_count(
@@ -164,10 +163,6 @@ defmodule Recode.Task.FilterCount do
   end
 
   defp issue(meta) do
-    Issue.new(
-      __MODULE__,
-      "`Enum.count/2` is more efficient than `Enum.filter/2 |> Enum.count/1`",
-      meta
-    )
+    new_issue("`Enum.count/2` is more efficient than `Enum.filter/2 |> Enum.count/1`", meta)
   end
 end

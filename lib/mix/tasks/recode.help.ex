@@ -70,10 +70,16 @@ defmodule Mix.Tasks.Recode.Help do
     print("Readability tasks:", info.readability, max)
     print("Refactor tasks:", info.refactor, max)
     print("Warning tasks:", info.warning, max)
+
+    Escape.puts([
+      "\n",
+      "To get help for a specific task run ",
+      [:cyan, "mix recode.help [task-name]."]
+    ])
   end
 
   defp print(section, tasks, max) do
-    IO.puts(section)
+    Escape.puts([:yellow, :reverse, " #{section} "])
 
     Enum.each(tasks, fn {task, doc, corrector?} ->
       type = if corrector?, do: "Corrector -", else: "Checker   -"

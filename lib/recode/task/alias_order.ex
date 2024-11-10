@@ -20,7 +20,6 @@ defmodule Recode.Task.AliasOrder do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.AST
-  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -29,25 +28,25 @@ defmodule Recode.Task.AliasOrder do
     source
     |> Source.get(:quoted)
     |> Zipper.zip()
-    |> do_run(source, opts[:autocorrect])
+    |> do_run(source, opts[:autocorrect], opts)
   end
 
-  defp do_run(zipper, source, false) do
+  defp do_run(zipper, source, false, opts) do
     {_zipper, groups} =
       Zipper.traverse_while(zipper, [[]], fn zipper, acc ->
         alias_groups(zipper, acc)
       end)
 
-    Source.add_issues(source, issues(groups))
+    update_source(source, opts, issues: issues(groups))
   end
 
-  defp do_run(zipper, source, true) do
+  defp do_run(zipper, source, true, opts) do
     {zipper, []} =
       Zipper.traverse_while(zipper, [], fn zipper, acc ->
         alias_order(zipper, acc)
       end)
 
-    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
+    update_source(source, opts, quoted: zipper)
   end
 
   defp alias_groups(%Zipper{node: {:alias, _meta, _args} = ast} = zipper, [group | groups]) do
@@ -95,8 +94,7 @@ defmodule Recode.Task.AliasOrder do
   end
 
   defp issue({:__aliases__, meta, args}) do
-    Issue.new(
-      __MODULE__,
+    new_issue(
       "The alias `#{AST.name(args)}` is not alphabetically ordered among its multi group",
       meta
     )
@@ -105,8 +103,7 @@ defmodule Recode.Task.AliasOrder do
   defp issue({:alias, meta, _args} = ast) do
     {name, _multi, _as} = AST.alias_info(ast)
 
-    Issue.new(
-      __MODULE__,
+    new_issue(
       "The alias `#{AST.name(name)}` is not alphabetically ordered among its group",
       meta
     )

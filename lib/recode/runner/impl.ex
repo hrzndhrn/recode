@@ -5,6 +5,7 @@ defmodule Recode.Runner.Impl do
 
   alias Recode.EventManager
   alias Recode.Issue
+  alias Rewrite.DotFormatter
   alias Rewrite.Source
 
   @impl true
@@ -22,6 +23,7 @@ defmodule Recode.Runner.Impl do
       config
       |> project()
       |> notify(:prepared, config, time(start_recode))
+      |> Rewrite.format!(by: Recode.Task.Format)
 
     start_tasks = time()
 
@@ -44,14 +46,16 @@ defmodule Recode.Runner.Impl do
   @impl true
   def run(content, config, path \\ "source.ex") do
     tasks = tasks(config)
-
     config = update_config(config)
+    formatter_opts = Keyword.get(config, :formatter_opts, [])
+
+    dot_formatter =
+      DotFormatter.from_formatter_opts(formatter_opts, remove_plugins: [Recode.FormatterPlugin])
 
     source =
-      Source.Ex.from_string(content,
-        path: path,
-        formatter_opts: config[:dot_formatter_opts] || []
-      )
+      content
+      |> Source.Ex.from_string(path: path)
+      |> Source.format!(by: Recode.Task.Format, dot_formatter: dot_formatter)
 
     tasks
     |> update_opts(config)
@@ -59,7 +63,7 @@ defmodule Recode.Runner.Impl do
     |> Enum.reduce(source, fn {module, opts}, source ->
       case exclude?(module, source, config) do
         true -> source
-        false -> module.run(source, opts)
+        false -> module.run(source, Keyword.put(opts, :dot_formatter, dot_formatter))
       end
     end)
     |> Source.get(:content)
@@ -97,8 +101,9 @@ defmodule Recode.Runner.Impl do
   end
 
   defp run_tasks(tasks, project, config) do
+    dot_formatter = Rewrite.dot_formatter(project)
     sources = sources(project)
-    runner = runner(tasks, config)
+    runner = runner(tasks, config, dot_formatter)
 
     sources =
       Recode.TaskSupervisor
@@ -130,13 +135,15 @@ defmodule Recode.Runner.Impl do
     {source.path, source}
   end
 
-  defp runner(tasks, config) do
+  defp runner(tasks, config, dot_formatter) do
     fn source ->
-      Enum.reduce(tasks, source, fn task, source -> run_task(task, source, config) end)
+      Enum.reduce(tasks, source, fn task, source ->
+        run_task(task, source, config, dot_formatter)
+      end)
     end
   end
 
-  defp run_task({task_module, task_config}, source, config) do
+  defp run_task({task_module, task_config}, source, config, dot_formatter) do
     case exclude?(task_module, source, config) do
       true ->
         source
@@ -146,18 +153,20 @@ defmodule Recode.Runner.Impl do
 
         source
         |> notify(:task_started, config, task_module)
-        |> task_module.run(task_config)
+        |> task_module.run(Keyword.put(task_config, :dot_formatter, dot_formatter))
         |> notify(:task_finished, config, {task_module, time(start)})
     end
   rescue
+    error in ExUnit.AssertionError ->
+      reraise error, __STACKTRACE__
+
     error ->
       Source.add_issue(
         source,
         Issue.new(
           Recode.Runner,
-          task: task_module,
-          error: error,
-          message: Exception.format(:error, error, __STACKTRACE__)
+          message: Exception.format(:error, error, __STACKTRACE__),
+          meta: [task: task_module, error: error]
         )
       )
   end
@@ -198,12 +207,25 @@ defmodule Recode.Runner.Impl do
     if inputs == ["-"] do
       stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
 
-      stdin |> Source.Ex.from_string("nofile") |> List.wrap() |> Rewrite.from_sources!()
+      stdin
+      |> Source.Ex.from_string(path: "nofile.ex")
+      |> List.wrap()
+      |> Rewrite.from_sources!()
     else
-      Rewrite.new!(inputs, [
-        {Source, owner: Recode},
-        {Source.Ex, exclude_plugins: [Recode.FormatterPlugin]}
-      ])
+      Rewrite.new!(inputs,
+        filetypes: [Source.Ex, {Source, owner: Recode}],
+        dot_formatter: dot_formatter()
+      )
+    end
+  end
+
+  defp dot_formatter do
+    with true <- File.exists?(".formatter.exs"),
+         {:ok, dot_formatter} <- DotFormatter.read(remove_plugins: [Recode.FormatterPlugin]) do
+      dot_formatter
+    else
+      false -> DotFormatter.default()
+      {:error, error} -> error |> Exception.message() |> Mix.raise()
     end
   end
 

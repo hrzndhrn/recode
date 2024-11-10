@@ -35,7 +35,7 @@ defmodule Recode.Task.EnforceLineLength do
   and with the option `skip: :fn` the code keeps unchanged.
   """
 
-  use Recode.Task, corrector: true, category: :readability
+  use Recode.Task, corrector: true, checker: false, category: :readability
 
   alias Recode.AST
   alias Rewrite.Source
@@ -51,7 +51,7 @@ defmodule Recode.Task.EnforceLineLength do
       |> Zipper.zip()
       |> Zipper.traverse_while(fn zipper -> same_line(zipper, opts) end)
 
-    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
+    update_source(source, opts, quoted: zipper)
   end
 
   defp same_line(%Zipper{node: {:with, _meta, _args}} = zipper, _opts) do
@@ -79,6 +79,6 @@ defmodule Recode.Task.EnforceLineLength do
     opts
     |> Keyword.update(:skip, [], fn skip -> List.wrap(skip) end)
     |> Keyword.update(:ignore, [], fn ignore -> List.wrap(ignore) end)
-    |> Keyword.validate!([:skip, :ignore, :autocorrect])
+    |> Keyword.validate!([:skip, :ignore, :autocorrect, :dot_formatter])
   end
 end

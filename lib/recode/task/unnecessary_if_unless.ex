@@ -19,7 +19,6 @@ defmodule Recode.Task.UnnecessaryIfUnless do
 
   use Recode.Task, corrector: true, category: :readability
 
-  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -33,13 +32,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
         remove_unecessary_if_unless(zipper, issues, opts[:autocorrect])
       end)
 
-    case opts[:autocorrect] do
-      true ->
-        Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
-
-      false ->
-        Source.add_issues(source, issues)
-    end
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp remove_unecessary_if_unless(
@@ -69,7 +62,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
       case extract(body, conditional) do
         {:ok, _expr} ->
           message = "Avoid unnecessary `if` and `unless`"
-          issue = Issue.new(__MODULE__, message, meta)
+          issue = new_issue(message, meta)
           [issue | issues]
 
         :error ->

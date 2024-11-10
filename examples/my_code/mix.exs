@@ -32,6 +32,8 @@ defmodule MyCode.MixProject do
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:freedom_formatter, "~> 2.1", only: :dev},
+      {:json_formatter, "~> 0.2", only: :dev},
+      {:ecto_sql, "~> 3.12", only: :dev},
     ]
   end
 end
