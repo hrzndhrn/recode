@@ -14,7 +14,7 @@
   # With the atom :formatter the inputs from .formatter.exs are
   # used. also allowed in the list mentioned above.
   # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
-  inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test,priv}/**/*.{ex,exs}"],
+  inputs: :formatter,
   formatters: [Recode.CLIFormatter],
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
