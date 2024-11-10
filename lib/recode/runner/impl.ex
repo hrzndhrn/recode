@@ -14,14 +14,16 @@ defmodule Recode.Runner.Impl do
 
     tasks = tasks(config)
 
+    dot_formatter = dot_formatter()
+
     config =
       config
-      |> update_config()
+      |> update_config(dot_formatter)
       |> start_event_manager()
 
     project =
       config
-      |> project()
+      |> project(dot_formatter)
       |> notify(:prepared, config, time(start_recode))
       |> Rewrite.format!(by: Recode.Task.Format)
 
@@ -46,24 +48,30 @@ defmodule Recode.Runner.Impl do
   @impl true
   def run(content, config, path \\ "source.ex") do
     tasks = tasks(config)
-    config = update_config(config)
     formatter_opts = Keyword.get(config, :formatter_opts, [])
 
     dot_formatter =
       DotFormatter.from_formatter_opts(formatter_opts, remove_plugins: [Recode.FormatterPlugin])
+
+    config = update_config(config, dot_formatter)
 
     source =
       content
       |> Source.Ex.from_string(path: path)
       |> Source.format!(by: Recode.Task.Format, dot_formatter: dot_formatter)
 
+    %Source{filetype: %Source.Ex{}} = source
+
     tasks
     |> update_opts(config)
     |> correctors_first()
     |> Enum.reduce(source, fn {module, opts}, source ->
       case exclude?(module, source, config) do
-        true -> source
-        false -> module.run(source, Keyword.put(opts, :dot_formatter, dot_formatter))
+        true ->
+          source
+
+        false ->
+          module.run(source, Keyword.put(opts, :dot_formatter, dot_formatter))
       end
     end)
     |> Source.get(:content)
@@ -171,11 +179,15 @@ defmodule Recode.Runner.Impl do
       )
   end
 
-  defp exclude?(task, source, config) do
+  # For now, all sources without a filetype Source.Ex are direclty excluded.
+  # For the Source.Ex sources we check whether the source is excluded.
+  defp exclude?(task, %Source{filetype: %Source.Ex{}} = source, config) do
     config
     |> config(task, :exclude)
     |> Enum.any?(fn glob -> GlobEx.match?(glob, source.path) end)
   end
+
+  defp exclude?(_task, _source, _config), do: true
 
   defp get_cli_opts(config, key, default) do
     config
@@ -201,8 +213,8 @@ defmodule Recode.Runner.Impl do
 
   defp event_manager(config), do: Keyword.fetch!(config, :event_manager)
 
-  defp project(config) do
-    inputs = config |> Keyword.fetch!(:inputs) |> List.wrap()
+  defp project(config, dot_formatter) do
+    inputs = Keyword.fetch!(config, :inputs)
 
     if inputs == ["-"] do
       stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
@@ -214,7 +226,7 @@ defmodule Recode.Runner.Impl do
     else
       Rewrite.new!(inputs,
         filetypes: [Source.Ex, {Source, owner: Recode}],
-        dot_formatter: dot_formatter()
+        dot_formatter: dot_formatter
       )
     end
   end
@@ -296,15 +308,26 @@ defmodule Recode.Runner.Impl do
     Enum.concat(Map.get(groups, true, []), Map.get(groups, false, []))
   end
 
-  defp update_config(config) do
-    Keyword.update!(config, :tasks, fn tasks -> update_config(tasks, :exclude) end)
+  defp update_config(config, dot_formatter) do
+    config
+    |> Keyword.update!(:tasks, fn tasks -> update_tasks(tasks) end)
+    |> Keyword.update!(:inputs, fn inputs -> update_inputs(inputs, dot_formatter) end)
   end
 
-  defp update_config(tasks, :exclude) do
+  defp update_tasks(tasks) do
     Enum.map(tasks, fn {task, config} ->
       config = Keyword.update(config, :exclude, [], &compile_globs/1)
 
       {task, config}
+    end)
+  end
+
+  defp update_inputs(inputs, dot_formatter) do
+    inputs
+    |> List.wrap()
+    |> Enum.flat_map(fn
+      :formatter -> if dot_formatter.path, do: DotFormatter.inputs(dot_formatter), else: []
+      input -> [input]
     end)
   end
 

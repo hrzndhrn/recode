@@ -371,6 +371,48 @@ defmodule Recode.Runner.ImplTest do
         end
       end
     end
+
+    test "reads inputs from .formatter.exs", context do
+      in_tmp context do
+        config = config(inputs: :formatter, dry: false, tasks: [{SinglePipe, []}])
+
+        File.write!(".formatter.exs", ~s|[inputs: "lib/**/*.ex", subdirectories: ["bar"]]|)
+        File.mkdir!("lib")
+        File.write!("lib/foo.ex", " foo  =  :foo")
+        File.mkdir!("bar")
+        File.write!("bar/.formatter.exs", ~s|[inputs: "**/*.ex"]|)
+        File.write!("bar/foo.ex", " foo  =  :foo")
+
+        capture_io(fn ->
+          assert {:ok, 0} = Runner.run(config)
+        end)
+
+        code = "foo = :foo\n"
+        assert File.read!("bar/foo.ex") == code
+        assert File.read!("lib/foo.ex") == code
+      end
+    end
+
+    test "reads inputs from .formatter.exs and glob expression", context do
+      in_tmp context do
+        config =
+          config(inputs: [:formatter, "bar/**/*.ex"], dry: false, tasks: [{SinglePipe, []}])
+
+        File.write!(".formatter.exs", ~s|[inputs: "lib/**/*.ex"]|)
+        File.mkdir!("lib")
+        File.write!("lib/foo.ex", " :foo |> foo")
+        File.mkdir!("bar")
+        File.write!("bar/foo.ex", " :foo |> foo")
+
+        capture_io(fn ->
+          assert {:ok, 0} = Runner.run(config)
+        end)
+
+        code = "foo(:foo)\n"
+        assert File.read!("lib/foo.ex") == code
+        assert File.read!("bar/foo.ex") == code
+      end
+    end
   end
 
   describe "run/3" do
