@@ -1,3 +1,55 @@
+defmodule Recode.Manifest do
+  @moduledoc false
+
+  alias Rewrite.Source
+
+  @manifest "recode.issues"
+
+  def write(project, config) do
+    if config[:manifest] do
+      File.write(path(), content(project, config[:dry]))
+    else
+      :ok
+    end
+  end
+
+  def read(config) do
+    if !config[:force] and config[:manifest] do
+      case File.read(path()) do
+        {:ok, content} -> {timestamp(), String.split(content, "\n")}
+        _error -> nil
+      end
+    else
+      nil
+    end
+  end
+
+  def timestamp do
+    case File.stat(path(), time: :posix) do
+      {:ok, %{mtime: timestamp}} -> timestamp
+      {:error, _reason} -> 0
+    end
+  end
+
+  def path, do: Path.join(Mix.Project.manifest_path(), @manifest)
+
+  defp content(project, dry) do
+    project
+    |> paths_with_issue(dry)
+    |> Enum.join("\n")
+  end
+
+  defp paths_with_issue(project, dry) do
+    Enum.reduce(project, [], fn source, acc ->
+      if Source.has_issues?(source) or (dry and Source.updated?(source)) do
+        [source.path | acc]
+      else
+        acc
+      end
+    end)
+  end
+end
+
 defmodule Recode.Runner.Impl do
   @moduledoc false
 
@@ -5,6 +57,7 @@ defmodule Recode.Runner.Impl do
 
   alias Recode.EventManager
   alias Recode.Issue
+  alias Recode.Manifest
   alias Rewrite.DotFormatter
   alias Rewrite.Source
 
@@ -35,10 +88,11 @@ defmodule Recode.Runner.Impl do
     |> run_tasks(project, config)
     |> notify(:tasks_finished, config, time(start_tasks))
     |> tap(fn project -> write(project, config) end)
+    |> tap(fn project -> Manifest.write(project, config) end)
     |> notify(:finished, config, time(start_recode))
     |> tap(fn _project -> stop_event_manager(config) end)
     |> then(fn project ->
-      case Enum.empty?(project) do
+      case Enum.empty?(project.sources) and Enum.empty?(project.excluded) do
         true -> {:error, :no_sources}
         false -> {:ok, exit_code(project, tasks)}
       end
@@ -110,8 +164,9 @@ defmodule Recode.Runner.Impl do
 
   defp run_tasks(tasks, project, config) do
     dot_formatter = Rewrite.dot_formatter(project)
-    sources = sources(project)
     runner = runner(tasks, config, dot_formatter)
+
+    sources = Stream.map(project.sources, fn {_path, source} -> source end)
 
     sources =
       Recode.TaskSupervisor
@@ -120,10 +175,6 @@ defmodule Recode.Runner.Impl do
       |> Enum.into(%{})
 
     %{project | sources: sources}
-  end
-
-  defp sources(%Rewrite{sources: sources}) do
-    Stream.map(sources, fn {_path, source} -> source end)
   end
 
   defp result({:ok, source}), do: {source.path, source}
@@ -226,8 +277,32 @@ defmodule Recode.Runner.Impl do
     else
       Rewrite.new!(inputs,
         filetypes: [Source.Ex, {Source, owner: Recode}],
-        dot_formatter: dot_formatter
+        dot_formatter: dot_formatter,
+        exclude: exclude(config)
       )
+    end
+  end
+
+  defp exclude(config) do
+    case Manifest.read(config) do
+      nil ->
+        fn _path -> false end
+
+      {timestamp, paths} ->
+        fn path ->
+          cond do
+            path in paths -> false
+            timestamp(path) > timestamp -> false
+            true -> true
+          end
+        end
+    end
+  end
+
+  defp timestamp(path) do
+    case File.stat(path, time: :posix) do
+      {:ok, %{mtime: timestamp}} -> timestamp
+      {:error, _reason} -> 0
     end
   end
 

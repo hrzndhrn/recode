@@ -129,4 +129,17 @@ defmodule RecodeCase do
   end
 
   def eof_newline(string), do: String.trim_trailing(string) <> "\n"
+
+  defmacro in_tmp(context, do: block) do
+    quote do
+      tmp_dir = Map.fetch!(unquote(context), :tmp_dir)
+      fixture = Map.get(unquote(context), :fixture)
+
+      if fixture, do: "test/fixtures" |> Path.join(fixture) |> File.cp_r!(tmp_dir)
+
+      File.cd!(tmp_dir, fn ->
+        unquote(block)
+      end)
+    end
+  end
 end
