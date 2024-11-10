@@ -78,7 +78,7 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:finished, %Rewrite{} = project, time}, config) when is_integer(time) do
-    unless Enum.empty?(project) do
+    unless Enum.empty?(project) and Enum.empty?(project.excluded) do
       Escape.puts([:info, "Finished in #{format_time(time)}s."], config)
     end
 
@@ -113,7 +113,7 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
-    unless Enum.empty?(project) do
+    unless Enum.empty?(project) and Enum.empty?(project.excluded) do
       Escape.puts("")
       stats = format_results(project, config)
       :ok = format_tasks_stats(config, time)
@@ -158,12 +158,21 @@ defmodule Recode.CLIFormatter do
   end
 
   defp format_stats(project, stats, config) do
-    filte_stats =
+    file_stats =
       stats
       |> Map.get(:extname_count)
       |> Enum.map_join(", ", fn {extname, count} -> "#{extname}: #{count}" end)
 
-    Escape.puts([:info, "Files: #{Enum.count(project)} ", "(#{filte_stats})"], config)
+    file_stats = if file_stats == "", do: "", else: "(#{file_stats})"
+
+    excluded =
+      if Enum.empty?(project.excluded),
+        do: "",
+        else: ", excluded: #{length(project.excluded)}"
+
+    processed = "Files processed: #{Enum.count(project)} "
+
+    Escape.puts([:info, processed, file_stats, excluded], config)
 
     _stats =
       stats

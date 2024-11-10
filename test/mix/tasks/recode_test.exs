@@ -12,6 +12,8 @@ defmodule Mix.Tasks.RecodeTest do
   test "mix recode --config test/fixtures/config.exs" do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
+      assert config[:verbose] == false
+      assert config[:manifest] == false
       {:ok, 0}
     end)
 
@@ -92,6 +94,60 @@ defmodule Mix.Tasks.RecodeTest do
 
     assert_raise Mix.Error, message, fn ->
       Tasks.Recode.run(["--config", "test/fixtures/invalid_task_config.exs", "no-sources"])
+    end
+  end
+
+  @tag :tmp_dir
+  test "reads default config", context do
+    expect(RunnerMock, :run, fn config ->
+      assert Keyword.keyword?(config)
+      assert config[:verbose] == false
+      assert config[:debug] == false
+      assert config[:manifest] == true
+
+      {:ok, 0}
+    end)
+
+    in_tmp context do
+      File.write!(".recode.exs", Recode.Config.to_string())
+      assert catch_exit(Tasks.Recode.run([])) == :normal
+    end
+  end
+
+  @tag :tmp_dir
+  test "reads config", context do
+    expect(RunnerMock, :run, fn config ->
+      assert Keyword.keyword?(config)
+      assert config[:verbose] == true
+      assert config[:debug] == false
+      assert config[:manifest] == false
+
+      {:ok, 0}
+    end)
+
+    in_tmp context do
+      config =
+        Keyword.merge(Recode.Config.default(), verbose: true, manifest: false)
+
+      File.write!(".recode.exs", Recode.Config.to_string(config))
+      assert catch_exit(Tasks.Recode.run([])) == :normal
+    end
+  end
+
+  @tag :tmp_dir
+  test "overwrites manifest option", context do
+    expect(RunnerMock, :run, fn config ->
+      assert Keyword.keyword?(config)
+      assert config[:manifest] == true
+
+      {:ok, 0}
+    end)
+
+    in_tmp context do
+      config = Keyword.merge(Recode.Config.default(), manifest: false)
+
+      File.write!(".recode.exs", Recode.Config.to_string(config))
+      assert catch_exit(Tasks.Recode.run(["--manifest"])) == :normal
     end
   end
 end
