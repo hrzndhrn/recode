@@ -13,7 +13,17 @@ defmodule Recode.Config do
   # breaking change for handle the config.
   @config_min_version "0.8.0"
 
-  @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks, :color]
+  @config_keys [
+    :autocorrect,
+    :color,
+    :dry,
+    :formatters,
+    :inputs,
+    :manifest,
+    :tasks,
+    :verbose,
+    :version
+  ]
 
   # The default configuration used by mix tasks recode.gen.config and
   # recode.update.config.
@@ -25,6 +35,7 @@ defmodule Recode.Config do
     verbose: false,
     inputs: :formatter,
     formatters: [Recode.CLIFormatter],
+    manifest: true,
     tasks: [
       {Recode.Task.AliasExpansion, []},
       {Recode.Task.AliasOrder, []},
@@ -78,6 +89,8 @@ defmodule Recode.Config do
       # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
       inputs: <%= inspect @config[:inputs] %>,
       formatters: <%= inspect @config[:formatters] %>,
+      # Can also be set/reset with `--manifest`/`--no-manifest`.
+      manifest: <%= inspect @config[:manifest] %>,
       tasks: [
         # Tasks could be added by a tuple of the tasks module name and an options
         # keyword list. A task can be deactivated by `active: false`. The execution of
@@ -149,7 +162,11 @@ defmodule Recode.Config do
   def read(path \\ @config_filename) when is_binary(path) do
     case File.exists?(path) do
       true ->
-        config = path |> Code.eval_file() |> elem(0)
+        config =
+          path
+          |> Code.eval_file()
+          |> elem(0)
+          |> Keyword.put_new(:manifest, true)
 
         {:ok, config}
 
