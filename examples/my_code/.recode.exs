@@ -10,8 +10,11 @@
   color: true,
   # Can also be set/reset with `--verbose`/`--no-verbose`.
   verbose: false,
+<<<<<<< HEAD
   # Can be overwritten with `--silent`/`--no-silent`.
   silent: false,
+=======
+>>>>>>> 41b835b (Read inputs from .formatter.exs (#98))
   # Inputs can be a path, glob expression or list of paths and glob expressions.
   # With the atom :formatter the inputs from .formatter.exs are
   # used. also allowed in the list mentioned above.
