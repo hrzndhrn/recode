@@ -102,7 +102,7 @@ defmodule Recode.MixProject do
     [
       {:escape, "~> 0.1"},
       {:glob_ex, "~> 0.1"},
-      {:rewrite, "~> 1.0"},
+      {:rewrite, "~> 1.1"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
