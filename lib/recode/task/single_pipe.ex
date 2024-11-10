@@ -22,8 +22,6 @@ defmodule Recode.Task.SinglePipe do
 
   use Recode.Task, corrector: true, category: :readability
 
-  alias Recode.Issue
-  alias Recode.Task.SinglePipe
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -31,21 +29,17 @@ defmodule Recode.Task.SinglePipe do
 
   @impl Recode.Task
   def run(source, opts) do
-    {zipper, issues} =
-      source
-      |> Source.get(:quoted)
-      |> Zipper.zip()
-      |> Zipper.traverse([], fn zipper, issues ->
-        single_pipe(zipper, issues, opts[:autocorrect])
-      end)
+    source
+    |> Source.get(:quoted)
+    |> Zipper.zip()
+    |> Zipper.traverse([], fn zipper, issues ->
+      single_pipe(zipper, issues, opts[:autocorrect])
+    end)
+    |> update(source, opts)
+  end
 
-    case opts[:autocorrect] do
-      true ->
-        Source.update(source, SinglePipe, :quoted, Zipper.root(zipper))
-
-      false ->
-        Source.add_issues(source, issues)
-    end
+  defp update({zipper, issues}, source, opts) do
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp single_pipe(%Zipper{node: {def, _meta, _args}} = zipper, issues, _autocorrect)
@@ -69,8 +63,7 @@ defmodule Recode.Task.SinglePipe do
 
   defp single_pipe(%Zipper{node: {:|>, meta, _ast}} = zipper, issues, false) do
     issue =
-      Issue.new(
-        SinglePipe,
+      new_issue(
         "Use a function call when a pipeline is only one function long.",
         meta
       )

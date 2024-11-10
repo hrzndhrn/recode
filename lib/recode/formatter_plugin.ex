@@ -1,7 +1,3 @@
-defmodule Recode.FormatterPlugin.Config do
-  @moduledoc false
-end
-
 defmodule Recode.FormatterPlugin do
   @moduledoc """
   Defines Recode formatter plugin for `mix format`.
@@ -57,15 +53,10 @@ defmodule Recode.FormatterPlugin do
   def format(content, formatter_opts) do
     file = formatter_opts |> Keyword.get(:file, "source.ex") |> Path.relative_to_cwd()
 
-    formatter_opts =
-      Keyword.update(formatter_opts, :plugins, [], fn plugins ->
-        Enum.reject(plugins, fn plugin -> plugin == Recode.FormatterPlugin end)
-      end)
-
     config =
       formatter_opts
       |> config()
-      |> Keyword.put(:dot_formatter_opts, Keyword.delete(formatter_opts, :recode))
+      |> Keyword.put(:formatter_opts, formatter_opts)
 
     Runner.run(content, config, file)
   end

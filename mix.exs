@@ -44,8 +44,11 @@ defmodule Recode.MixProject do
 
   defp docs do
     [
+      main: "readme",
+      api_reference: false,
       source_ref: "v#{@version}",
       formatters: ["html"],
+      extras: ["README.md"],
       groups_for_modules: [
         Tasks: [
           Recode.Task.AliasExpansion,
@@ -53,7 +56,6 @@ defmodule Recode.MixProject do
           Recode.Task.Dbg,
           Recode.Task.EnforceLineLength,
           Recode.Task.FilterCount,
-          Recode.Task.Format,
           Recode.Task.IOInspect,
           Recode.Task.LocalsWithoutParens,
           Recode.Task.Moduledoc,
@@ -63,7 +65,7 @@ defmodule Recode.MixProject do
           Recode.Task.Specs,
           Recode.Task.TagFIXME,
           Recode.Task.TagTODO,
-          Recode.Task.TestFileExt,
+          Recode.Task.TestFile,
           Recode.Task.UnnecessaryIfUnless,
           Recode.Task.UnusedVariable
         ]
@@ -100,14 +102,19 @@ defmodule Recode.MixProject do
     [
       {:escape, "~> 0.1"},
       {:glob_ex, "~> 0.1"},
-      {:rewrite, "~> 0.9"},
+      {:rewrite, "~> 1.0"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:excoveralls, "~> 0.15", only: :test},
       {:mox, "~> 1.0", only: :test}
-    ]
+    ] ++
+      if System.get_env("CI") == "true" do
+        []
+      else
+        [{:freedom_formatter, "~> 2.1", only: :test}]
+      end
   end
 
   defp package do

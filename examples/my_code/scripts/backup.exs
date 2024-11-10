@@ -1,10 +1,10 @@
 defmodule Backup do
-  @inputs "{config,lib,test}/**/*"
+  @inputs "{priv,config,lib,test}/**/*"
   @backup "scripts/backup.bin"
 
   def run([]) do
     @inputs
-    |> Path.wildcard()
+    |> Path.wildcard(match_dot: true)
     |> Enum.reject(&File.dir?/1)
     |> Enum.into(%{}, fn path -> {path, File.read!(path)} end)
     |> backup()
@@ -13,7 +13,7 @@ defmodule Backup do
   def run(["restore"]) do
     IO.puts("restoring form backup #{@backup}")
 
-    Enum.each(["lib", "test", "config"], fn dir -> File.rm_rf!(dir) end)
+    Enum.each(["lib", "test", "config", "priv"], fn dir -> File.rm_rf!(dir) end)
 
     files = @backup |> File.read!() |> :erlang.binary_to_term()
 

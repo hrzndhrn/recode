@@ -23,23 +23,22 @@ defmodule Recode.Issue do
       iex> Recode.Issue.new(Test, "kaput", line: 1, column: 1)
       %Recode.Issue{reporter: Test, message: "kaput", line: 1, column: 1, meta: nil}
 
-      iex> Recode.Issue.new(Test, foo: "bar")
+      iex> Recode.Issue.new(Test, meta: [foo: "bar"])
       %Recode.Issue{reporter: Test, message: nil, line: nil, column: nil, meta: [foo: "bar"]}
   """
-  @spec new(module(), String.t() | term() | nil, keyword(), term()) :: Issue.t()
-  def new(reporter, message, info \\ [], meta \\ nil)
-
-  def new(reporter, message, info, meta) when is_binary(message) do
-    line = Keyword.get(info, :line)
-    column = Keyword.get(info, :column)
-    struct!(Issue, reporter: reporter, message: message, line: line, column: column, meta: meta)
+  def new(reporter, message, info) do
+    info
+    |> Keyword.merge(reporter: reporter, message: message)
+    |> new()
   end
 
-  def new(reporter, meta, info, nil) do
-    line = Keyword.get(info, :line)
-    column = Keyword.get(info, :column)
-    message = Keyword.get(meta, :message)
+  def new(reporter, info) do
+    info
+    |> Keyword.put(:reporter, reporter)
+    |> new()
+  end
 
-    struct!(Issue, reporter: reporter, line: line, column: column, meta: meta, message: message)
+  def new(info) do
+    struct(Issue, Keyword.put_new(info, :reporter, Recode))
   end
 end

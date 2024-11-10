@@ -7,7 +7,6 @@ defmodule Recode.Task.UnusedVariable do
 
   use Recode.Task, corrector: true, category: :warning
 
-  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -21,20 +20,14 @@ defmodule Recode.Task.UnusedVariable do
         prepend_unused_variable_with_underscore(zipper, issues)
       end)
 
-    case opts[:autocorrect] do
-      true ->
-        Source.update(source, __MODULE__, :quoted, Zipper.root(zipper))
-
-      false ->
-        Source.add_issues(source, issues)
-    end
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp process_unused({var_name, var_meta, nil} = var, search_zipper, zipper, issues) do
     if unused?(search_zipper, var) do
       zipper = add_underscore(zipper, var)
 
-      issue = Issue.new(__MODULE__, "Unused variable: #{var_name}", var_meta)
+      issue = new_issue("Unused variable: #{var_name}", var_meta)
 
       {zipper, [issue | issues]}
     else
