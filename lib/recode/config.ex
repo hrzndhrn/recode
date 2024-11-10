@@ -166,8 +166,7 @@ defmodule Recode.Config do
           path
           |> Code.eval_file()
           |> elem(0)
-          |> update_inputs()
-          |> update_manifest()
+          |> Keyword.put_new(:manifest, true)
 
         {:ok, config}
 
@@ -201,15 +200,5 @@ defmodule Recode.Config do
 
   defp validate_tasks(config) do
     if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
-  end
-
-  defp update_inputs(config) do
-    Keyword.update(config, :inputs, [], fn inputs ->
-      inputs |> List.wrap() |> Enum.map(fn input -> GlobEx.compile!(input) end)
-    end)
-  end
-
-  defp update_manifest(config) do
-    Keyword.put_new(config, :manifest, true)
   end
 end
