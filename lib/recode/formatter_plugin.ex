@@ -81,8 +81,9 @@ defmodule Recode.FormatterPlugin do
     end
   end
 
-  defp init_config(recode) do
-    recode
+  defp init_config(config) do
+    config
+    |> Keyword.put(:manifest, false)
     |> Keyword.merge(
       dry: false,
       verbose: false,

@@ -28,6 +28,7 @@ defmodule Recode.FormatterPluginTest do
                  locals_without_parens: [foo: 2],
                  recode: [tasks: [{SinglePipe, []}]]
                ],
+               manifest: false,
                tasks: [{Recode.Task.SinglePipe, []}],
                dry: false,
                verbose: false,

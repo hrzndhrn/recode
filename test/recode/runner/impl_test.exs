@@ -1,5 +1,5 @@
 defmodule Recode.Runner.ImplTest do
-  use ExUnit.Case
+  use RecodeCase
 
   import ExUnit.CaptureIO
   import Mox
@@ -15,19 +15,6 @@ defmodule Recode.Runner.ImplTest do
   @task_config __recode_task_config__: [checker: true, corrector: true]
 
   setup :verify_on_exit!
-
-  defmacrop in_tmp(context, do: block) do
-    quote do
-      tmp_dir = Map.fetch!(unquote(context), :tmp_dir)
-      fixture = Map.get(unquote(context), :fixture)
-
-      if fixture, do: "test/fixtures" |> Path.join(fixture) |> File.cp_r!(tmp_dir)
-
-      File.cd!(tmp_dir, fn ->
-        unquote(block)
-      end)
-    end
-  end
 
   @default_config [
     autocorrect: true,

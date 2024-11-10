@@ -36,7 +36,15 @@ defmodule Mix.Tasks.Recode do
 
     * `--slowest-tasks` - prints timing information for the N slowest tasks.
 
-    * `--color` - enables color in the output.
+    * `--color` - enables color in the output. Defaults to `true` if ANSI 
+      coloring is supported.
+
+    * `--manifest` - enables reading and writing of the `manifest` file.
+      Defaults to `true` if none  of the `--task`, `--slowest-tasks` or 
+      `--config` flags and no files are given as input.
+
+    * `--force` - forces a run without reading the `manifest` file. A new 
+      manifest file is created.
   """
 
   use Mix.Task
@@ -50,9 +58,11 @@ defmodule Mix.Tasks.Recode do
           config: :string,
           debug: :boolean,
           dry: :boolean,
+          force: :boolean,
+          manifest: :boolean,
+          slowest_tasks: :integer,
           task: :keep,
-          verbose: :boolean,
-          slowest_tasks: :integer
+          verbose: :boolean
         ],
         aliases: [
           a: :autocorrect,
@@ -81,14 +91,16 @@ defmodule Mix.Tasks.Recode do
     opts =
       opts
       |> Keyword.get(:config, ".recode.exs")
-      |> config!()
+      |> read_config!()
       |> validate_config!()
       |> validate_tasks!()
       |> update_task_configs!()
       |> merge_opts(opts)
-      |> Keyword.put(:cli_opts, acc_tasks(opts))
-      |> update(:verbose)
-      |> put_debug(opts)
+      |> Keyword.put(:cli_opts, cli_tasks(opts))
+      |> update_verbose()
+      |> update_manifest(opts)
+      |> put(opts, :debug, false)
+      |> put(opts, :force, false)
 
     case Runner.run(opts) do
       {:ok, 0} ->
@@ -105,7 +117,15 @@ defmodule Mix.Tasks.Recode do
   defp merge_opts(config, opts) do
     Keyword.merge(
       config,
-      Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs, :slowest_tasks, :color])
+      Keyword.take(opts, [
+        :autocorrect,
+        :color,
+        :dry,
+        :inputs,
+        :manifest,
+        :slowest_tasks,
+        :verbose
+      ])
     )
   end
 
@@ -116,7 +136,7 @@ defmodule Mix.Tasks.Recode do
     end
   end
 
-  defp acc_tasks(opts) do
+  defp cli_tasks(opts) do
     tasks =
       Enum.reduce(opts, [], fn {key, value}, acc ->
         case key do
@@ -130,7 +150,7 @@ defmodule Mix.Tasks.Recode do
     |> Keyword.put(:tasks, tasks)
   end
 
-  defp config!(opts) do
+  defp read_config!(opts) do
     case Config.read(opts) do
       {:ok, config} ->
         config
@@ -213,15 +233,28 @@ defmodule Mix.Tasks.Recode do
     end)
   end
 
-  defp update(opts, :verbose) do
-    case opts[:dry] do
-      true -> Keyword.put(opts, :verbose, true)
-      false -> opts
+  defp update_verbose(config) do
+    case config[:dry] do
+      true -> Keyword.put(config, :verbose, true)
+      false -> config
     end
   end
 
-  defp put_debug(config, opts) do
-    debug = Keyword.get(opts, :debug, false)
-    Keyword.put(config, :debug, debug)
+  defp update_manifest(config, opts) do
+    manifest? =
+      if Keyword.has_key?(opts, :manifest) do
+        opts[:manifest]
+      else
+        Keyword.get(config, :manifest, true)
+      end
+
+    opts? = Keyword.drop(opts, [:dry, :verbose, :manifest, :autocorrect, :force]) == []
+
+    Keyword.put(config, :manifest, manifest? && opts?)
+  end
+
+  defp put(config, opts, key, default) do
+    value = Keyword.get(opts, key, default)
+    Keyword.put(config, key, value)
   end
 end
