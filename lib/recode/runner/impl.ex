@@ -389,7 +389,7 @@ defmodule Recode.Runner.Impl do
     |> Keyword.update!(:inputs, fn inputs -> update_inputs(inputs, dot_formatter) end)
   end
 
-  # Updates the tasks configuration by expanding globs in the :exclude option. 
+  # Updates the tasks configuration by expanding globs in the :exclude option.
   defp update_tasks(tasks) do
     Enum.map(tasks, fn {task, config} ->
       config = Keyword.update(config, :exclude, [], &compile_globs/1)
