@@ -7,8 +7,7 @@ defmodule MyCode.MixProject do
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      aliases: aliases(),
+      deps: deps()
     ]
   end
 
@@ -16,13 +15,6 @@ defmodule MyCode.MixProject do
     [
       extra_applications: [:logger],
       mod: {Recode.Application, []},
-    ]
-  end
-
-  defp aliases do
-    [
-      backup: ["cmd elixir ./scripts/backup.exs"],
-      "backup.restore": ["cmd elixir ./scripts/backup.exs restore"],
     ]
   end
 
