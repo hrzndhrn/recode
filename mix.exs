@@ -3,6 +3,8 @@ defmodule Recode.MixProject do
 
   @version "0.8.0"
   @source_url "https://github.com/hrzndhrn/recode"
+  @docs_extras ["README.md", "CHANGELOG.md"]
+
 
   def project do
     [
@@ -45,10 +47,10 @@ defmodule Recode.MixProject do
   defp docs do
     [
       main: "readme",
-      api_reference: false,
       source_ref: "v#{@version}",
       formatters: ["html"],
-      extras: ["README.md"],
+      extras: @docs_extras,
+      skip_undefined_reference_warnings_on: @docs_extras,
       groups_for_modules: [
         Tasks: [
           Recode.Task.AliasExpansion,
