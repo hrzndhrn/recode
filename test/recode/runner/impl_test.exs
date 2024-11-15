@@ -50,6 +50,27 @@ defmodule Recode.Runner.ImplTest do
     end
 
     @tag fixture: "runner"
+    test "runs tasks from config with no color", context do
+      in_tmp context do
+        config = config(dry: true, verbose: true, color: false, tasks: [{SinglePipe, []}])
+
+        outpupt =
+          capture_io(fn ->
+            assert {:ok, 0} = Runner.run(config)
+          end)
+
+        assert outpupt == """
+               Read 2 files in 0.00s
+               ..
+               Completed 2 tasks in 0.00s.
+               Files processed: 2 (.ex: 1, .exs: 1)
+               Everything ok
+               Finished in 0.00s.
+               """
+      end
+    end
+
+    @tag fixture: "runner"
     test "runs tasks from config (autocorrect: false)", context do
       in_tmp context do
         config = config(dry: true, autocorrect: false, tasks: [{SinglePipe, []}])
@@ -129,6 +150,20 @@ defmodule Recode.Runner.ImplTest do
         capture_io(fn ->
           assert {:ok, 1} = Runner.run(config)
         end)
+      end
+    end
+
+    @tag fixture: "runner"
+    test "suppresses output in silent mode", context do
+      in_tmp context do
+        config = config(silent: true, tasks: [{SinglePipe, []}])
+
+        output =
+          capture_io(fn ->
+            assert {:ok, 0} = Runner.run(config)
+          end)
+
+        assert output == ""
       end
     end
 
