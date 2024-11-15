@@ -5,7 +5,6 @@ defmodule Recode.MixProject do
   @source_url "https://github.com/hrzndhrn/recode"
   @docs_extras ["README.md", "CHANGELOG.md"]
 
-
   def project do
     [
       app: :recode,
