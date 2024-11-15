@@ -128,7 +128,7 @@ defmodule Recode.CLIFormatter do
   defp format_tasks_stats(config, time) do
     executions = length(Keyword.get(config, :times, []))
 
-    Escape.puts([:info, "Executed #{executions} tasks in #{format_time(time)}s."], config)
+    Escape.puts([:info, "Completed #{executions} tasks in #{format_time(time)}s."], config)
   end
 
   defp format_results(project, config) do
