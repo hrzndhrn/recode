@@ -2,7 +2,7 @@
 
 ## 0.8.0 - dev
 
-+ Use `rewrite` version `~> 1.0`.
++ Use `Rewrite` version `~> 1.0`.
 + Add callback and default implementation `Recode.Task.update_source/3`
 + Add callback and default implementation `Recode.Task.new_issue/1` and 
   `Recode.Task.new_issue/2` 
@@ -19,7 +19,7 @@
 
 ## 0.7.2 - 2024/02/10
 
-+ Fix AST.alias_info fot `alias __MODULE__, as: MyModule`.
++ Fix `Recode.AST.alias_info` fot `alias __MODULE__, as: MyModule`.
 
 ## 0.7.1 - 2024/01/09
 
