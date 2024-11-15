@@ -44,7 +44,7 @@ defmodule Recode.Config do
       {Recode.Task.FilterCount, []},
       {Recode.Task.IOInspect, [autocorrect: false]},
       {Recode.Task.LocalsWithoutParens, []},
-      {Recode.Task.Moduledoc, []},
+      {Recode.Task.Moduledoc, [exclude: ["test/**/*.{ex,exs}", "mix.exs"]]},
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
@@ -62,6 +62,11 @@ defmodule Recode.Config do
   """
   @spec default() :: config()
   def default, do: @config_default
+
+  @doc """
+  Returns the default config filename.
+  """
+  def default_filename, do: @config_filename
 
   @doc """
   Returns the given config as a formatted string with comments.
@@ -110,7 +115,7 @@ defmodule Recode.Config do
   @doc """
   Merges two configs into one.
 
-  The merge will do a deep merge. The merge takes the version from the `right` 
+  The merge will do a deep merge. The merge takes the version from the `right`
   config.
 
   ## Examples
