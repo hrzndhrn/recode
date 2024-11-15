@@ -1,55 +1,3 @@
-defmodule Recode.Manifest do
-  @moduledoc false
-
-  alias Rewrite.Source
-
-  @manifest "recode.issues"
-
-  def write(project, config) do
-    if config[:manifest] do
-      File.write(path(), content(project, config[:dry]))
-    else
-      :ok
-    end
-  end
-
-  def read(config) do
-    if !config[:force] and config[:manifest] do
-      case File.read(path()) do
-        {:ok, content} -> {timestamp(), String.split(content, "\n")}
-        _error -> nil
-      end
-    else
-      nil
-    end
-  end
-
-  def timestamp do
-    case File.stat(path(), time: :posix) do
-      {:ok, %{mtime: timestamp}} -> timestamp
-      {:error, _reason} -> 0
-    end
-  end
-
-  def path, do: Path.join(Mix.Project.manifest_path(), @manifest)
-
-  defp content(project, dry) do
-    project
-    |> paths_with_issue(dry)
-    |> Enum.join("\n")
-  end
-
-  defp paths_with_issue(project, dry) do
-    Enum.reduce(project, [], fn source, acc ->
-      if Source.has_issues?(source) or (dry and Source.updated?(source)) do
-        [source.path | acc]
-      else
-        acc
-      end
-    end)
-  end
-end
-
 defmodule Recode.Runner.Impl do
   @moduledoc false
 
@@ -58,6 +6,7 @@ defmodule Recode.Runner.Impl do
   alias Recode.EventManager
   alias Recode.Issue
   alias Recode.Manifest
+  alias Recode.Timestamp
   alias Rewrite.DotFormatter
   alias Rewrite.Source
 
@@ -240,11 +189,7 @@ defmodule Recode.Runner.Impl do
 
   defp exclude?(_task, _source, _config), do: true
 
-  defp get_cli_opts(config, key, default) do
-    config
-    |> Keyword.get(:cli_opts, [])
-    |> Keyword.get(key, default)
-  end
+  defp get_cli_opts(config, key, default), do: config[:cli_opts][key] || default
 
   defp notify(data, event, config, {meta, time}) when is_atom(event) do
     do_notify(data, {event, data, meta, time}, config)
@@ -278,31 +223,27 @@ defmodule Recode.Runner.Impl do
       Rewrite.new!(inputs,
         filetypes: [Source.Ex, {Source, owner: Recode}],
         dot_formatter: dot_formatter,
-        exclude: exclude(config)
+        exclude: exclude_reading(config)
       )
     end
   end
 
-  defp exclude(config) do
-    case Manifest.read(config) do
-      nil ->
-        fn _path -> false end
+  defp exclude_reading(config) do
+    config_file = get_cli_opts(config, :config, ".recode.exs")
+    config_timestemp = Timestamp.for_file(config_file)
 
-      {timestamp, paths} ->
+    case Manifest.read(config) do
+      {timestamp, ^config_file, paths} when timestamp > config_timestemp ->
         fn path ->
           cond do
             path in paths -> false
-            timestamp(path) > timestamp -> false
+            Timestamp.for_file(path) > timestamp -> false
             true -> true
           end
         end
-    end
-  end
 
-  defp timestamp(path) do
-    case File.stat(path, time: :posix) do
-      {:ok, %{mtime: timestamp}} -> timestamp
-      {:error, _reason} -> 0
+      _else ->
+        fn _path -> false end
     end
   end
 
