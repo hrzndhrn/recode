@@ -122,7 +122,11 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
-    if not config[:silent] do
+    if config[:silent] do
+      unless Enum.empty?(project) and Enum.empty?(project.excluded) do
+        _stats = format_results(project, config)
+      end
+    else
       unless Enum.empty?(project) and Enum.empty?(project.excluded) do
         Escape.puts("")
         stats = format_results(project, config)
@@ -130,10 +134,6 @@ defmodule Recode.CLIFormatter do
         :ok = format_slowest_tasks(config[:slowest_tasks], config)
         :ok = format_stats(project, stats, config)
         :ok = format_ok(stats, config)
-      end
-    else
-      unless Enum.empty?(project) and Enum.empty?(project.excluded) do
-        _stats = format_results(project, config)
       end
     end
 
