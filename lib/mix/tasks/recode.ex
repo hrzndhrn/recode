@@ -30,6 +30,11 @@ defmodule Mix.Tasks.Recode do
     * `-v`, `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
       Overwrites the corresponding value in the configuration.
 
+    * `-s`, `--silent` - Activates the silent mode. In silent mode, only issues
+      will be printed to the console. Without any issue no output is printed.
+      Overwrite the `--verbose` flag. Overwrites the corresponding value in the
+      configuration.
+
     * `-t`, `--task`, specifies the task to use. With this option, the task is
       used even if it is specified as `active:  false` in the configuration.
       This option can appear multiple times in a call.
@@ -59,6 +64,7 @@ defmodule Mix.Tasks.Recode do
           dry: :boolean,
           force: :boolean,
           manifest: :boolean,
+          silent: :boolean,
           slowest_tasks: :integer,
           task: :keep,
           verbose: :boolean
@@ -67,6 +73,7 @@ defmodule Mix.Tasks.Recode do
           a: :autocorrect,
           c: :config,
           d: :dry,
+          s: :silent,
           t: :task,
           v: :verbose
         ]
@@ -122,6 +129,7 @@ defmodule Mix.Tasks.Recode do
         :dry,
         :inputs,
         :manifest,
+        :silent,
         :slowest_tasks,
         :verbose
       ])

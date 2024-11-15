@@ -20,6 +20,7 @@ defmodule Recode.Runner.ImplTest do
     autocorrect: true,
     dry: false,
     verbose: false,
+    silent: false,
     inputs: ["{config,lib,test}/**/*.{ex,exs}"],
     formatters: [Recode.CLIFormatter],
     tasks: [
