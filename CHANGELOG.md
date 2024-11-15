@@ -8,6 +8,7 @@
   `Recode.Task.new_issue/2` 
 + Rename `Recode.Task.TestFileExt` to `Recode.Task.TestFile`
 + Update `mix recode.update.config` to remove deprecated tasks
++ Add a manifest file to store information about the files processed.
 
 ## 0.7.5 - 2025/09/30
 
