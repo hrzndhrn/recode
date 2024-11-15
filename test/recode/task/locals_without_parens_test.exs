@@ -40,4 +40,24 @@ defmodule Recode.Task.LocalsWithoutParensTest do
     |> run_task(LocalsWithoutParens, autocorrect: false, dot_formatter: dot_formatter)
     |> assert_issue()
   end
+
+  test "adds no issue" do
+    dot_formatter = DotFormatter.from_formatter_opts(locals_without_parens: [foo: 1])
+
+    """
+    x = foo bar
+    """
+    |> run_task(LocalsWithoutParens, autocorrect: false, dot_formatter: dot_formatter)
+    |> refute_issues()
+  end
+
+  test "adds no issue for dev" do
+    """
+    def hello do
+      :world
+    end
+    """
+    |> run_task(LocalsWithoutParens, autocorrect: false)
+    |> refute_issues()
+  end
 end

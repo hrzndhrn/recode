@@ -36,7 +36,7 @@ defmodule Recode.Task.LocalsWithoutParens do
     |> Source.get(:quoted)
     |> Zipper.zip()
     |> Zipper.traverse([], fn zipper, issues ->
-      remove_parens(locals_without_parens, zipper, issues, opts[:autocorrect])
+      remove_parens(zipper, issues, locals_without_parens, opts[:autocorrect])
     end)
     |> update(source, opts)
   end
@@ -46,17 +46,18 @@ defmodule Recode.Task.LocalsWithoutParens do
   end
 
   defp remove_parens(
-         locals_without_parens,
-         %Zipper{node: {fun, meta, args}} = zipper,
+         %Zipper{node: {fun, meta, [_ | _] = args}} = zipper,
          issues,
+         locals_without_parens,
          autocorrect?
        ) do
-    if local_without_parens?(locals_without_parens, fun, args) do
+    if Keyword.has_key?(meta, :closing) and
+         local_without_parens?(locals_without_parens, fun, args) do
       if autocorrect? do
         node = {fun, Keyword.delete(meta, :closing), args}
         {Zipper.replace(zipper, node), issues}
       else
-        issue = new_issue("Unnecessary parens")
+        issue = new_issue("Unnecessary parens", meta)
         {zipper, [issue | issues]}
       end
     else
@@ -64,11 +65,11 @@ defmodule Recode.Task.LocalsWithoutParens do
     end
   end
 
-  defp remove_parens(_, zipper, issues, _) do
+  defp remove_parens(zipper, issues, _locals_without_parens, _autocorrect) do
     {zipper, issues}
   end
 
-  defp local_without_parens?(locals_without_parens, fun, [_ | _] = args) do
+  defp local_without_parens?(locals_without_parens, fun, args) do
     arity = length(args)
 
     Enum.any?(locals_without_parens, fn
@@ -77,6 +78,4 @@ defmodule Recode.Task.LocalsWithoutParens do
       _other -> false
     end)
   end
-
-  defp local_without_parens?(_locals_without_parens, _fun, _args), do: false
 end
