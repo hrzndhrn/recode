@@ -36,14 +36,13 @@ defmodule Mix.Tasks.Recode do
 
     * `--slowest-tasks` - prints timing information for the N slowest tasks.
 
-    * `--color` - enables color in the output. Defaults to `true` if ANSI 
+    * `--color` - enables color in the output. Defaults to `true` if ANSI
       coloring is supported.
 
     * `--manifest` - enables reading and writing of the `manifest` file.
-      Defaults to `true` if none  of the `--task`, `--slowest-tasks` or 
-      `--config` flags and no files are given as input.
+      Defaults to `true` if the `--task` flag is not given.
 
-    * `--force` - forces a run without reading the `manifest` file. A new 
+    * `--force` - forces a run without reading the `manifest` file. A new
       manifest file is created.
   """
 
@@ -248,7 +247,7 @@ defmodule Mix.Tasks.Recode do
         Keyword.get(config, :manifest, true)
       end
 
-    opts? = Keyword.drop(opts, [:dry, :verbose, :manifest, :autocorrect, :force]) == []
+    opts? = not Keyword.has_key?(opts, :task)
 
     Keyword.put(config, :manifest, manifest? && opts?)
   end

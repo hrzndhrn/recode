@@ -13,7 +13,7 @@ defmodule Mix.Tasks.RecodeTest do
     expect(RunnerMock, :run, fn config ->
       assert Keyword.keyword?(config)
       assert config[:verbose] == false
-      assert config[:manifest] == false
+      assert config[:manifest] == true
       {:ok, 0}
     end)
 
