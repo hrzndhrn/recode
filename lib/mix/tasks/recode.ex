@@ -32,8 +32,7 @@ defmodule Mix.Tasks.Recode do
 
     * `-s`, `--silent` - Activates the silent mode. In silent mode, only issues
       will be printed to the console. Without any issue no output is printed.
-      Overwrite the `--verbose` flag. Overwrites the corresponding value in the
-      configuration.
+      Overwrites the corresponding value in the configuration.
 
     * `-t`, `--task`, specifies the task to use. With this option, the task is
       used even if it is specified as `active:  false` in the configuration.
