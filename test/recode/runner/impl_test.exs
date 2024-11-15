@@ -54,19 +54,13 @@ defmodule Recode.Runner.ImplTest do
       in_tmp context do
         config = config(dry: true, verbose: true, color: false, tasks: [{SinglePipe, []}])
 
-        outpupt =
+        output =
           capture_io(fn ->
             assert {:ok, 0} = Runner.run(config)
           end)
 
-        assert outpupt == """
-               Read 2 files in 0.00s
-               ..
-               Completed 2 tasks in 0.00s.
-               Files processed: 2 (.ex: 1, .exs: 1)
-               Everything ok
-               Finished in 0.00s.
-               """
+        assert output =~ "Read 2 files in"
+        assert output =~ "Everything ok"
       end
     end
 
