@@ -27,7 +27,7 @@ defmodule Recode.CLIFormatterTest do
       end)
 
     assert output |> strip_esc_seq() == """
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Everything ok
            """
@@ -66,7 +66,7 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Updated 1 file
            Everything ok
@@ -116,7 +116,7 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 2 (.ex: 2)
            Updated 2 files
            Everything ok
@@ -148,7 +148,7 @@ defmodule Recode.CLIFormatterTest do
            Updates: 2
            Changed by: test, test
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Updated 1 file
            Everything ok
@@ -218,7 +218,7 @@ defmodule Recode.CLIFormatterTest do
            Changed by: test
            Moved from: foo.ex
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Moved 1 file
            Everything ok
@@ -244,7 +244,7 @@ defmodule Recode.CLIFormatterTest do
            File: foo.ex
            New file
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Created 1 file
            Everything ok
@@ -270,7 +270,7 @@ defmodule Recode.CLIFormatterTest do
            File: foo.ex
            New file, created by Test
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Created 1 file
            Everything ok
@@ -306,7 +306,7 @@ defmodule Recode.CLIFormatterTest do
            [foo 1/2] do not do this
            [bar 2/3] no no no
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Found 2 issues
            """
@@ -343,7 +343,7 @@ defmodule Recode.CLIFormatterTest do
            [foo 2/3] no
            [foo 3/1] no
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Found 3 issues
            """
@@ -380,7 +380,7 @@ defmodule Recode.CLIFormatterTest do
            [foo 2/2] no
            [foo 2/3] no
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Found 3 issues
            """
@@ -423,7 +423,7 @@ defmodule Recode.CLIFormatterTest do
            Version 1/2 [foo 1/2] do not do this
            Version 1/2 [bar 2/3] no no no
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Updated 1 file
            Found 2 issues
@@ -458,7 +458,7 @@ defmodule Recode.CLIFormatterTest do
            Execution of the Test task failed with error:
            Error Message
 
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Found 1 issue
            """
@@ -511,7 +511,7 @@ defmodule Recode.CLIFormatterTest do
       end)
 
     assert output |> strip_esc_seq() == """
-           Executed 0 tasks in 0.01s.
+           Completed 0 tasks in 0.01s.
            Files processed: 1 (.ex: 1)
            Everything ok
            """
