@@ -40,7 +40,7 @@ defmodule Recode.CLIFormatter do
     ]
   ]
 
-  @default_config [debug: false, verbose: false]
+  @default_config [debug: false, verbose: false, silent: false]
 
   def init(config) do
     coloring =
