@@ -15,6 +15,9 @@ defmodule Recode.Manifest do
 
   @manifest "recode.issues"
 
+  @type manifest :: {integer(), Path.t(), [Path.t()]}
+
+  @spec write(Rewrite.t(), keyword()) :: :ok
   def write(project, config) do
     if config[:manifest] do
       with :ok <- File.mkdir_p(Mix.Project.manifest_path()),
@@ -30,6 +33,7 @@ defmodule Recode.Manifest do
     end
   end
 
+  @spec read(keyword()) :: manifest() | nil
   def read(config) do
     force = Keyword.get(config, :force, false)
     manifest = Keyword.get(config, :manifest, false)
@@ -52,8 +56,10 @@ defmodule Recode.Manifest do
     end
   end
 
+  @spec timestamp() :: integer()
   def timestamp, do: Timestamp.for_file(path())
 
+  @spec path() :: Path.t()
   def path, do: Path.join(Mix.Project.manifest_path(), @manifest)
 
   defp content(project, config) do
