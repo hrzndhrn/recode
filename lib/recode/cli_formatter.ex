@@ -65,7 +65,11 @@ defmodule Recode.CLIFormatter do
   def handle_cast({:prepared, %Rewrite{} = project, time}, config) when is_integer(time) do
     case Enum.count(project.sources) do
       0 ->
-        :ok
+        if Enum.empty?(project.excluded) do
+          :ok
+        else
+          Escape.puts([:info, "No files read"], config)
+        end
 
       1 ->
         Escape.puts([:info, "Read 1 file"], config)
