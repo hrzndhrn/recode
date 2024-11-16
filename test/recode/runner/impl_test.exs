@@ -61,6 +61,9 @@ defmodule Recode.Runner.ImplTest do
 
         assert output =~ "Read 2 files in"
         assert output =~ "Everything ok"
+
+        # Verify no ANSI escape sequences
+        assert not String.contains?(output, "\e[")
       end
     end
 
@@ -158,6 +161,45 @@ defmodule Recode.Runner.ImplTest do
           end)
 
         assert output == ""
+      end
+    end
+
+    @tag fixture: "runner"
+    test "suppresses info output in silent mode with verbose", context do
+      in_tmp context do
+        config = config(silent: true, verbose: true, color: false, tasks: [{SinglePipe, []}])
+        File.write("lib/bar.ex", "x |> to_string()\n")
+
+        output =
+          capture_io(fn ->
+            assert {:ok, 0} = Runner.run(config)
+          end)
+
+        assert output =~ "File: lib/bar.ex"
+        assert output =~ "Changed by: SinglePipe"
+      end
+    end
+
+    @tag fixture: "runner"
+    test "prints issues even in silent mode", context do
+      in_tmp context do
+        config =
+          config(
+            silent: true,
+            verbose: false,
+            autocorrect: false,
+            color: false,
+            tasks: [{SinglePipe, []}]
+          )
+
+        File.write("lib/bar.ex", "x |> to_string()\n")
+
+        output =
+          capture_io(fn ->
+            assert {:ok, 1} = Runner.run(config)
+          end)
+
+        assert output =~ "File: lib/bar.ex\n[SinglePipe 1/3] Use a function"
       end
     end
 
