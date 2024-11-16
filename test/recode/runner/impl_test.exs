@@ -86,12 +86,12 @@ defmodule Recode.Runner.ImplTest do
             cli_opts: [tasks: [], dry: true, autocorrect: false]
           )
 
-        io =
+        output =
           capture_io(fn ->
             assert {:ok, 1} = Runner.run(config)
           end)
 
-        assert strip_esc_seq(io) =~ "[AliasOrder 3/3] The alias `Alpha` is not"
+        assert strip_esc_seq(output) =~ "[AliasOrder 3/3] The alias `Alpha` is not"
       end
     end
 
@@ -291,7 +291,7 @@ defmodule Recode.Runner.ImplTest do
         config = config(dry: false, tasks: [], inputs: "**")
 
         File.write!(".formatter.exs", """
-        [inputs: "**", 
+        [inputs: "**",
          locals_without_parens: [foo: 1]]
         """)
 
@@ -444,7 +444,7 @@ defmodule Recode.Runner.ImplTest do
 
         File.write!(".formatter.exs", """
         [
-          inputs: "lib/**/*.ex", 
+          inputs: "lib/**/*.ex",
           locals_without_parens: [bar: 1]
         ]
         """)
