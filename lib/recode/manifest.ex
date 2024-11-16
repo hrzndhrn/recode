@@ -17,20 +17,34 @@ defmodule Recode.Manifest do
 
   def write(project, config) do
     if config[:manifest] do
-      File.write(path(), content(project, config))
+      with :ok <- File.mkdir_p(Mix.Project.manifest_path()),
+           :ok <- File.write(path(), content(project, config)) do
+        :ok
+      else
+        {:error, reason} ->
+          Mix.shell().error("Failed to write manifest: #{:file.format_error(reason)}")
+          :ok
+      end
     else
       :ok
     end
   end
 
   def read(config) do
-    if !config[:force] and config[:manifest] do
-      case File.read(path()) do
-        {:ok, content} ->
-          [config_file | files] = String.split(content, "\n")
-          {timestamp(), config_file, files}
+    force = Keyword.get(config, :force, false)
+    manifest = Keyword.get(config, :manifest, false)
 
-        _error ->
+    if !force and manifest and File.exists?(path()) do
+      with {:ok, content} <- File.read(path()),
+           {:ok, manifest} <- to_term(content) do
+        manifest
+      else
+        {:error, :invalid_content} ->
+          Mix.shell().error("Failed to read manifest: invalid content")
+          nil
+
+        {:error, reason} ->
+          Mix.shell().error("Failed to read manifest: #{:file.format_error(reason)}")
           nil
       end
     else
@@ -43,7 +57,7 @@ defmodule Recode.Manifest do
   def path, do: Path.join(Mix.Project.manifest_path(), @manifest)
 
   defp content(project, config) do
-    dry = config[:dry]
+    dry = Keyword.get(config, :dry, false)
     config_file = get_cli_opts(config, :config_file, Config.default_filename())
 
     files =
@@ -51,10 +65,16 @@ defmodule Recode.Manifest do
       |> files_with_issue(dry)
       |> Enum.join("\n")
 
-    """
-    #{config_file}
-    #{files}
-    """
+    if files == "", do: config_file, else: "#{config_file}\n#{files}"
+  end
+
+  defp to_term(content) do
+    content = content |> String.trim() |> String.split("\n")
+
+    case content do
+      ["" | _files] -> {:error, :invalid_content}
+      [config_file | files] -> {:ok, {timestamp(), config_file, files}}
+    end
   end
 
   defp files_with_issue(project, dry) do
