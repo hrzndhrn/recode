@@ -25,6 +25,9 @@ defmodule Recode.ManifestTest do
       assert timestamp > 0
       assert config_file == "config_file"
       assert files == ["file1", "file2"]
+
+      now = System.system_time(:second)
+      assert_in_delta timestamp, now, 3
     end
 
     test "returns manifest without files" do
