@@ -20,6 +20,7 @@ defmodule Recode.Config do
     :formatters,
     :inputs,
     :manifest,
+    :silent,
     :tasks,
     :verbose,
     :version
@@ -33,6 +34,7 @@ defmodule Recode.Config do
     dry: false,
     color: true,
     verbose: false,
+    silent: false,
     inputs: :formatter,
     formatters: [Recode.CLIFormatter],
     manifest: true,
@@ -88,6 +90,9 @@ defmodule Recode.Config do
       color: <%= @config[:color] %>,
       # Can also be set/reset with `--verbose`/`--no-verbose`.
       verbose: <%= @config[:verbose] %>,
+      # Can be overwritten with `--silent`/`--no-silent`.
+      # When enabled, suppresses all non-essential output during execution.
+      silent: <%= @config[:silent] %>,
       # Inputs can be a path, glob expression or list of paths and glob expressions.
       # With the atom :formatter the inputs from .formatter.exs are
       # used. also allowed in the list mentioned above.
@@ -171,13 +176,19 @@ defmodule Recode.Config do
           path
           |> Code.eval_file()
           |> elem(0)
-          |> Keyword.put_new(:manifest, true)
+          |> defaults()
 
         {:ok, config}
 
       false ->
         {:error, :not_found}
     end
+  end
+
+  defp defaults(config) do
+    @config_default
+    |> Keyword.drop([:version, :tasks])
+    |> Keyword.merge(config)
   end
 
   @doc """

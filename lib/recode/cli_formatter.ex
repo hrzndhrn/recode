@@ -40,7 +40,7 @@ defmodule Recode.CLIFormatter do
     ]
   ]
 
-  @default_config [debug: false, verbose: false]
+  @default_config [debug: false, verbose: false, silent: false]
 
   def init(config) do
     coloring =
@@ -52,7 +52,7 @@ defmodule Recode.CLIFormatter do
 
     config =
       config
-      |> Keyword.take([:debug, :verbose])
+      |> Keyword.take([:debug, :verbose, :silent])
       |> merge_into(@default_config)
       |> Keyword.merge(coloring)
       |> Keyword.put(:colorizer, Escape.colorizer(coloring))
@@ -63,26 +63,28 @@ defmodule Recode.CLIFormatter do
   defp merge_into(keywords1, keywords2), do: Keyword.merge(keywords2, keywords1)
 
   def handle_cast({:prepared, %Rewrite{} = project, time}, config) when is_integer(time) do
-    case Enum.count(project.sources) do
-      0 ->
-        if Enum.empty?(project.excluded) do
-          :ok
-        else
-          Escape.puts([:info, "No files read"], config)
-        end
+    if not config[:silent] do
+      case Enum.count(project.sources) do
+        0 ->
+          if Enum.empty?(project.excluded) do
+            :ok
+          else
+            Escape.puts([:info, "No files read"], config)
+          end
 
-      1 ->
-        Escape.puts([:info, "Read 1 file"], config)
+        1 ->
+          Escape.puts([:info, "Read 1 file"], config)
 
-      count ->
-        Escape.puts([:info, "Read #{count} files in #{format_time(time)}s"], config)
+        count ->
+          Escape.puts([:info, "Read #{count} files in #{format_time(time)}s"], config)
+      end
     end
 
     {:noreply, config}
   end
 
   def handle_cast({:finished, %Rewrite{} = project, time}, config) when is_integer(time) do
-    unless Enum.empty?(project) and Enum.empty?(project.excluded) do
+    if not config[:silent] and not (Enum.empty?(project) and Enum.empty?(project.excluded)) do
       Escape.puts([:info, "Finished in #{format_time(time)}s."], config)
     end
 
@@ -101,10 +103,12 @@ defmodule Recode.CLIFormatter do
     if config[:debug] do
       Escape.puts([:debug, "Finished #{task} with #{source.path} [#{time}μs]."], config)
     else
-      cond do
-        issue?(source, task) -> Escape.write([:warn, "!"], config)
-        changed?(source, task) -> Escape.write([:updated, "!"], config)
-        true -> Escape.write([:ok, "."], config)
+      if not config[:silent] do
+        cond do
+          issue?(source, task) -> Escape.write([:warn, "!"], config)
+          changed?(source, task) -> Escape.write([:updated, "!"], config)
+          true -> Escape.write([:ok, "."], config)
+        end
       end
     end
 
@@ -117,13 +121,17 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
-    unless Enum.empty?(project) and Enum.empty?(project.excluded) do
-      Escape.puts("")
-      stats = format_results(project, config)
-      :ok = format_tasks_stats(config, time)
-      :ok = format_slowest_tasks(config[:slowest_tasks], config)
-      :ok = format_stats(project, stats, config)
-      :ok = format_ok(stats, config)
+    if not (Enum.empty?(project) and Enum.empty?(project.excluded)) do
+      if config[:silent] do
+        _stats = format_results(project, config)
+      else
+        Escape.puts("")
+        stats = format_results(project, config)
+        :ok = format_tasks_stats(config, time)
+        :ok = format_slowest_tasks(config[:slowest_tasks], config)
+        :ok = format_stats(project, stats, config)
+        :ok = format_ok(stats, config)
+      end
     end
 
     {:noreply, config}

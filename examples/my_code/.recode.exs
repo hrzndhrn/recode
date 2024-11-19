@@ -10,12 +10,16 @@
   color: true,
   # Can also be set/reset with `--verbose`/`--no-verbose`.
   verbose: false,
+  # Can be overwritten with `--silent`/`--no-silent`.
+  silent: false,
   # Inputs can be a path, glob expression or list of paths and glob expressions.
   # With the atom :formatter the inputs from .formatter.exs are
   # used. also allowed in the list mentioned above.
   # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
   inputs: :formatter,
   formatters: [Recode.CLIFormatter],
+  # Can also be set/reset with `--manifest`/`--no-manifest`.
+  manifest: true,
   tasks: [
     # Tasks could be added by a tuple of the tasks module name and an options
     # keyword list. A task can be deactivated by `active: false`. The execution of
@@ -27,7 +31,7 @@
     {Recode.Task.FilterCount, []},
     {Recode.Task.IOInspect, [autocorrect: false]},
     {Recode.Task.LocalsWithoutParens, []},
-    {Recode.Task.Moduledoc, []},
+    {Recode.Task.Moduledoc, [exclude: ["test/**/*.{ex,exs}", "mix.exs"]]},
     {Recode.Task.Nesting, []},
     {Recode.Task.PipeFunOne, []},
     {Recode.Task.SinglePipe, []},
