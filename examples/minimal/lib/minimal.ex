@@ -14,6 +14,6 @@ defmodule Minimal do
   """
   @spec hello :: :world
   def hello do
-    :mars
+    :world
   end
 end

@@ -238,6 +238,10 @@ defmodule Mix.Tasks.Recode do
   end
 
   defp update_manifest(config, opts) do
+    # Updates the manifest configuration based on CLI options and task presence.
+    # The manifest is disabled when specific tasks are provided via --task to
+    # ensure full task execution regardless of the manifest state.
+
     manifest? =
       if Keyword.has_key?(opts, :manifest) do
         opts[:manifest]

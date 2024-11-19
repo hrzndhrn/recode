@@ -18,6 +18,14 @@ defmodule Recode.Issue do
   @doc """
   Creates a new `%Issue{}`.
 
+  ## Parameters
+    * `reporter` - atom(), the module reporting the issue
+    * `message` - String.t(), the issue description
+    * `info` - Keyword.t(), optional parameters including:
+      * `:line` - non_neg_integer(), the line number
+      * `:column` - non_neg_integer(), the column number
+      * `:meta` - term(), additional metadata
+
   ## Examples
 
       iex> Recode.Issue.new(Test, "kaput", line: 1, column: 1)
