@@ -28,6 +28,8 @@ defmodule Recode.Runner.ImplTest do
       {Task.AliasExpansion, []}
     ]
   ]
+
+  # Merges the default configuration with test-specific overrides.
   defp config(merge) do
     Keyword.merge(@default_config, merge)
   end
@@ -152,7 +154,7 @@ defmodule Recode.Runner.ImplTest do
     end
 
     @tag fixture: "runner"
-    test "runs task with the right aditional config", context do
+    test "runs task with the right additional config", context do
       in_tmp context do
         TaskMock
         |> expect(:run, 2, fn source, config ->
@@ -377,6 +379,30 @@ defmodule Recode.Runner.ImplTest do
         code = "foo = :foo\n"
         assert File.read!("bar/foo.ex") == code
         assert File.read!("lib/foo.ex") == code
+      end
+    end
+
+    test "adds formatter issues to sources", context do
+      in_tmp context do
+        config = config(dry: true, color: false, tasks: [])
+
+        code = """
+        defmodule Foo do
+                def bar, do: :baz
+        end
+        """
+
+        File.mkdir!("lib")
+        File.write!("lib/foo.ex", code)
+
+        output =
+          capture_io(fn ->
+            assert {:ok, 1} = Runner.run(config)
+          end)
+
+        assert File.read!("lib/foo.ex") == code
+        assert output =~ "lib/foo.ex"
+        assert output =~ "The file is not formatted."
       end
     end
 

@@ -4,8 +4,8 @@ defmodule Recode.Task do
 
   To create a `recode` task, you'll need to:
 
-    1. Create a module.    
-    2. Call `use Recode.Task` in that module.  
+    1. Create a module.
+    2. Call `use Recode.Task` in that module.
     3. Implement the callbacks `c:run/2`.
     4. Optionally, `c:init/1` can also be implemented.
 
@@ -13,8 +13,8 @@ defmodule Recode.Task do
   >
   > When you `use Recode.Task`, the `Recode.Task` module will
   > set `@behaviour Recode.Task`.
-  > 
-  > `Recode.Task` will also set default implementations for the callbacks 
+  >
+  > `Recode.Task` will also set default implementations for the callbacks
   > `c:update_source/3` and `c:new_issue/2`.
   """
 
@@ -32,13 +32,13 @@ defmodule Recode.Task do
 
   The `opts` containing:
 
-    * The configuration for the task defined in the recode-config. When the 
-      `c:init/1` is implemented then the `opts` returned by this callback are in 
+    * The configuration for the task defined in the recode-config. When the
+      `c:init/1` is implemented then the `opts` returned by this callback are in
       the `opts`.
-   
+
     * `:dot_formatter` - the `%Rewrite.DotFormatter{}` for the project.
 
-    * `:autocorrect` - a `boolean` indicating if `recode` runs in 
+    * `:autocorrect` - a `boolean` indicating if `recode` runs in
       auto-correction mode.
   """
   @callback run(source :: Source.t(), opts :: Keyword.t()) :: Source.t()
@@ -48,7 +48,7 @@ defmodule Recode.Task do
 
   The callback receives the `config` that is set in the recode-config.
 
-  In the implementation of this callback the `config` can be checked and 
+  In the implementation of this callback the `config` can be checked and
   defaults can be set.
 
   When `init` returns an error tuple, the `mix recode` task raises an exception
@@ -59,9 +59,9 @@ defmodule Recode.Task do
   @doc """
   Update the given `source` with the given `updates`.
 
-  The default implementation of this callback applies any element from the 
-  `updates` keyword list to the `source` with the given `opts`. The keys 
-  `:issue` and `:issues` will be applied with `Rewrite.Source.add_issue/2` and 
+  The default implementation of this callback applies any element from the
+  `updates` keyword list to the `source` with the given `opts`. The keys
+  `:issue` and `:issues` will be applied with `Rewrite.Source.add_issue/2` and
   `Rewrite.Source.add_issues/2` respectively. Any other key will be applied with
   `Rewrite.Source.update/4`, when `opts` contains `autocorrect: true`.
 
@@ -86,7 +86,7 @@ defmodule Recode.Task do
   The default implementation of this callback creates an `Recode.Issue` struct
   with `reporter: __MODULE__`.
   """
-  @callback new_issue(opts :: Keyword.t()) :: Issue.t()
+  @callback new_issue(opts :: String.t()) :: Issue.t()
 
   # a callback for mox
   @doc false
@@ -188,7 +188,7 @@ defmodule Recode.Task do
       end
 
       @impl Recode.Task
-      def new_issue(message, opts \\ []) do
+      def new_issue(message, opts \\ []) when is_binary(message) do
         Recode.Issue.new(__MODULE__, message, opts)
       end
 
