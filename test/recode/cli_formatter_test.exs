@@ -8,7 +8,7 @@ defmodule Recode.CLIFormatterTest do
   alias Recode.Issue
   alias Rewrite.Source
 
-  @config verbose: true
+  @config verbose: true, silent: false
 
   test "formats results for a project without changes" do
     code = """
@@ -31,6 +31,25 @@ defmodule Recode.CLIFormatterTest do
            Files processed: 1 (.ex: 1)
            Everything ok
            """
+  end
+
+  test "formats no results for a project without changes in silent mode" do
+    code = """
+    defmodule Foo do
+      def bar, do: :foo
+    end
+    """
+
+    source = from_string(code)
+
+    project = Rewrite.from_sources!([source])
+
+    output =
+      capture_io(fn ->
+        format({:tasks_finished, project, 10_000}, silent: true)
+      end)
+
+    assert output == ""
   end
 
   test "formats results for a project with changed source" do
@@ -481,6 +500,25 @@ defmodule Recode.CLIFormatterTest do
       end)
 
     assert strip_esc_seq(output) == "Read 1 file\n"
+  end
+
+  test "formats no project infos in silent mode" do
+    code = """
+    defmodule Foo do
+      def bar, do: :foo
+    end
+    """
+
+    source = from_string(code)
+
+    project = Rewrite.from_sources!([source])
+
+    output =
+      capture_io(fn ->
+        format({:prepared, project, 9999}, silent: true)
+      end)
+
+    assert strip_esc_seq(output) == ""
   end
 
   test "formats when tasks ready for an empty project" do
