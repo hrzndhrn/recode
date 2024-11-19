@@ -184,24 +184,22 @@ defmodule Mix.Tasks.Recode do
   defp validate_task_config!(task, config) do
     keys = Keyword.keys(config) -- @task_config_keys
 
-    if !Enum.empty?(keys), do: task_config_error!(task, config, keys)
-  end
+    if not Enum.empty?(keys) do
+      config =
+        Enum.reduce(keys, config, fn key, config ->
+          {value, config} = Keyword.pop!(config, key)
 
-  defp task_config_error!(task, config, keys) do
-    config =
-      Enum.reduce(keys, config, fn key, config ->
-        {value, config} = Keyword.pop!(config, key)
-
-        Keyword.update(config, :config, [{key, value}], fn task_config ->
-          Keyword.put(task_config, key, value)
+          Keyword.update(config, :config, [{key, value}], fn task_config ->
+            Keyword.put(task_config, key, value)
+          end)
         end)
-      end)
 
-    Mix.raise("""
-    Invalid config keys #{inspect(keys)} for #{inspect(task)} found.
-    Did you want to create a task-specific configuration:
-    {#{inspect(task)}, #{inspect(config)}}
-    """)
+      Mix.raise("""
+      Invalid config keys #{inspect(keys)} for #{inspect(task)} found.
+      Did you want to create a task-specific configuration:
+      {#{inspect(task)}, #{inspect(config)}}
+      """)
+    end
   end
 
   defp validate_task!({:error, :nofile}, task) do

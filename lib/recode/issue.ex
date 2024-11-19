@@ -16,7 +16,7 @@ defmodule Recode.Issue do
         }
 
   @doc """
-  Creates a new `%Issue{}`
+  Creates a new `%Issue{}`.
 
   ## Examples
 
@@ -25,20 +25,40 @@ defmodule Recode.Issue do
 
       iex> Recode.Issue.new(Test, meta: [foo: "bar"])
       %Recode.Issue{reporter: Test, message: nil, line: nil, column: nil, meta: [foo: "bar"]}
+
+      iex> Recode.Issue.new(Test, "kaput")
+      %Recode.Issue{reporter: Test, message: "kaput", line: nil, column: nil, meta: nil}
+
+      iex> Recode.Issue.new(message: "kaput")
+      %Recode.Issue{reporter: Recode, message: "kaput", line: nil, column: nil, meta: nil}
   """
-  def new(reporter, message, info) do
+  @spec new(atom(), String.t(), Keyword.t()) :: t()
+  def new(reporter, message, info)
+      when is_atom(reporter) and is_binary(message) and is_list(info) do
     info
     |> Keyword.merge(reporter: reporter, message: message)
     |> new()
   end
 
-  def new(reporter, info) do
+  @doc """
+  Creates a new `%Issue{}`. See `new/3` for examples.
+  """
+  @spec new(atom(), String.t() | Keyword.t()) :: t()
+  def new(reporter, info) when is_atom(reporter) and is_binary(info) do
+    new(reporter: reporter, message: info)
+  end
+
+  def new(reporter, info) when is_atom(reporter) and is_list(info) do
     info
     |> Keyword.put(:reporter, reporter)
     |> new()
   end
 
-  def new(info) do
+  @doc """
+  Creates a new `%Issue{}`. See `new/3` for examples.
+  """
+  @spec new(Keyword.t()) :: t()
+  def new(info) when is_list(info) do
     struct(Issue, Keyword.put_new(info, :reporter, Recode))
   end
 end

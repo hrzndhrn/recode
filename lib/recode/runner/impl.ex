@@ -27,7 +27,7 @@ defmodule Recode.Runner.Impl do
       config
       |> project(dot_formatter)
       |> notify(:prepared, config, time(start_recode))
-      |> Rewrite.format!(by: Recode.Task.Format)
+      |> format(config)
 
     start_tasks = time()
 
@@ -79,6 +79,24 @@ defmodule Recode.Runner.Impl do
     end)
     |> Source.get(:content)
     |> eof()
+  end
+
+  defp format(project, config) do
+    project = Rewrite.format!(project, by: Recode.Task.Format)
+
+    if config[:dry] do
+      Rewrite.map!(project, fn source ->
+        if Source.updated?(source) do
+          source
+          |> Source.undo()
+          |> Source.add_issue(Issue.new(Recode.Task.Format, "The file is not formatted."))
+        else
+          source
+        end
+      end)
+    else
+      project
+    end
   end
 
   defp exit_code(project, tasks) do
@@ -248,12 +266,16 @@ defmodule Recode.Runner.Impl do
   end
 
   defp dot_formatter do
-    with true <- File.exists?(".formatter.exs"),
-         {:ok, dot_formatter} <- DotFormatter.read(remove_plugins: [Recode.FormatterPlugin]) do
-      dot_formatter
+    if File.exists?(".formatter.exs") do
+      case DotFormatter.read(remove_plugins: [Recode.FormatterPlugin]) do
+        {:ok, dot_formatter} ->
+          dot_formatter
+
+        {:error, error} ->
+          Mix.raise("Failed to read formatter: #{inspect(error)}")
+      end
     else
-      false -> DotFormatter.default()
-      {:error, error} -> error |> Exception.message() |> Mix.raise()
+      DotFormatter.default()
     end
   end
 
