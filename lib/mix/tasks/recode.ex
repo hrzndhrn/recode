@@ -214,7 +214,7 @@ defmodule Mix.Tasks.Recode do
   end
 
   defp validate_task!({:module, _module}, task) do
-    unless Recode.Task in task.__info__(:attributes)[:behaviour] do
+    if Recode.Task not in task.__info__(:attributes)[:behaviour] do
       Mix.raise("The module #{inspect(task)} does not implement the Recode.Task behaviour.")
     end
   end

@@ -91,6 +91,7 @@ defmodule Recode.Config do
       # Can also be set/reset with `--verbose`/`--no-verbose`.
       verbose: <%= @config[:verbose] %>,
       # Can be overwritten with `--silent`/`--no-silent`.
+      # When enabled, suppresses all non-essential output during execution.
       silent: <%= @config[:silent] %>,
       # Inputs can be a path, glob expression or list of paths and glob expressions.
       # With the atom :formatter the inputs from .formatter.exs are

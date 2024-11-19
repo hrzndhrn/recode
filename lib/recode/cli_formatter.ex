@@ -84,10 +84,8 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:finished, %Rewrite{} = project, time}, config) when is_integer(time) do
-    if not config[:silent] do
-      unless Enum.empty?(project) and Enum.empty?(project.excluded) do
-        Escape.puts([:info, "Finished in #{format_time(time)}s."], config)
-      end
+    if not config[:silent] and not (Enum.empty?(project) and Enum.empty?(project.excluded)) do
+      Escape.puts([:info, "Finished in #{format_time(time)}s."], config)
     end
 
     {:noreply, config}
@@ -123,12 +121,10 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
-    if config[:silent] do
-      unless Enum.empty?(project) and Enum.empty?(project.excluded) do
+    if not (Enum.empty?(project) and Enum.empty?(project.excluded)) do
+      if config[:silent] do
         _stats = format_results(project, config)
-      end
-    else
-      unless Enum.empty?(project) and Enum.empty?(project.excluded) do
+      else
         Escape.puts("")
         stats = format_results(project, config)
         :ok = format_tasks_stats(config, time)
