@@ -134,11 +134,14 @@ defmodule RecodeCase do
     quote do
       tmp_dir = Map.fetch!(unquote(context), :tmp_dir)
       fixture = Map.get(unquote(context), :fixture)
+      project = Map.get(unquote(context), :project)
 
       if fixture, do: "test/fixtures" |> Path.join(fixture) |> File.cp_r!(tmp_dir)
 
       File.cd!(tmp_dir, fn ->
+        if project, do: Mix.Project.push(project)
         unquote(block)
+        if project, do: Mix.Project.pop()
       end)
     end
   end
