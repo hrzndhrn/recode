@@ -24,7 +24,7 @@ defmodule Recode.Task.LocalsWithoutParens do
   alias Sourceror.Zipper
 
   @def [:def, :defp, :defmacro, :defmacrop]
-  @exclude [:{}, :%{}]
+  @exclude [:{}, :%{}, :|>]
 
   @impl Recode.Task
   def run(source, opts) do
@@ -109,7 +109,7 @@ defmodule Recode.Task.LocalsWithoutParens do
          locals_without_parens,
          autocorrect?
        ) do
-    if remove_parens?(fun, meta, args, locals_without_parens) do
+    if remove_parens?(fun, meta, args, locals_without_parens)  do
       if autocorrect? do
         node = {fun, Keyword.delete(meta, :closing), args}
         {:cont, Zipper.replace(zipper, node), issues}
@@ -123,7 +123,7 @@ defmodule Recode.Task.LocalsWithoutParens do
   end
 
   defp remove_parens?(fun, meta, args, locals_without_parens) do
-    Keyword.has_key?(meta, :closing) and not multiline?(meta) and
+    Keyword.has_key?(meta, :closing)  and not multiline?(meta)  and
       local_without_parens?(locals_without_parens, fun, args)
   end
 
