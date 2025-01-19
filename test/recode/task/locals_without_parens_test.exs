@@ -8,21 +8,22 @@ defmodule Recode.Task.LocalsWithoutParensTest do
     dot_formatter =
       DotFormatter.from_formatter_opts(locals_without_parens: [foo: 1, bar: 2, baz: :*])
 
-    # code = """
-    # [x] = foo(bar(y))
-    # bar(y, x)
-    # baz(a)
-    # baz(a,b)
-    # baz(a,b,c)
-    # if(x == 1, do: true)
-    # """
-
     code = """
     [x] = foo(bar(y))
+    bar(y, x)
+    baz(a)
+    baz(a,b)
+    baz(a,b,c)
+    if(x == 1, do: true)
     """
 
     expected = """
     [x] = foo bar(y)
+    bar y, x
+    baz a
+    baz a, b
+    baz a, b, c
+    if x == 1, do: true
     """
 
     code
