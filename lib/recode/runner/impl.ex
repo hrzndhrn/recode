@@ -102,6 +102,7 @@ defmodule Recode.Runner.Impl do
 
   @impl true
   def run(content, config, path \\ "source.ex") do
+    raise "ups"
     tasks = tasks(config)
     formatter_opts = Keyword.get(config, :formatter_opts, [])
 
