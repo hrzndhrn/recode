@@ -124,4 +124,14 @@ defmodule Recode.Task.LocalsWithoutParensTest do
     |> run_task(LocalsWithoutParens, autocorrect: false, dot_formatter: dot_formatter)
     |> assert_issues(1)
   end
+
+  test "add no issue for calls in pipe" do
+    dot_formatter = DotFormatter.from_formatter_opts(locals_without_parens: [foo: 2])
+
+    """
+    x |> foo(y, z)
+    """
+    |> run_task(LocalsWithoutParens, autocorrect: false, dot_formatter: dot_formatter)
+    |> refute_issues()
+  end
 end
