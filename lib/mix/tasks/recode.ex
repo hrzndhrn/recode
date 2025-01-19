@@ -165,7 +165,7 @@ defmodule Mix.Tasks.Recode do
   defp validate_task_config!(task, config) do
     keys = Keyword.keys(config) -- @task_config_keys
 
-    unless Enum.empty?(keys), do: task_config_error!(task, config, keys)
+    if !Enum.empty?(keys), do: task_config_error!(task, config, keys)
   end
 
   defp task_config_error!(task, config, keys) do
@@ -190,7 +190,7 @@ defmodule Mix.Tasks.Recode do
   end
 
   defp validate_task!({:module, _module}, task) do
-    unless Recode.Task in task.__info__(:attributes)[:behaviour] do
+    if Recode.Task not in task.__info__(:attributes)[:behaviour] do
       Mix.raise("The module #{inspect(task)} does not implement the Recode.Task behaviour.")
     end
   end

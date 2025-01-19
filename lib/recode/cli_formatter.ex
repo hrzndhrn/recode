@@ -78,7 +78,7 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:finished, %Rewrite{} = project, time}, config) when is_integer(time) do
-    unless Enum.empty?(project) do
+    if !Enum.empty?(project) do
       Escape.puts([:info, "Finished in #{format_time(time)}s."], config)
     end
 
@@ -113,7 +113,7 @@ defmodule Recode.CLIFormatter do
   end
 
   def handle_cast({:tasks_finished, %Rewrite{} = project, time}, config) do
-    unless Enum.empty?(project) do
+    if !Enum.empty?(project) do
       Escape.puts("")
       stats = format_results(project, config)
       :ok = format_tasks_stats(config, time)

@@ -55,7 +55,12 @@ defmodule Mix.Tasks.RecodeTest do
 
     capture_io(fn ->
       assert catch_exit(
-               Tasks.Recode.run(["--config", "test/fixtures/config.exs", "file_1.ex", "file_2.ex"])
+               Tasks.Recode.run([
+                 "--config",
+                 "test/fixtures/config.exs",
+                 "file_1.ex",
+                 "file_2.ex"
+               ])
              ) ==
                :normal
     end)

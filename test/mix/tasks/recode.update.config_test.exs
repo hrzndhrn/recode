@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Recode.Gen.UpdateTest do
   @config ".recode.exs"
 
   test "mix recode.update.config" do
-    unless File.exists?(@config) do
+    if !File.exists?(@config) do
       File.write!(@config, "[verbose: true, tasks: []]")
 
       capture_io(fn -> Config.run(["--force"]) end)
