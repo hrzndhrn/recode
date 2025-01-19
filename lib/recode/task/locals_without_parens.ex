@@ -103,24 +103,13 @@ defmodule Recode.Task.LocalsWithoutParens do
     {:cont, zipper, issues}
   end
 
-  defp local_without_parens?(locals_without_parens, fun, args) do
-    arity = length(args)
-
-    Enum.any?(locals_without_parens, fn
-      {^fun, :*} -> true
-      {^fun, ^arity} -> true
-      _other -> false
-    end)
-  end
-
   defp do_remove_parens(
          %Zipper{node: {fun, meta, args}} = zipper,
          issues,
          locals_without_parens,
          autocorrect?
        ) do
-    if Keyword.has_key?(meta, :closing) and
-         local_without_parens?(locals_without_parens, fun, args) do
+    if remove_parens?(fun, meta, args, locals_without_parens) do
       if autocorrect? do
         node = {fun, Keyword.delete(meta, :closing), args}
         {:cont, Zipper.replace(zipper, node), issues}
@@ -131,5 +120,24 @@ defmodule Recode.Task.LocalsWithoutParens do
     else
       {:cont, zipper, issues}
     end
+  end
+
+  defp remove_parens?(fun, meta, args, locals_without_parens) do
+    Keyword.has_key?(meta, :closing) and not multiline?(meta) and
+      local_without_parens?(locals_without_parens, fun, args)
+  end
+
+  defp local_without_parens?(locals_without_parens, fun, args) do
+    arity = length(args)
+
+    Enum.any?(locals_without_parens, fn
+      {^fun, :*} -> true
+      {^fun, ^arity} -> true
+      _other -> false
+    end)
+  end
+
+  defp multiline?(meta) do
+    meta[:line] < meta[:closing][:line]
   end
 end
