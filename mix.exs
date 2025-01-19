@@ -112,9 +112,9 @@ defmodule Recode.MixProject do
       {:mox, "~> 1.0", only: :test}
     ] ++
       if Version.match?(System.version(), "~> 1.18") do
-        []
-      else
         [{:freedom_formatter, "~> 2.1", only: :test}]
+      else
+        []
       end
   end
 
