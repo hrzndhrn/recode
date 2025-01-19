@@ -111,7 +111,7 @@ defmodule Recode.MixProject do
       {:excoveralls, "~> 0.15", only: :test},
       {:mox, "~> 1.0", only: :test}
     ] ++
-      if System.get_env("CI") == "true" do
+      if Version.match?(System.version(), "~> 1.18") do
         []
       else
         [{:freedom_formatter, "~> 2.1", only: :test}]
