@@ -20,7 +20,6 @@ defmodule Recode.Task.Moduledoc do
   use Recode.Task, corrector: false, category: :readability
 
   alias Recode.AST
-  alias Recode.Issue
   alias Rewrite.Source
 
   @default_config [ignore_names: []]
@@ -121,7 +120,7 @@ defmodule Recode.Task.Moduledoc do
   end
 
   defp add_issue(source, meta, message) do
-    Source.add_issue(source, Issue.new(Moduledoc, message, meta))
+    Source.add_issue(source, new_issue(message, meta))
   end
 
   defp ignore?(_name, []), do: false

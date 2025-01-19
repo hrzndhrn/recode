@@ -29,7 +29,7 @@
     {Recode.Task.Specs, [exclude: ["test/**/*.{ex,exs}", "mix.exs"], config: [only: :visible]]},
     {Recode.Task.TagFIXME, [exit_code: 2]},
     {Recode.Task.TagTODO, [exit_code: 4]},
-    {Recode.Task.TestFileExt, []},
+    {Recode.Task.TestFile, []},
     {Recode.Task.UnusedVariable, [active: false]}
   ]
 ]

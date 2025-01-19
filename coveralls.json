@@ -3,7 +3,5 @@
     "treat_no_relevant_lines_as_covered": true,
     "minimum_coverage": 80
   },
-  "skip_files": [
-    "lib/recode/task.ex"
-  ]
+  "skip_files": ["test/support/strip.ex"]
 }
