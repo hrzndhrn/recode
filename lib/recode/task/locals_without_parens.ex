@@ -23,6 +23,9 @@ defmodule Recode.Task.LocalsWithoutParens do
   alias Rewrite.Source
   alias Sourceror.Zipper
 
+  @def [:def, :defp, :defmacro, :defmacrop]
+  @exclude [:{}, :%{}]
+
   @impl Recode.Task
   def run(source, opts) do
     locals_without_parens =
@@ -35,7 +38,7 @@ defmodule Recode.Task.LocalsWithoutParens do
     source
     |> Source.get(:quoted)
     |> Zipper.zip()
-    |> Zipper.traverse([], fn zipper, issues ->
+    |> Zipper.traverse_while([], fn zipper, issues ->
       remove_parens(zipper, issues, locals_without_parens, opts[:autocorrect])
     end)
     |> update(source, opts)
@@ -46,27 +49,58 @@ defmodule Recode.Task.LocalsWithoutParens do
   end
 
   defp remove_parens(
-         %Zipper{node: {fun, meta, [_ | _] = args}} = zipper,
+         %Zipper{node: {{:__block__, meta, [:do]}, _block}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       ) do
+    if meta[:format] == :keyword do
+      {:skip, zipper, issues}
+    else
+      {:cont, zipper, issues}
+    end
+  end
+
+  defp remove_parens(
+         %Zipper{node: {fun, _meta, _args}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       )
+       when fun in @def do
+    {:cont, Zipper.next(zipper), issues}
+  end
+
+  defp remove_parens(
+         %Zipper{node: {_one, _two}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       ) do
+    {:skip, zipper, issues}
+  end
+
+  defp remove_parens(
+         %Zipper{node: {form, _meta, _args}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       )
+       when form in @exclude do
+    {:skip, zipper, issues}
+  end
+
+  defp remove_parens(
+         %Zipper{node: {_fun, _meta, [_ | _]}} = zipper,
          issues,
          locals_without_parens,
          autocorrect?
        ) do
-    if Keyword.has_key?(meta, :closing) and
-         local_without_parens?(locals_without_parens, fun, args) do
-      if autocorrect? do
-        node = {fun, Keyword.delete(meta, :closing), args}
-        {Zipper.replace(zipper, node), issues}
-      else
-        issue = new_issue("Unnecessary parens", meta)
-        {zipper, [issue | issues]}
-      end
-    else
-      {zipper, issues}
-    end
+    do_remove_parens(zipper, issues, locals_without_parens, autocorrect?)
   end
 
   defp remove_parens(zipper, issues, _locals_without_parens, _autocorrect) do
-    {zipper, issues}
+    {:cont, zipper, issues}
   end
 
   defp local_without_parens?(locals_without_parens, fun, args) do
@@ -77,5 +111,25 @@ defmodule Recode.Task.LocalsWithoutParens do
       {^fun, ^arity} -> true
       _other -> false
     end)
+  end
+
+  defp do_remove_parens(
+         %Zipper{node: {fun, meta, args}} = zipper,
+         issues,
+         locals_without_parens,
+         autocorrect?
+       ) do
+    if Keyword.has_key?(meta, :closing) and
+         local_without_parens?(locals_without_parens, fun, args) do
+      if autocorrect? do
+        node = {fun, Keyword.delete(meta, :closing), args}
+        {:cont, Zipper.replace(zipper, node), issues}
+      else
+        issue = new_issue("Unnecessary parens", meta)
+        {:cont, zipper, [issue | issues]}
+      end
+    else
+      {:cont, zipper, issues}
+    end
   end
 end
