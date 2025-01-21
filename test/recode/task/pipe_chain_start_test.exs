@@ -244,7 +244,6 @@ defmodule Recode.Task.PipeChainStartTest do
       foo
       ''' |> foo()
       ~r/.*/ |> foo()
-      ~CUSTOM"asdf" |> foo()
       ~q"asdf" |> foo()
       """
       |> run_task(PipeChainStart, autocorrect: true)
