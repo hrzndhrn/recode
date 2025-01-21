@@ -55,7 +55,7 @@ defmodule Recode.Task.PipeChainStart do
     :---,
     :.,
     :..,
-    :"..//",
+    :..//,
     :/,
     :<,
     :<-,
