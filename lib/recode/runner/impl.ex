@@ -1,55 +1,3 @@
-defmodule Recode.Manifest do
-  @moduledoc false
-
-  alias Rewrite.Source
-
-  @manifest "recode.issues"
-
-  def write(project, config) do
-    if config[:manifest] do
-      File.write(path(), content(project, config[:dry]))
-    else
-      :ok
-    end
-  end
-
-  def read(config) do
-    if !config[:force] and config[:manifest] do
-      case File.read(path()) do
-        {:ok, content} -> {timestamp(), String.split(content, "\n")}
-        _error -> nil
-      end
-    else
-      nil
-    end
-  end
-
-  def timestamp do
-    case File.stat(path(), time: :posix) do
-      {:ok, %{mtime: timestamp}} -> timestamp
-      {:error, _reason} -> 0
-    end
-  end
-
-  def path, do: Path.join(Mix.Project.manifest_path(), @manifest)
-
-  defp content(project, dry) do
-    project
-    |> paths_with_issue(dry)
-    |> Enum.join("\n")
-  end
-
-  defp paths_with_issue(project, dry) do
-    Enum.reduce(project, [], fn source, acc ->
-      if Source.has_issues?(source) or (dry and Source.updated?(source)) do
-        [source.path | acc]
-      else
-        acc
-      end
-    end)
-  end
-end
-
 defmodule Recode.Runner.Impl do
   @moduledoc false
 
@@ -102,7 +50,6 @@ defmodule Recode.Runner.Impl do
 
   @impl true
   def run(content, config, path \\ "source.ex") do
-    raise "ups"
     tasks = tasks(config)
     formatter_opts = Keyword.get(config, :formatter_opts, [])
 

@@ -485,7 +485,7 @@ defmodule Recode.AST do
       ...> mf(ast)
       {Foo.Bar, :baz}
   """
-  @spec mfa({{:., metadata(), list()}, metadata(), t()} | {:., metadata(), list()}) ::
+  @spec mf({{:., metadata(), list()}, metadata(), t()} | {:., metadata(), list()}) ::
           {module(), atom()}
   def mf({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, _args3}) do
     {Module.concat(aliases), fun}
