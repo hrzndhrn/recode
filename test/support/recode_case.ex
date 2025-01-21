@@ -93,7 +93,11 @@ defmodule RecodeCase do
       content = Source.get(source, :content)
 
       diff =
-        Escape.format([:red, "Assertion code == expected\n\n", TextDiff.format(content, expected)])
+        Escape.format([
+          :red,
+          "Assertion code == expected\n\n",
+          TextDiff.format(content, expected)
+        ])
 
       assert content == expected, IO.iodata_to_binary(diff)
     end

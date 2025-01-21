@@ -379,7 +379,10 @@ defmodule Recode.Task.PipeChainStartTest do
       Bar.foo(x) |> foo()
       Bar.bar(x) |> foo()
       """
-      |> run_task(PipeChainStart, autocorrect: true, exclude_functions: [:foo, {Foo, :foo}, {Bar, :*}])
+      |> run_task(PipeChainStart,
+        autocorrect: true,
+        exclude_functions: [:foo, {Foo, :foo}, {Bar, :*}]
+      )
       |> refute_update()
     end
   end
