@@ -52,7 +52,7 @@ in `mix.exs`:
 ```elixir
   def deps do
     [
-      {:recode, "~> 0.7", only: :dev}
+      {:recode, "~> 0.7", only: :dev, runtime: false}
     ]
   end
 ```
@@ -68,7 +68,7 @@ supports lower Elixir versions you could add recode as following:
 
   defp recode() do
     case Version.match?(System.version(), "~> 1.13") do
-      true -> [{:recode, "~> 0.4", only: :dev}]
+      true -> [{:recode, "~> 0.4", only: :dev, runtime: false}]
       false -> []
     end
   end
@@ -437,7 +437,7 @@ need to enable `recode` for the test environment:
 ```elixir
   def deps do
     [
-      {:recode, "~> 0.7", only: [:dev, :test]}
+      {:recode, "~> 0.7", only: [:dev, :test], runtime: false}
     ]
   end
 ```
