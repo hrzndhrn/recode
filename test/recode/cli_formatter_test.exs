@@ -8,7 +8,7 @@ defmodule Recode.CLIFormatterTest do
   alias Recode.Issue
   alias Rewrite.Source
 
-  @config verbose: true
+  @config verbose: true, silent: false
 
   test "formats results for a project without changes" do
     code = """
@@ -27,10 +27,29 @@ defmodule Recode.CLIFormatterTest do
       end)
 
     assert output |> strip_esc_seq() == """
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Everything ok
            """
+  end
+
+  test "formats no results for a project without changes in silent mode" do
+    code = """
+    defmodule Foo do
+      def bar, do: :foo
+    end
+    """
+
+    source = from_string(code)
+
+    project = Rewrite.from_sources!([source])
+
+    output =
+      capture_io(fn ->
+        format({:tasks_finished, project, 10_000}, silent: true)
+      end)
+
+    assert output == ""
   end
 
   test "formats results for a project with changed source" do
@@ -43,7 +62,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -66,8 +85,8 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Updated 1 file
            Everything ok
            """
@@ -83,12 +102,12 @@ defmodule Recode.CLIFormatterTest do
     source_a =
       code
       |> from_string(path: "lib/a.ex")
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     source_b =
       code
       |> from_string(path: "lib/b.ex")
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     project = Rewrite.from_sources!([source_a, source_b])
 
@@ -116,8 +135,8 @@ defmodule Recode.CLIFormatterTest do
            3 3   |end
            4 4   |
 
-           Executed 0 tasks in 0.01s.
-           Files: 2 (.ex: 2)
+           Completed 0 tasks in 0.01s.
+           Files processed: 2 (.ex: 2)
            Updated 2 files
            Everything ok
            """
@@ -133,8 +152,8 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
-      |> Source.update(:test, :content, code)
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
+      |> Source.update(:content, code, by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -148,8 +167,8 @@ defmodule Recode.CLIFormatterTest do
            Updates: 2
            Changed by: test, test
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Updated 1 file
            Everything ok
            """
@@ -179,7 +198,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(:test, :content, String.replace(code, "bar", "foo"))
+      |> Source.update(:content, String.replace(code, "bar", "foo"), by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -203,7 +222,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string(path: "foo.ex")
-      |> Source.update(:test, :path, "bar.ex")
+      |> Source.update(:path, "bar.ex", by: :test)
 
     project = Rewrite.from_sources!([source])
 
@@ -218,8 +237,8 @@ defmodule Recode.CLIFormatterTest do
            Changed by: test
            Moved from: foo.ex
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Moved 1 file
            Everything ok
            """
@@ -244,8 +263,8 @@ defmodule Recode.CLIFormatterTest do
            File: foo.ex
            New file
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Created 1 file
            Everything ok
            """
@@ -270,8 +289,8 @@ defmodule Recode.CLIFormatterTest do
            File: foo.ex
            New file, created by Test
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Created 1 file
            Everything ok
            """
@@ -306,8 +325,8 @@ defmodule Recode.CLIFormatterTest do
            [foo 1/2] do not do this
            [bar 2/3] no no no
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Found 2 issues
            """
   end
@@ -343,8 +362,8 @@ defmodule Recode.CLIFormatterTest do
            [foo 2/3] no
            [foo 3/1] no
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Found 3 issues
            """
   end
@@ -380,8 +399,8 @@ defmodule Recode.CLIFormatterTest do
            [foo 2/2] no
            [foo 2/3] no
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Found 3 issues
            """
   end
@@ -400,7 +419,7 @@ defmodule Recode.CLIFormatterTest do
         Issue.new(:foo, "do not do this", line: 1, column: 2),
         Issue.new(:bar, "no no no", line: 2, column: 3)
       ])
-      |> Source.update(TestTask, :content, String.replace(code, ":foo", ":bar"))
+      |> Source.update(:content, String.replace(code, ":foo", ":bar"), by: TestTask)
 
     project = Rewrite.from_sources!([source])
 
@@ -423,8 +442,8 @@ defmodule Recode.CLIFormatterTest do
            Version 1/2 [foo 1/2] do not do this
            Version 1/2 [bar 2/3] no no no
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Updated 1 file
            Found 2 issues
            """
@@ -441,7 +460,7 @@ defmodule Recode.CLIFormatterTest do
       code
       |> from_string()
       |> Source.add_issue(
-        Issue.new(Recode.Runner, task: Test, error: :error, message: "Error Message")
+        Issue.new(Recode.Runner, "Error Message", meta: [task: Test, error: :error])
       )
 
     project = Rewrite.from_sources!([source])
@@ -458,8 +477,8 @@ defmodule Recode.CLIFormatterTest do
            Execution of the Test task failed with error:
            Error Message
 
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Found 1 issue
            """
   end
@@ -481,6 +500,25 @@ defmodule Recode.CLIFormatterTest do
       end)
 
     assert strip_esc_seq(output) == "Read 1 file\n"
+  end
+
+  test "formats no project infos in silent mode" do
+    code = """
+    defmodule Foo do
+      def bar, do: :foo
+    end
+    """
+
+    source = from_string(code)
+
+    project = Rewrite.from_sources!([source])
+
+    output =
+      capture_io(fn ->
+        format({:prepared, project, 9999}, silent: true)
+      end)
+
+    assert strip_esc_seq(output) == ""
   end
 
   test "formats when tasks ready for an empty project" do
@@ -511,8 +549,8 @@ defmodule Recode.CLIFormatterTest do
       end)
 
     assert output |> strip_esc_seq() == """
-           Executed 0 tasks in 0.01s.
-           Files: 1 (.ex: 1)
+           Completed 0 tasks in 0.01s.
+           Files processed: 1 (.ex: 1)
            Everything ok
            """
   end
@@ -598,7 +636,7 @@ defmodule Recode.CLIFormatterTest do
     source =
       code
       |> from_string()
-      |> Source.update(TaTask, :content, String.replace(code, ":foo", ":bar"))
+      |> Source.update(:content, String.replace(code, ":foo", ":bar"), by: TaTask)
 
     output =
       capture_io(fn ->
@@ -635,7 +673,7 @@ defmodule Recode.CLIFormatterTest do
   defp from_string(string, opts \\ []) do
     {path, opts} = Keyword.pop(opts, :path, "test/formatter_test.ex")
 
-    source = Source.Ex.from_string(string, path)
+    source = Source.Ex.from_string(string, path: path)
 
     opts = Keyword.put_new(opts, :from, :file)
 

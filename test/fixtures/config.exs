@@ -1,5 +1,5 @@
 [
-  version: "0.7.2",
+  version: "0.8.0",
   # Can also be set/reset with `--autocorrect`/`--no-autocorrect`.
   autocorrect: true,
   # With "--dry" no changes will be written to the files.
@@ -23,7 +23,7 @@
     {Recode.Task.PipeFunOne, []},
     {Recode.Task.SinglePipe, []},
     {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
-    {Recode.Task.TestFileExt, []},
+    {Recode.Task.TestFile, []},
     {Recode.Task.UnusedVariable, [active: false]}
   ]
 ]

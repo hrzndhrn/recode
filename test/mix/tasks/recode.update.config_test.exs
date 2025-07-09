@@ -7,20 +7,64 @@ defmodule Mix.Tasks.Recode.Gen.UpdateTest do
 
   @config ".recode.exs"
 
-  test "mix recode.update.config" do
-    if !File.exists?(@config) do
+  @tag :tmp_dir
+  test "mix recode.update.config --force", %{tmp_dir: tmp_dir} do
+    File.cd!(tmp_dir, fn ->
       File.write!(@config, "[verbose: true, tasks: []]")
 
       capture_io(fn -> Config.run(["--force"]) end)
 
       config = File.read!(@config)
-      File.rm!(@config)
 
       assert config ==
                Recode.Config.default()
                |> Keyword.put(:verbose, true)
                |> Recode.Config.to_string()
-    end
+    end)
+  end
+
+  @tag :tmp_dir
+  test "mix recode.update.config - input: Y", %{tmp_dir: tmp_dir} do
+    File.cd!(tmp_dir, fn ->
+      File.write!(@config, "[verbose: true, tasks: []]")
+
+      capture_io([input: "Y"], fn -> Config.run([]) end)
+
+      config = File.read!(@config)
+
+      assert config ==
+               Recode.Config.default()
+               |> Keyword.put(:verbose, true)
+               |> Recode.Config.to_string()
+    end)
+  end
+
+  @tag :tmp_dir
+  test "mix recode.update.config - input: n", %{tmp_dir: tmp_dir} do
+    File.cd!(tmp_dir, fn ->
+      config = "[verbose: true, tasks: []]"
+      File.write!(@config, config)
+
+      capture_io([input: "n"], fn -> Config.run([]) end)
+
+      assert File.read!(@config) == config
+    end)
+  end
+
+  @tag :tmp_dir
+  test "mix recode.update.config cleans up removed tasks", %{tmp_dir: tmp_dir} do
+    File.cd!(tmp_dir, fn ->
+      File.write!(@config, "[verbose: true, tasks: [{Recode.Task.TestFileExt, []}]]")
+
+      capture_io(fn -> Config.run(["--force"]) end)
+
+      config = File.read!(@config)
+
+      assert config ==
+               Recode.Config.default()
+               |> Keyword.put(:verbose, true)
+               |> Recode.Config.to_string()
+    end)
   end
 
   test "mix recode.update.config # with missing .recode.exs" do

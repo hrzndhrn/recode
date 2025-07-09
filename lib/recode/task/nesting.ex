@@ -16,8 +16,6 @@ defmodule Recode.Task.Nesting do
 
   use Recode.Task, category: :refactor
 
-  alias Recode.Issue
-  alias Recode.Task.Nesting
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -62,7 +60,7 @@ defmodule Recode.Task.Nesting do
 
   defp traverse_depth(%Zipper{node: {op, meta, _}} = zipper, {issues, _depth}, max_depth)
        when op in @depth_ops do
-    issue = Issue.new(Nesting, "The body is nested too deep (max depth: #{max_depth}).", meta)
+    issue = new_issue("The body is nested too deep (max depth: #{max_depth}).", meta)
     {:skip, zipper, {[issue | issues], 0}}
   end
 
