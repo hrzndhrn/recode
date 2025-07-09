@@ -68,7 +68,7 @@ supports lower Elixir versions you could add recode as following:
 
   defp recode() do
     case Version.match?(System.version(), "~> 1.13") do
-      true -> [{:recode, "~> 0.4", only: :dev, runtime: false}]
+      true -> [{:recode, "~> 0.7", only: :dev, runtime: false}]
       false -> []
     end
   end
