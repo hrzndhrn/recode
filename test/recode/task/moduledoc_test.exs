@@ -162,7 +162,7 @@ defmodule Recode.Task.ModuledocTest do
       end
       """
       |> run_task(Moduledoc)
-      |> assert_issue_with(message: "The moudle Elixir.Bar.Foo is missing @moduledoc.")
+      |> assert_issue_with(message: "The module Elixir.Bar.Foo is missing @moduledoc.")
     end
 
     test "when @moduldoc is empty" do
@@ -178,7 +178,7 @@ defmodule Recode.Task.ModuledocTest do
       '''
       |> run_task(Moduledoc)
       |> assert_issue_with(
-        message: "The @moudledoc attribute for moudle Elixir.Bar.Foo has no content."
+        message: "The @moduledoc attribute for module Elixir.Bar.Foo has no content."
       )
     end
 

@@ -13,7 +13,7 @@ defmodule Recode.Task.AliasOrderTest do
     |> refute_update()
   end
 
-  test "keeps a single alias outside a moudle" do
+  test "keeps a single alias outside a module" do
     "alias Alpha.Bravo"
     |> run_task(AliasOrder, autocorrect: true)
     |> refute_update()

@@ -2,7 +2,7 @@ defmodule Recode.Task.Moduledoc do
   @shortdoc "There should be a @moduledoc in any module."
 
   @moduledoc """
-  Any module should contain a `@moudledoc` attribute.
+  Any module should contain a `@moduledoc` attribute.
 
   For a public module, comprehensive documentation should be available. The
   module documentation helps the user of your package, contributors, and your
@@ -106,7 +106,7 @@ defmodule Recode.Task.Moduledoc do
 
       Keyword.get(meta, :empty, false) ->
         add_issue(source, meta, """
-        The @moudledoc attribute for moudle #{module} has no content.\
+        The @moduledoc attribute for module #{module} has no content.\
         """)
 
       Keyword.get(meta, :exist, false) ->
@@ -114,7 +114,7 @@ defmodule Recode.Task.Moduledoc do
 
       true ->
         add_issue(source, meta, """
-        The moudle #{module} is missing @moduledoc.\
+        The module #{module} is missing @moduledoc.\
         """)
     end
   end
