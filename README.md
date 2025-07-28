@@ -163,7 +163,7 @@ Changed by: AliasExpansion
 3 4   |
 4 5   |  def foo(x) do
    ...|
-[Moduledoc 1/1] The moudle Elixir.MyCode.AliasExpansion is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.AliasExpansion is missing @moduledoc.
 [Specs 5/3] Functions should have a @spec type specification.
 
 File: lib/my_code/alias_order.ex
@@ -181,10 +181,10 @@ Changed by: AliasOrder, AliasExpansion
 17 18   |
 18 19   |  @doc false
      ...|
-[Moduledoc 13/1] The moudle Elixir.Mycode.AliasOrder is missing @moduledoc.
+[Moduledoc 13/1] The module Elixir.Mycode.AliasOrder is missing @moduledoc.
 
 File: lib/my_code/deep.ex
-[Moduledoc 1/1] The moudle Elixir.MyCode.Deep is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.Deep is missing @moduledoc.
 [Specs 2/3] Functions should have a @spec type specification.
 [Nesting 6/11] The body is nested too deep (max depth: 2).
 
@@ -216,7 +216,7 @@ Changed by: SinglePipe, PipeFunOne, FilterCount, Format
 23 21   |    |> IO.inspect()
 24 22   |  end
      ...|
-[Moduledoc 1/1] The moudle Elixir.MyCode.Multi is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.Multi is missing @moduledoc.
 [Specs 4/3] Functions should have a @spec type specification.
 [Specs 6/3] Functions should have a @spec type specification.
 [Dbg 7/34] There should be no calls to dbg.
@@ -238,7 +238,7 @@ Changed by: PipeFunOne
      ...|
 
 File: lib/my_code/same_line.ex
-[Moduledoc 1/1] The moudle Elixir.MyCode.SameLine is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.SameLine is missing @moduledoc.
 [Specs 2/3] Functions should have a @spec type specification.
 
 File: lib/my_code/single_pipe.ex
@@ -283,7 +283,7 @@ Changed by: SinglePipe, Format
      ...|
 
 File: mix.exs
-[Moduledoc 1/1] The moudle Elixir.MyCode.MixProject is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.MixProject is missing @moduledoc.
 
 File: priv/repo/migrations/20190417140000_create_users.exs
 Updates: 2
@@ -298,7 +298,7 @@ Changed by: LocalsWithoutParens, Format
  8  8   |
  9  9   |      timestamps()
      ...|
-[Moduledoc 1/1] The moudle Elixir.MyRepo.Migrations.CreateUsers is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyRepo.Migrations.CreateUsers is missing @moduledoc.
 [Specs 4/3] Functions should have a @spec type specification.
 [Specs 13/3] Functions should have a @spec type specification.
 
@@ -306,7 +306,7 @@ File: test/my_code_test.exs
 Updates: 1
 Changed by: TestFile
 Moved from: test/my_code_test.ex
-[Moduledoc 1/1] The moudle Elixir.MyCodeTest is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCodeTest is missing @moduledoc.
 [TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 
 Completed 342 tasks in 0.02s.
@@ -329,19 +329,19 @@ File: lib/my_code.ex
 [Specs 15/3] Functions should have a @spec type specification.
 
 File: lib/my_code/alias_expansion.ex
-[Moduledoc 1/1] The moudle Elixir.MyCode.AliasExpansion is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.AliasExpansion is missing @moduledoc.
 [AliasExpansion 2/3] Avoid multi aliases.
 [Specs 4/3] Functions should have a @spec type specification.
 
 File: lib/my_code/alias_order.ex
-[Moduledoc 13/1] The moudle Elixir.Mycode.AliasOrder is missing @moduledoc.
+[Moduledoc 13/1] The module Elixir.Mycode.AliasOrder is missing @moduledoc.
 [AliasOrder 15/3] The alias `MyCode.PipeFunOne` is not alphabetically ordered among its group
 [AliasOrder 16/3] The alias `MyCode` is not alphabetically ordered among its group
 [AliasExpansion 16/3] Avoid multi aliases.
 [AliasOrder 16/26] The alias `Echo` is not alphabetically ordered among its multi group
 
 File: lib/my_code/deep.ex
-[Moduledoc 1/1] The moudle Elixir.MyCode.Deep is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.Deep is missing @moduledoc.
 [Specs 2/3] Functions should have a @spec type specification.
 [Nesting 6/11] The body is nested too deep (max depth: 2).
 
@@ -349,7 +349,7 @@ File: lib/my_code/fun.ex
 [LocalsWithoutParens 4/7] Unnecessary parens
 
 File: lib/my_code/multi.ex
-[Moduledoc 1/1] The moudle Elixir.MyCode.Multi is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.Multi is missing @moduledoc.
 [Specs 4/3] Functions should have a @spec type specification.
 [Specs 6/3] Functions should have a @spec type specification.
 [PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
@@ -365,7 +365,7 @@ File: lib/my_code/pipe_fun_one.ex
 [PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
 
 File: lib/my_code/same_line.ex
-[Moduledoc 1/1] The moudle Elixir.MyCode.SameLine is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.SameLine is missing @moduledoc.
 [Specs 2/3] Functions should have a @spec type specification.
 
 File: lib/my_code/single_pipe.ex
@@ -381,16 +381,16 @@ File: lib/my_code/trailing_comma.ex
 [SinglePipe 18/5] Use a function call when a pipeline is only one function long.
 
 File: mix.exs
-[Moduledoc 1/1] The moudle Elixir.MyCode.MixProject is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCode.MixProject is missing @moduledoc.
 
 File: priv/repo/migrations/20190417140000_create_users.exs
-[Moduledoc 1/1] The moudle Elixir.MyRepo.Migrations.CreateUsers is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyRepo.Migrations.CreateUsers is missing @moduledoc.
 [Specs 4/3] Functions should have a @spec type specification.
 [LocalsWithoutParens 7/7] Unnecessary parens
 [Specs 13/3] Functions should have a @spec type specification.
 
 File: test/my_code_test.ex
-[Moduledoc 1/1] The moudle Elixir.MyCodeTest is missing @moduledoc.
+[Moduledoc 1/1] The module Elixir.MyCodeTest is missing @moduledoc.
 [TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 [TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 
