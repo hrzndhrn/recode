@@ -452,6 +452,9 @@ defmodule Recode.AST do
   @doc """
   Returns a `mfa`-tuple for the given `.`-call.
 
+  A `mfa`-tuple is a three-element tuple containing the module, function name,
+  and arity.
+
   ## Examples
 
       iex> ast = quote do
@@ -460,10 +463,36 @@ defmodule Recode.AST do
       ...> mfa(ast)
       {Foo.Bar, :baz, 1}
   """
-  @spec mfa({{:., keyword(), list()}, metadata(), t()}) ::
+  @spec mfa({{:., metadata(), list()}, metadata(), t()}) ::
           {module(), atom(), non_neg_integer()}
   def mfa({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, args}) do
     {Module.concat(aliases), fun, length(args)}
+  end
+
+  @doc """
+  Returns a `mf`-tuple for the given `.`-call or `.`-expression.
+
+  A `mf`-tuple is a two-element tuple containing the module and function name.
+
+  ## Examples
+
+      iex> ast = quote do
+      ...>   Foo.Bar.baz(x)
+      ...> end
+      ...> mf(ast)
+      {Foo.Bar, :baz}
+      iex> {ast, _, _} = ast
+      ...> mf(ast)
+      {Foo.Bar, :baz}
+  """
+  @spec mf({{:., metadata(), list()}, metadata(), t()} | {:., metadata(), list()}) ::
+          {module(), atom()}
+  def mf({{:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}, _meta3, _args3}) do
+    {Module.concat(aliases), fun}
+  end
+
+  def mf({:., _meta1, [{:__aliases__, _meta2, aliases}, fun]}) do
+    {Module.concat(aliases), fun}
   end
 
   @doc """
@@ -658,7 +687,7 @@ defmodule Recode.AST do
       ...>   def baz, do: baz
       ...> end
       ...> """)
-      ...> block = block(args) 
+      ...> block = block(args)
       ...> Sourceror.to_string({:__block__,[], block})
       """
       def bar, do: bar

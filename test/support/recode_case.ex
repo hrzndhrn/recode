@@ -76,13 +76,30 @@ defmodule RecodeCase do
 
   defmacro refute_update(source) do
     quote bind_quoted: [source: source] do
-      refute Source.updated?(source)
+      message =
+        Escape.format([
+          :red,
+          "Expected no updates, got #{Source.version(source) - 1} update(s):\n\n",
+          :reset,
+          Source.diff(source)
+        ])
+
+      refute Source.updated?(source), IO.iodata_to_binary(message)
     end
   end
 
   defmacro assert_code(source, expected) do
     quote bind_quoted: [source: source, expected: expected] do
-      assert Source.get(source, :content) == expected
+      content = Source.get(source, :content)
+
+      diff =
+        Escape.format([
+          :red,
+          "Assertion code == expected\n\n",
+          TextDiff.format(content, expected)
+        ])
+
+      assert content == expected, IO.iodata_to_binary(diff)
     end
   end
 
