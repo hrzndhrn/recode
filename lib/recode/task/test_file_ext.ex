@@ -31,7 +31,7 @@ defmodule Recode.Task.TestFileExt do
   end
 
   defp update_source(source, path, true) do
-    Source.update(source, TestFileExt, :path, path)
+    Source.update(source, :path, path, by: TestFileExt)
   end
 
   defp update_source(source, path, false) do

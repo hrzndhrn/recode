@@ -26,6 +26,7 @@ defmodule Recode.Task.Format do
 
   alias Recode.Issue
   alias Recode.Task.Format
+  alias Rewrite.DotFormatter
   alias Rewrite.Source
 
   @default_config [formatter: :sourceror]
@@ -35,13 +36,11 @@ defmodule Recode.Task.Format do
   def run(source, opts) do
     opts = Keyword.merge(opts, @default_config)
 
-    source
-    |> Source.Ex.merge_formatter_opts(exclude_plugins: [Recode.FormatterPlugin])
-    |> execute(opts[:autocorrect], opts[:formatter])
+    execute(source, opts[:autocorrect], opts[:formatter])
   end
 
   defp execute(source, true, formatter) do
-    Source.update(source, Format, :content, format(source, formatter))
+    Source.update(source, :content, format(source, formatter), by: Format)
   end
 
   defp execute(source, false, formatter) do
@@ -55,7 +54,24 @@ defmodule Recode.Task.Format do
   end
 
   defp format(source, :sourceror) do
-    Source.Ex.format(source)
+    formatter_opts = Keyword.get(source.filetype.opts, :formatter_opts, [])
+
+    current_formatter_opts =
+      case DotFormatter.read() do
+        {:ok, dot_formatter} -> DotFormatter.formatter_opts(dot_formatter)
+        {:error, _reason} -> []
+      end
+
+    merged_formatter_opts = Keyword.merge(current_formatter_opts, formatter_opts)
+
+    dot_formatter =
+      DotFormatter.from_formatter_opts(merged_formatter_opts,
+        remove_plugins: [Recode.FormatterPlugin]
+      )
+
+    path = Map.get(source, :path) || Source.default_path(source)
+
+    DotFormatter.format_string!(dot_formatter, path, source.content)
   end
 
   defp format(source, :elixir) do
