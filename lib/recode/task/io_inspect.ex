@@ -10,7 +10,6 @@ defmodule Recode.Task.IOInspect do
   use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
-  alias Recode.Task.IOInspect
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -26,7 +25,7 @@ defmodule Recode.Task.IOInspect do
   end
 
   defp update({zipper, _issues}, source, true) do
-    Source.update(source, IOInspect, :quoted, Zipper.root(zipper))
+    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
   end
 
   defp update({_zipper, []}, source, false), do: source
@@ -73,7 +72,7 @@ defmodule Recode.Task.IOInspect do
   end
 
   defp handle(zipper, issues, meta, false) do
-    issue = Issue.new(IOInspect, @shortdoc, meta)
+    issue = Issue.new(__MODULE__, @shortdoc, meta)
     {zipper, [issue | issues]}
   end
 

@@ -23,7 +23,6 @@ defmodule Recode.Task.SinglePipe do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
-  alias Recode.Task.SinglePipe
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -41,7 +40,7 @@ defmodule Recode.Task.SinglePipe do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, SinglePipe, :quoted, Zipper.root(zipper))
+        Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
 
       false ->
         Source.add_issues(source, issues)

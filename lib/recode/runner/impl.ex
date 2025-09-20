@@ -47,7 +47,11 @@ defmodule Recode.Runner.Impl do
 
     config = update_config(config)
 
-    source = Source.Ex.from_string(content, path)
+    source =
+      Source.Ex.from_string(content,
+        path: path,
+        formatter_opts: config[:dot_formatter_opts] || []
+      )
 
     tasks
     |> update_opts(config)

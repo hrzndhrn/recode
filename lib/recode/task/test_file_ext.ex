@@ -11,7 +11,6 @@ defmodule Recode.Task.TestFileExt do
   use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
-  alias Recode.Task.TestFileExt
   alias Rewrite.Source
 
   @impl Recode.Task
@@ -31,11 +30,11 @@ defmodule Recode.Task.TestFileExt do
   end
 
   defp update_source(source, path, true) do
-    Source.update(source, TestFileExt, :path, path)
+    Source.update(source, :path, path, by: __MODULE__)
   end
 
   defp update_source(source, path, false) do
     message = "The file must be renamed to #{path} so that ExUnit can find it."
-    Source.add_issue(source, Issue.new(TestFileExt, message))
+    Source.add_issue(source, Issue.new(__MODULE__, message))
   end
 end

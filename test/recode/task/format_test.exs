@@ -2,7 +2,6 @@ defmodule Recode.Task.FormatTest do
   use RecodeCase
 
   alias Recode.Task.Format
-  alias Rewrite.Source
 
   test "keeps formatted code" do
     """
@@ -55,11 +54,11 @@ defmodule Recode.Task.FormatTest do
     """
 
     source =
-      code
-      |> source()
-      |> Source.Ex.put_formatter_opts(
-        plugins: [Recode.FormatterPlugin],
-        locals_without_parens: [bar: 1]
+      source(code,
+        formatter_opts: [
+          plugins: [Recode.FormatterPlugin],
+          locals_without_parens: [bar: 1]
+        ]
       )
 
     source
@@ -82,19 +81,16 @@ defmodule Recode.Task.FormatTest do
     end
     """
 
-    source =
-      code
-      |> source()
-      |> Source.Ex.put_formatter_opts(plugins: [FakePlugin])
+    source = source(code, formatter_opts: [plugins: [FakePlugin]])
 
     source
     |> run_task(Format, autocorrect: true)
-    |> assert_code(expected)
+    |> assert_code(String.trim(expected))
   end
 
   test "formats an empty string" do
     code = "  "
-    expected = "\n"
+    expected = ""
 
     code
     |> run_task(Format, autocorrect: true)
