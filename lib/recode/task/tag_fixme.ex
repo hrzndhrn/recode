@@ -27,7 +27,7 @@ defmodule Recode.Task.TagFIXME do
 
   @impl Recode.Task
   def init(opts) do
-    Tags.init(Keyword.merge([tag: "FIXME", reporter: Recode.Task.TagFIXME], opts))
+    Tags.init(Keyword.merge([tag: "FIXME", reporter: __MODULE__], opts))
   end
 
   @impl Recode.Task

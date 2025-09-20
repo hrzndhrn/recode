@@ -121,7 +121,7 @@ defmodule Recode.Task.Moduledoc do
   end
 
   defp add_issue(source, meta, message) do
-    Source.add_issue(source, Issue.new(Moduledoc, message, meta))
+    Source.add_issue(source, Issue.new(__MODULE__, message, meta))
   end
 
   defp ignore?(_name, []), do: false

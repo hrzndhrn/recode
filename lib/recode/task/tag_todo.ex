@@ -27,7 +27,7 @@ defmodule Recode.Task.TagTODO do
 
   @impl Recode.Task
   def init(opts) do
-    Tags.init(Keyword.merge([tag: "TODO", reporter: Recode.Task.TagTODO], opts))
+    Tags.init(Keyword.merge([tag: "TODO", reporter: __MODULE__], opts))
   end
 
   @impl Recode.Task

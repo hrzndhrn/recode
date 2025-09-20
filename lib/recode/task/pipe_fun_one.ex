@@ -16,7 +16,6 @@ defmodule Recode.Task.PipeFunOne do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
-  alias Recode.Task.PipeFunOne
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -33,7 +32,7 @@ defmodule Recode.Task.PipeFunOne do
       end)
 
     case opts[:autocorrect] do
-      true -> Source.update(source, PipeFunOne, :quoted, Zipper.root(zipper))
+      true -> Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
       false -> Source.add_issues(source, issues)
     end
   end
@@ -50,7 +49,7 @@ defmodule Recode.Task.PipeFunOne do
   defp pipe_fun_one(%Zipper{node: {:|>, meta, _tree} = ast} = zipper, issues, false) do
     case issue?(ast) do
       true ->
-        issue = Issue.new(PipeFunOne, "Use parentheses for one-arity functions in pipes.", meta)
+        issue = Issue.new(__MODULE__, "Use parentheses for one-arity functions in pipes.", meta)
 
         {zipper, [issue | issues]}
 

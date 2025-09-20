@@ -21,7 +21,6 @@ defmodule Recode.Task.AliasOrder do
 
   alias Recode.AST
   alias Recode.Issue
-  alias Recode.Task.AliasOrder
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -48,7 +47,7 @@ defmodule Recode.Task.AliasOrder do
         alias_order(zipper, acc)
       end)
 
-    Source.update(source, AliasOrder, :quoted, Zipper.root(zipper))
+    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
   end
 
   defp alias_groups(%Zipper{node: {:alias, _meta, _args} = ast} = zipper, [group | groups]) do
@@ -97,7 +96,7 @@ defmodule Recode.Task.AliasOrder do
 
   defp issue({:__aliases__, meta, args}) do
     Issue.new(
-      AliasOrder,
+      __MODULE__,
       "The alias `#{AST.name(args)}` is not alphabetically ordered among its multi group",
       meta
     )
@@ -107,7 +106,7 @@ defmodule Recode.Task.AliasOrder do
     {name, _multi, _as} = AST.alias_info(ast)
 
     Issue.new(
-      AliasOrder,
+      __MODULE__,
       "The alias `#{AST.name(name)}` is not alphabetically ordered among its group",
       meta
     )

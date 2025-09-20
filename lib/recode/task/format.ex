@@ -25,7 +25,6 @@ defmodule Recode.Task.Format do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.Issue
-  alias Recode.Task.Format
   alias Rewrite.DotFormatter
   alias Rewrite.Source
 
@@ -40,7 +39,7 @@ defmodule Recode.Task.Format do
   end
 
   defp execute(source, true, formatter) do
-    Source.update(source, :content, format(source, formatter), by: Format)
+    Source.update(source, :content, format(source, formatter), by: __MODULE__)
   end
 
   defp execute(source, false, formatter) do
@@ -49,7 +48,7 @@ defmodule Recode.Task.Format do
         source
 
       false ->
-        Source.add_issue(source, Issue.new(Format, "The file is not formatted."))
+        Source.add_issue(source, Issue.new(__MODULE__, "The file is not formatted."))
     end
   end
 

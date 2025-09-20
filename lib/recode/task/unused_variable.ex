@@ -23,7 +23,7 @@ defmodule Recode.Task.UnusedVariable do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, __MODULE__, :quoted, Zipper.root(zipper))
+        Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
 
       false ->
         Source.add_issues(source, issues)

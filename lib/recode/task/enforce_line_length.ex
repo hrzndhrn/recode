@@ -38,7 +38,6 @@ defmodule Recode.Task.EnforceLineLength do
   use Recode.Task, corrector: true, category: :readability
 
   alias Recode.AST
-  alias Recode.Task.EnforceLineLength
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -52,7 +51,7 @@ defmodule Recode.Task.EnforceLineLength do
       |> Zipper.zip()
       |> Zipper.traverse_while(fn zipper -> same_line(zipper, opts) end)
 
-    Source.update(source, EnforceLineLength, :quoted, Zipper.root(zipper))
+    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
   end
 
   defp same_line(%Zipper{node: {:with, _meta, _args}} = zipper, _opts) do

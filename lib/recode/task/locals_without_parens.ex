@@ -21,7 +21,6 @@ defmodule Recode.Task.LocalsWithoutParens do
 
   alias Mix.Tasks.Format
   alias Recode.Issue
-  alias Recode.Task.RemoveParens
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -40,7 +39,7 @@ defmodule Recode.Task.LocalsWithoutParens do
 
     case opts[:autocorrect] do
       true ->
-        Source.update(source, RemoveParens, :quoted, Zipper.root(zipper))
+        Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
 
       false ->
         Source.add_issues(source, issues)
@@ -58,7 +57,7 @@ defmodule Recode.Task.LocalsWithoutParens do
         node = {fun, Keyword.delete(meta, :closing), args}
         {Zipper.replace(zipper, node), issues}
       else
-        issue = Issue.new(RemoveParens, "Unncecessary parens")
+        issue = Issue.new(__MODULE__, "Unncecessary parens")
         {zipper, [issue | issues]}
       end
     else

@@ -10,7 +10,6 @@ defmodule Recode.Task.Dbg do
   use Recode.Task, corrector: true, category: :warning
 
   alias Recode.Issue
-  alias Recode.Task.Dbg
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -26,7 +25,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp update({zipper, _issues}, source, true) do
-    Source.update(source, Dbg, :quoted, Zipper.root(zipper))
+    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
   end
 
   defp update({_zipper, []}, source, false), do: source
@@ -86,7 +85,7 @@ defmodule Recode.Task.Dbg do
   end
 
   defp handle(zipper, issues, meta, false) do
-    issue = Issue.new(Dbg, @shortdoc, meta)
+    issue = Issue.new(__MODULE__, @shortdoc, meta)
     {zipper, [issue | issues]}
   end
 
