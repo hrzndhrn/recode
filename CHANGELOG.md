@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4 - 2025/09/20
+
++ Update to `rewrite` 1.1.2
+
 ## 0.7.3 - 2024/07/25
 
 + Add config for preformatter.
