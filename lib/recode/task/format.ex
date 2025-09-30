@@ -56,7 +56,7 @@ defmodule Recode.Task.Format do
     formatter_opts = Keyword.get(source.filetype.opts, :formatter_opts, [])
 
     current_formatter_opts =
-      case DotFormatter.read(ignore_missing_sub_formatters: true) |> IO.inspect() do
+      case DotFormatter.read(ignore_missing_sub_formatters: true) do
         {:ok, dot_formatter} -> DotFormatter.formatter_opts(dot_formatter)
         {:error, reason} -> raise reason
       end
