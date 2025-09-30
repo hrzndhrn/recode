@@ -2,7 +2,7 @@
 
 ## 0.7.5 - 2025/09/30
 
-+  ff
++ Ignore missing sub formatters when reading dot-formatters. 
 
 ## 0.7.4 - 2025/09/20
 
