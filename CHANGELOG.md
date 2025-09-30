@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5 - 2025/09/30
+
++ Ignore missing sub formatters when reading dot-formatters. 
+
 ## 0.7.4 - 2025/09/20
 
 + Update to `rewrite` 1.1.2
