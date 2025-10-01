@@ -230,10 +230,11 @@ defmodule Mix.Tasks.Recode do
 
   defp check_dot_formatter() do
     with true <- File.exists?(".formatter.exs"),
-         {:error, reason} <- DotFormatter.read() do
+         {:error, reason} <- DotFormatter.read(ignore_missing_sub_formatters: true) do
       reason
       |> Exception.message()
       |> Mix.raise()
     end
+    |> IO.inspect(label: :dot_formatter, pretty: true, limit: :infinity)
   end
 end

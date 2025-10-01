@@ -70,6 +70,8 @@ defmodule Recode.Task.Format do
 
     path = Map.get(source, :path) || Source.default_path(source)
 
+    IO.inspect(path, label: :path)
+    IO.inspect(dot_formatter, label: :dot_formatter, pretty: true, limit: :infinity)
     DotFormatter.format_string!(dot_formatter, path, source.content)
   end
 
