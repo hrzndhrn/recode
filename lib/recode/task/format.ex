@@ -58,7 +58,7 @@ defmodule Recode.Task.Format do
     current_formatter_opts =
       case DotFormatter.read(ignore_missing_sub_formatters: true) do
         {:ok, dot_formatter} -> DotFormatter.formatter_opts(dot_formatter)
-        {:error, _reason} -> []
+        {:error, reason} -> raise reason
       end
 
     merged_formatter_opts = Keyword.merge(current_formatter_opts, formatter_opts)
@@ -70,6 +70,8 @@ defmodule Recode.Task.Format do
 
     path = Map.get(source, :path) || Source.default_path(source)
 
+    IO.inspect(path, label: :path)
+    IO.inspect(dot_formatter, label: :dot_formatter, pretty: true, limit: :infinity)
     DotFormatter.format_string!(dot_formatter, path, source.content)
   end
 
