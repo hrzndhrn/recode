@@ -54,6 +54,7 @@ defmodule Mix.Tasks.Recode do
 
   alias Recode.Config
   alias Recode.Runner
+  alias Rewrite.DotFormatter
 
   @opts strict: [
           autocorrect: :boolean,
@@ -90,6 +91,8 @@ defmodule Mix.Tasks.Recode do
   @spec run(list()) :: no_return()
   def run(opts) do
     {:ok, _apps} = Application.ensure_all_started(:recode)
+
+    check_dot_formatter()
 
     opts = opts!(opts)
 
@@ -264,5 +267,14 @@ defmodule Mix.Tasks.Recode do
   defp put(config, opts, key, default) do
     value = Keyword.get(opts, key, default)
     Keyword.put(config, key, value)
+  end
+
+  defp check_dot_formatter do
+    with true <- File.exists?(".formatter.exs"),
+         {:error, reason} <- DotFormatter.read(ignore_missing_sub_formatters: true) do
+      reason
+      |> Exception.message()
+      |> Mix.raise()
+    end
   end
 end
