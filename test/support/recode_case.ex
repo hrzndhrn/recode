@@ -103,8 +103,14 @@ defmodule RecodeCase do
     end
   end
 
-  def source(string, path \\ nil) do
-    Source.Ex.from_string(string, path: path)
+  def source(string, opts \\ [])
+
+  def source(string, path) when is_binary(path) do
+    source(string, path: path)
+  end
+
+  def source(string, opts) when is_list(opts) do
+    Source.Ex.from_string(string, opts)
   end
 
   def project(%Source{} = source) do
