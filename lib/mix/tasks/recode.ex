@@ -271,11 +271,13 @@ defmodule Mix.Tasks.Recode do
   end
 
   defp check_dot_formatter do
-    with true <- File.exists?(".formatter.exs"),
-         {:error, reason} <- DotFormatter.read(ignore_missing_sub_formatters: true) do
-      reason |> DotFormatterError.message() |> Mix.raise()
+    if File.exists?(".formatter.exs") do
+      case DotFormatter.read(ignore_missing_sub_formatters: true) do
+        {:error, reason} -> reason |> DotFormatterError.message() |> Mix.raise()
+        {:ok, _dot_formatter} -> :ok
+      end
+    else
+      :ok
     end
-
-    :ok
   end
 end
