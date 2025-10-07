@@ -93,7 +93,7 @@ defmodule Mix.Tasks.Recode do
   def run(opts) do
     {:ok, _apps} = Application.ensure_all_started(:recode)
 
-    {:ok, _dot_formatter} = check_dot_formatter()
+    :ok = check_dot_formatter()
 
     opts = opts!(opts)
 
@@ -275,5 +275,7 @@ defmodule Mix.Tasks.Recode do
          {:error, reason} <- DotFormatter.read(ignore_missing_sub_formatters: true) do
       reason |> DotFormatterError.message() |> Mix.raise()
     end
+
+    :ok
   end
 end
