@@ -2,15 +2,16 @@
 
 ## 0.8.0 - dev
 
-+ Use `Rewrite` version `~> 1.0`.
-+ Add callback and default implementation `Recode.Task.update_source/3`.
++ Use `Rewrite` version `~> 1.0`
++ Add callback and default implementation `Recode.Task.update_source/3`
 + Add callback and default implementation `Recode.Task.new_issue/1` and 
-  `Recode.Task.new_issue/2`. 
-+ Rename `Recode.Task.TestFileExt` to `Recode.Task.TestFile`.
+  `Recode.Task.new_issue/2`
++ Rename `Recode.Task.TestFileExt` to `Recode.Task.TestFile`
 + Update `mix recode.update.config` to remove deprecated tasks.
-+ Add a manifest file to store information about the files processed.
-+ Add silent mode with flag `--silent`.
-+ Fix `Recode.Task.LocalsWithoutParens`.
++ Add a manifest file to store information about the files processed
++ Add silent mode with flag `--silent`
++ Fix `Recode.Task.LocalsWithoutParens`
++ Fix `Recode.Task.AliasOrder`
 + Changes for Elixir 1.19
 
 ## 0.7.5 - 2025/09/30
