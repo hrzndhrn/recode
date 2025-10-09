@@ -11,6 +11,7 @@
 + Add a manifest file to store information about the files processed.
 + Add silent mode with flag `--silent`.
 + Fix `Recode.Task.LocalsWithoutParens`.
++ Changes for Elixir 1.19
 
 ## 0.7.5 - 2025/09/30
 

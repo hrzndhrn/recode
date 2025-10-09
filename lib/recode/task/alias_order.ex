@@ -147,15 +147,26 @@ defmodule Recode.Task.AliasOrder do
     {:cont, zipper, []}
   end
 
+  # defp update(zipper, []), do: zipper
+  #
+  # defp update(zipper, [_alias]), do: zipper
+
   defp update(zipper, acc) do
     acc = Enum.reverse(acc)
-    sorted = acc |> Enum.map(&sort_multi/1) |> Enum.sort(&sort/2)
+    leading_comments = get_leading_comments(acc)
+
+    sorted =
+      acc
+      |> Enum.map(&sort_multi/1)
+      |> Enum.sort(&sort/2)
 
     case acc == sorted do
       true ->
         zipper
 
       false ->
+        sorted = put_leading_comments(sorted, leading_comments)
+
         zipper
         |> rewind(hd(acc))
         |> do_update(sorted)
@@ -225,5 +236,18 @@ defmodule Recode.Task.AliasOrder do
     with nil <- Zipper.right(zipper) do
       Zipper.next(zipper)
     end
+  end
+
+  defp get_leading_comments([{:alias, meta, _block} | _rest]) do
+    Keyword.get(meta, :leading_comments, [])
+  end
+
+  defp put_leading_comments([{:alias, meta, block} | rest], comments) do
+    rest =
+      Enum.map(rest, fn {:alias, meta, block} ->
+        {:alias, Keyword.put(meta, :leading_comments, []), block}
+      end)
+
+    [{:alias, Keyword.put(meta, :leading_comments, comments), block} | rest]
   end
 end

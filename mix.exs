@@ -18,7 +18,7 @@ defmodule Recode.MixProject do
       start_permanent: Mix.env() == :prod,
       dialyzer: dialyzer(),
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: preferred_cli_env(),
+      test_ignore_filters: [~r'test/fixtures/.*'],
       deps: deps(),
       package: package(),
       aliases: aliases()
@@ -29,6 +29,19 @@ defmodule Recode.MixProject do
     [
       extra_applications: [:logger, :mix, :ex_unit, :crypto, :iex, :eex],
       mod: {Recode.Application, []}
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
+        carp: :test,
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.github": :test
+      ]
     ]
   end
 
@@ -82,17 +95,6 @@ defmodule Recode.MixProject do
     ]
   end
 
-  def preferred_cli_env do
-    [
-      carp: :test,
-      coveralls: :test,
-      "coveralls.detail": :test,
-      "coveralls.post": :test,
-      "coveralls.html": :test,
-      "coveralls.github": :test
-    ]
-  end
-
   defp aliases do
     [
       carp: "test --seed 0 --max-failures 1"
@@ -103,7 +105,7 @@ defmodule Recode.MixProject do
     [
       {:escape, "~> 0.1"},
       {:glob_ex, "~> 0.1"},
-      {:rewrite, "~> 1.1"},
+      {:rewrite, "~> 1.2"},
       # dev/test
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},

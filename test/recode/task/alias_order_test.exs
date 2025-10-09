@@ -507,5 +507,31 @@ defmodule Recode.Task.AliasOrderTest do
       |> run_task(AliasOrder, autocorrect: true)
       |> assert_code(expected)
     end
+
+    test "sorts aliases with comment" do
+      code = """
+      defmodule MyWeb do
+        import NewappWeb.CoreComponents
+
+        # Common modules used in templates
+        alias Phoenix.LiveView.JS
+        alias NewappWeb.Layouts
+      end
+      """
+
+      expected = """
+      defmodule MyWeb do
+        import NewappWeb.CoreComponents
+
+        # Common modules used in templates
+        alias NewappWeb.Layouts
+        alias Phoenix.LiveView.JS
+      end
+      """
+
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
+    end
   end
 end

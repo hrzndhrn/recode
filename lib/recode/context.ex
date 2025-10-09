@@ -23,9 +23,9 @@ defmodule Recode.Context do
       ...>   end
       ...> end
       ...> """
-      ...> 
-      ...> context = 
-      ...>   code 
+      ...>
+      ...> context =
+      ...>   code
       ...>   |> Source.Ex.from_string()
       ...>   |> Source.get(:quoted)
       ...>   |> Zipper.zip()
@@ -39,20 +39,20 @@ defmodule Recode.Context do
       ...>       {zipper, context, acc}
       ...>   end)
       ...>   |> elem(1)
-      ...> 
+      ...>
       ...> context |> Map.from_struct() |> Map.keys() |> Enum.sort()
       [
         :aliases,
-        :assigns, 
-        :definition, 
-        :doc, 
+        :assigns,
+        :definition,
+        :doc,
         :impl,
-        :imports, 
-        :module, 
-        :moduledoc, 
-        :node, 
-        :requirements, 
-        :spec, 
+        :imports,
+        :module,
+        :moduledoc,
+        :node,
+        :requirements,
+        :spec,
         :usages
       ]
   '''
@@ -549,12 +549,12 @@ defmodule Recode.Context do
   defp get_aliases([arg, opts], meta, context), do: [{get_alias(arg, context), meta, opts}]
 
   defp cont(%Zipper{node: node} = zipper, context, fun) do
-    {zipper, context} = fun.(zipper, %Context{context | node: node})
+    {zipper, context} = fun.(zipper, %{context | node: node})
     {:cont, zipper, context}
   end
 
   defp cont(%Zipper{node: node} = zipper, context, acc, fun) do
-    {zipper, context, acc} = fun.(zipper, %Context{context | node: node}, acc)
+    {zipper, context, acc} = fun.(zipper, %{context | node: node}, acc)
     {:cont, zipper, {context, acc}}
   end
 
