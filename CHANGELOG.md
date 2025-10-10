@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.0 - dev
+## 0.8.0 - 2025/10/10
 
 + Use `Rewrite` version `~> 1.0`
 + Add callback and default implementation `Recode.Task.update_source/3`
