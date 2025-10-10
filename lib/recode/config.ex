@@ -3,19 +3,28 @@ defmodule Recode.Config do
   Functions to read and merge the `Recode` configuration.
   """
 
-  alias Recode.Task.Format
-
   @type config :: keyword()
 
   @config_filename ".recode.exs"
 
-  @config_version "0.7.5"
+  @config_version "0.8.0"
 
   # The minimum version of the config to run recode. This version marks the last
   # breaking change for handle the config.
-  @config_min_version "0.7.1"
+  @config_min_version "0.8.0"
 
-  @config_keys [:version, :autocorrect, :dry, :verbose, :inputs, :formatters, :tasks, :color]
+  @config_keys [
+    :autocorrect,
+    :color,
+    :dry,
+    :formatters,
+    :inputs,
+    :manifest,
+    :silent,
+    :tasks,
+    :verbose,
+    :version
+  ]
 
   # The default configuration used by mix tasks recode.gen.config and
   # recode.update.config.
@@ -25,8 +34,10 @@ defmodule Recode.Config do
     dry: false,
     color: true,
     verbose: false,
-    inputs: ["{mix,.formatter}.exs", "{apps,config,lib,test}/**/*.{ex,exs}"],
+    silent: false,
+    inputs: :formatter,
     formatters: [Recode.CLIFormatter],
+    manifest: true,
     tasks: [
       {Recode.Task.AliasExpansion, []},
       {Recode.Task.AliasOrder, []},
@@ -35,14 +46,14 @@ defmodule Recode.Config do
       {Recode.Task.FilterCount, []},
       {Recode.Task.IOInspect, [autocorrect: false]},
       {Recode.Task.LocalsWithoutParens, []},
-      {Recode.Task.Moduledoc, []},
+      {Recode.Task.Moduledoc, [exclude: ["test/**/*.{ex,exs}", "mix.exs"]]},
       {Recode.Task.Nesting, []},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
       {Recode.Task.Specs, [exclude: ["test/**/*.{ex,exs}", "mix.exs"], config: [only: :visible]]},
       {Recode.Task.TagFIXME, exit_code: 2},
       {Recode.Task.TagTODO, exit_code: 4},
-      {Recode.Task.TestFileExt, []},
+      {Recode.Task.TestFile, []},
       {Recode.Task.UnnecessaryIfUnless, []},
       {Recode.Task.UnusedVariable, [active: false]}
     ]
@@ -53,6 +64,11 @@ defmodule Recode.Config do
   """
   @spec default() :: config()
   def default, do: @config_default
+
+  @doc """
+  Returns the default config filename.
+  """
+  def default_filename, do: @config_filename
 
   @doc """
   Returns the given config as a formatted string with comments.
@@ -74,9 +90,17 @@ defmodule Recode.Config do
       color: <%= @config[:color] %>,
       # Can also be set/reset with `--verbose`/`--no-verbose`.
       verbose: <%= @config[:verbose] %>,
+      # Can be overwritten with `--silent`/`--no-silent`.
+      # When enabled, suppresses all non-essential output during execution.
+      silent: <%= @config[:silent] %>,
+      # Inputs can be a path, glob expression or list of paths and glob expressions.
+      # With the atom :formatter the inputs from .formatter.exs are
+      # used. also allowed in the list mentioned above.
       # Can be overwritten by calling `mix recode "lib/**/*.ex"`.
       inputs: <%= inspect @config[:inputs] %>,
       formatters: <%= inspect @config[:formatters] %>,
+      # Can also be set/reset with `--manifest`/`--no-manifest`.
+      manifest: <%= inspect @config[:manifest] %>,
       tasks: [
         # Tasks could be added by a tuple of the tasks module name and an options
         # keyword list. A task can be deactivated by `active: false`. The execution of
@@ -96,8 +120,8 @@ defmodule Recode.Config do
   @doc """
   Merges two configs into one.
 
-  The merge will do a deep merge. The merge will do a deep merge. The merge
-  takes the version from the `right` config.
+  The merge will do a deep merge. The merge takes the version from the `right`
+  config.
 
   ## Examples
 
@@ -132,6 +156,16 @@ defmodule Recode.Config do
   end
 
   @doc """
+  Deletes the given `tasks` from the `config`.
+  """
+  @spec delete_tasks(config, [module()]) :: config
+  def delete_tasks(config, tasks) do
+    Keyword.update(config, :tasks, [], fn current_tasks ->
+      Keyword.drop(current_tasks, tasks)
+    end)
+  end
+
+  @doc """
   Reads the `Recode` cofiguration from the given `path`.
   """
   @spec read(Path.t()) :: {:ok, config()} | {:error, :not_found}
@@ -142,14 +176,19 @@ defmodule Recode.Config do
           path
           |> Code.eval_file()
           |> elem(0)
-          |> default_tasks()
-          |> update_inputs()
+          |> defaults()
 
         {:ok, config}
 
       false ->
         {:error, :not_found}
     end
+  end
+
+  defp defaults(config) do
+    @config_default
+    |> Keyword.drop([:version, :tasks])
+    |> Keyword.merge(config)
   end
 
   @doc """
@@ -177,25 +216,5 @@ defmodule Recode.Config do
 
   defp validate_tasks(config) do
     if Keyword.has_key?(config, :tasks), do: :ok, else: {:error, :no_tasks}
-  end
-
-  defp default_tasks(config) do
-    if has_task?(config, Format) do
-      config
-    else
-      Keyword.update!(config, :tasks, fn tasks -> [{Format, []} | tasks] end)
-    end
-  end
-
-  defp update_inputs(config) do
-    Keyword.update(config, :inputs, [], fn inputs ->
-      inputs |> List.wrap() |> Enum.map(fn input -> GlobEx.compile!(input) end)
-    end)
-  end
-
-  defp has_task?(config, module) do
-    config
-    |> Keyword.fetch!(:tasks)
-    |> Keyword.has_key?(module)
   end
 end

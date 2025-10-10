@@ -19,57 +19,115 @@ defmodule Recode.Task.LocalsWithoutParens do
 
   use Recode.Task, corrector: true, category: :readability
 
-  alias Mix.Tasks.Format
-  alias Recode.Issue
+  alias Rewrite.DotFormatter
   alias Rewrite.Source
   alias Sourceror.Zipper
 
+  @def [:def, :defp, :defmacro, :defmacrop]
+  @exclude [:{}, :%{}, :|>]
+
   @impl Recode.Task
   def run(source, opts) do
-    {_formatter, formatter_opts} = Format.formatter_for_file(source.path || "nofile")
-    locals_without_parens = Keyword.get(formatter_opts, :locals_without_parens, [])
+    locals_without_parens =
+      opts
+      |> Keyword.fetch!(:dot_formatter)
+      |> DotFormatter.formatter_opts_for_file(source.path || "nofile")
+      |> Keyword.get(:locals_without_parens, [])
+      |> Enum.concat(Code.Formatter.locals_without_parens())
 
-    {zipper, issues} =
-      source
-      |> Source.get(:quoted)
-      |> Zipper.zip()
-      |> Zipper.traverse([], fn zipper, issues ->
-        remove_parens(locals_without_parens, zipper, issues, opts[:autocorrect])
-      end)
+    source
+    |> Source.get(:quoted)
+    |> Zipper.zip()
+    |> Zipper.traverse_while([], fn zipper, issues ->
+      remove_parens(zipper, issues, locals_without_parens, opts[:autocorrect])
+    end)
+    |> update(source, opts)
+  end
 
-    case opts[:autocorrect] do
-      true ->
-        Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
+  defp update({zipper, issues}, source, opts) do
+    update_source(source, opts, quoted: zipper, issues: issues)
+  end
 
-      false ->
-        Source.add_issues(source, issues)
+  defp remove_parens(
+         %Zipper{node: {{:__block__, meta, [:do]}, _block}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       ) do
+    if meta[:format] == :keyword do
+      {:skip, zipper, issues}
+    else
+      {:cont, zipper, issues}
     end
   end
 
   defp remove_parens(
-         locals_without_parens,
-         %Zipper{node: {fun, meta, args}} = zipper,
+         %Zipper{node: {fun, _meta, _args}} = zipper,
          issues,
+         _locals_without_parens,
+         _autocorrect?
+       )
+       when fun in @def do
+    {:cont, Zipper.next(zipper), issues}
+  end
+
+  defp remove_parens(
+         %Zipper{node: {_one, _two}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       ) do
+    {:skip, zipper, issues}
+  end
+
+  defp remove_parens(
+         %Zipper{node: {form, _meta, _args}} = zipper,
+         issues,
+         _locals_without_parens,
+         _autocorrect?
+       )
+       when form in @exclude do
+    {:skip, zipper, issues}
+  end
+
+  defp remove_parens(
+         %Zipper{node: {_fun, _meta, [_ | _]}} = zipper,
+         issues,
+         locals_without_parens,
          autocorrect?
        ) do
-    if local_without_parens?(locals_without_parens, fun, args) do
+    do_remove_parens(zipper, issues, locals_without_parens, autocorrect?)
+  end
+
+  defp remove_parens(zipper, issues, _locals_without_parens, _autocorrect) do
+    {:cont, zipper, issues}
+  end
+
+  defp do_remove_parens(
+         %Zipper{node: {fun, meta, args}} = zipper,
+         issues,
+         locals_without_parens,
+         autocorrect?
+       ) do
+    if remove_parens?(fun, meta, args, locals_without_parens) do
       if autocorrect? do
         node = {fun, Keyword.delete(meta, :closing), args}
-        {Zipper.replace(zipper, node), issues}
+        {:cont, Zipper.replace(zipper, node), issues}
       else
-        issue = Issue.new(__MODULE__, "Unncecessary parens")
-        {zipper, [issue | issues]}
+        issue = new_issue("Unnecessary parens", meta)
+        {:cont, zipper, [issue | issues]}
       end
     else
-      {zipper, issues}
+      {:cont, zipper, issues}
     end
   end
 
-  defp remove_parens(_, zipper, issues, _) do
-    {zipper, issues}
+  defp remove_parens?(fun, meta, args, locals_without_parens) do
+    Keyword.has_key?(meta, :closing) and not multiline?(meta) and
+      local_without_parens?(locals_without_parens, fun, args)
   end
 
-  defp local_without_parens?(locals_without_parens, fun, [_ | _] = args) do
+  defp local_without_parens?(locals_without_parens, fun, args) do
     arity = length(args)
 
     Enum.any?(locals_without_parens, fn
@@ -79,5 +137,7 @@ defmodule Recode.Task.LocalsWithoutParens do
     end)
   end
 
-  defp local_without_parens?(_locals_without_parens, _fun, _args), do: false
+  defp multiline?(meta) do
+    meta[:line] < meta[:closing][:line]
+  end
 end

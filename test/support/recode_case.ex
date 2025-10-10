@@ -3,6 +3,7 @@ defmodule RecodeCase do
 
   use ExUnit.CaseTemplate
 
+  alias Rewrite.DotFormatter
   alias Rewrite.Source
 
   using do
@@ -124,6 +125,7 @@ defmodule RecodeCase do
 
   def run_task(%Source{} = source, task, opts) do
     with {:ok, opts} <- task.init(opts) do
+      opts = Keyword.put_new(opts, :dot_formatter, DotFormatter.default())
       task.run(source, opts)
     end
   end
@@ -133,4 +135,20 @@ defmodule RecodeCase do
   end
 
   def eof_newline(string), do: String.trim_trailing(string) <> "\n"
+
+  defmacro in_tmp(context, do: block) do
+    quote do
+      tmp_dir = Map.fetch!(unquote(context), :tmp_dir)
+      fixture = Map.get(unquote(context), :fixture)
+      project = Map.get(unquote(context), :project)
+
+      if fixture, do: "test/fixtures" |> Path.join(fixture) |> File.cp_r!(tmp_dir)
+
+      File.cd!(tmp_dir, fn ->
+        if project, do: Mix.Project.push(project)
+        unquote(block)
+        if project, do: Mix.Project.pop()
+      end)
+    end
+  end
 end

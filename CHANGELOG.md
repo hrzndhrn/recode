@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0 - dev
+
++ Use `Rewrite` version `~> 1.0`
++ Add callback and default implementation `Recode.Task.update_source/3`
++ Add callback and default implementation `Recode.Task.new_issue/1` and 
+  `Recode.Task.new_issue/2`
++ Rename `Recode.Task.TestFileExt` to `Recode.Task.TestFile`
++ Update `mix recode.update.config` to remove deprecated tasks.
++ Add a manifest file to store information about the files processed
++ Add silent mode with flag `--silent`
++ Fix `Recode.Task.LocalsWithoutParens`
++ Fix `Recode.Task.AliasOrder`
++ Changes for Elixir 1.19
+
 ## 0.7.5 - 2025/09/30
 
 + Ignore missing sub formatters when reading dot-formatters. 
@@ -18,7 +32,7 @@
 
 ## 0.7.2 - 2024/02/10
 
-+ Fix AST.alias_info fot `alias __MODULE__, as: MyModule`.
++ Fix `Recode.AST.alias_info` fot `alias __MODULE__, as: MyModule`.
 
 ## 0.7.1 - 2024/01/09
 

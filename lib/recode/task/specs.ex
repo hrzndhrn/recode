@@ -16,7 +16,6 @@ defmodule Recode.Task.Specs do
   use Recode.Task, category: :readability
 
   alias Recode.Context
-  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -82,7 +81,7 @@ defmodule Recode.Task.Specs do
 
   defp issue(%Context{definition: {_definition, meta}}) do
     message = "Functions should have a @spec type specification."
-    Issue.new(__MODULE__, message, meta)
+    new_issue(message, meta)
   end
 
   defp result({_zipper, {issues, _seen}}), do: issues

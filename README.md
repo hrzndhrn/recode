@@ -9,8 +9,6 @@ A linter with autocorrection.
 [`sourceror`](https://github.com/doorgan/sourceror) package by @doorgan.
 
 This library is still under development, breaking changes are expected.
-The same is true for `sourceror` and most of `recode`'s functionality is based
-on `sourceror`.
 
 `recode` can correct and check the following things:
 
@@ -37,7 +35,7 @@ Nesting             # Checker   - Checks code nesting depth in functions and mac
 Warning tasks:
 Dbg                 # Corrector - There should be no calls to dbg.
 IOInspect           # Corrector - There should be no calls to IO.inspect.
-TestFileExt         # Corrector - Checks the file extension of test files.
+TestFile         # Corrector - Checks the file extension of test files.
 UnusedVariable      # Corrector - Checks if unused variables occur.
 ```
 
@@ -116,7 +114,7 @@ This mix task generates the config file `.recode.exs`.
     {Recode.Task.Specs, [exclude: "test/**/*.{ex,exs}", config: [only: :visible]]},
     {Recode.Task.TagFIXME, [exit_code: 2]},
     {Recode.Task.TagTODO, [exit_code: 4]},
-    {Recode.Task.TestFileExt, []},
+    {Recode.Task.TestFile, []},
     {Recode.Task.UnnecessaryIfUnless, []},
     {Recode.Task.UnusedVariable, [active: false]}
   ]
@@ -138,12 +136,20 @@ This mix task runs the linter with autocorrection. The switch `--dry` (alias
 
 ```
 > cd examples/my_code
-> mix recode --dry --no-color
-Read 19 files in 0.05s
-!.........!........!!...............................!................!...!......
-.......................!...........................!..!!..........!.........!...
-..............!.!......!......!.....!......!...............!..........!...!.....
-...........!!..!.!!.!..
+> mix recode --dry --no-color --no-manifest
+Read 24 files in 0.01s
+...................................................!...............!!.........................................................................!....!..!................................!........!...............!..!...!..................!....!.....!................!........!.....!...............!...!!..!.........!...!.!........!!..!..!!!.!....
+File: .formatter.exs
+Updates: 1
+Changed by: Format
+     ...|
+13 13   |  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}", "priv/**/*.json"],
+14 14   |  locals_without_parens: [noop: 1],
+15    - |  subdirectories: ["priv/*/migrations"],
+   15 + |  subdirectories: ["priv/*/migrations"]
+16 16   |]
+17 17   |
+
 File: lib/my_code.ex
 [Specs 15/3] Functions should have a @spec type specification.
 
@@ -157,6 +163,7 @@ Changed by: AliasExpansion
 3 4   |
 4 5   |  def foo(x) do
    ...|
+[Moduledoc 1/1] The module Elixir.MyCode.AliasExpansion is missing @moduledoc.
 [Specs 5/3] Functions should have a @spec type specification.
 
 File: lib/my_code/alias_order.ex
@@ -174,14 +181,12 @@ Changed by: AliasOrder, AliasExpansion
 17 18   |
 18 19   |  @doc false
      ...|
+[Moduledoc 13/1] The module Elixir.Mycode.AliasOrder is missing @moduledoc.
 
 File: lib/my_code/deep.ex
+[Moduledoc 1/1] The module Elixir.MyCode.Deep is missing @moduledoc.
 [Specs 2/3] Functions should have a @spec type specification.
 [Nesting 6/11] The body is nested too deep (max depth: 2).
-
-File: lib/my_code/empty.ex
-Updates: 1
-Changed by: Format
 
 File: lib/my_code/multi.ex
 Updates: 4
@@ -211,6 +216,7 @@ Changed by: SinglePipe, PipeFunOne, FilterCount, Format
 23 21   |    |> IO.inspect()
 24 22   |  end
      ...|
+[Moduledoc 1/1] The module Elixir.MyCode.Multi is missing @moduledoc.
 [Specs 4/3] Functions should have a @spec type specification.
 [Specs 6/3] Functions should have a @spec type specification.
 [Dbg 7/34] There should be no calls to dbg.
@@ -232,6 +238,7 @@ Changed by: PipeFunOne
      ...|
 
 File: lib/my_code/same_line.ex
+[Moduledoc 1/1] The module Elixir.MyCode.SameLine is missing @moduledoc.
 [Specs 2/3] Functions should have a @spec type specification.
 
 File: lib/my_code/single_pipe.ex
@@ -276,48 +283,37 @@ Changed by: SinglePipe, Format
      ...|
 
 File: mix.exs
-Updates: 1
-Changed by: Format
+[Moduledoc 1/1] The module Elixir.MyCode.MixProject is missing @moduledoc.
+
+File: priv/repo/migrations/20190417140000_create_users.exs
+Updates: 2
+Changed by: LocalsWithoutParens, Format
      ...|
- 9  9   |      start_permanent: Mix.env() == :prod,
-10 10   |      deps: deps(),
-11    - |      aliases: aliases(),
-   11 + |      aliases: aliases()
-12 12   |    ]
-13 13   |  end
+ 4  4   |  def up do
+ 5  5   |    create table("users") do
+ 6    - |      add :first_name,    :string, size: 40
+ 7    - |      add(:last_name,    :string, size: 40)
+    6 + |      add :first_name, :string, size: 40
+    7 + |      add :last_name, :string, size: 40
+ 8  8   |
+ 9  9   |      timestamps()
      ...|
-16 16   |    [
-17 17   |      extra_applications: [:logger],
-18    - |      mod: {Recode.Application, []},
-   18 + |      mod: {Recode.Application, []}
-19 19   |    ]
-20 20   |  end
-     ...|
-23 23   |    [
-24 24   |      backup: ["cmd elixir ./scripts/backup.exs"],
-25    - |      "backup.restore": ["cmd elixir ./scripts/backup.exs restore"],
-   25 + |      "backup.restore": ["cmd elixir ./scripts/backup.exs restore"]
-26 26   |    ]
-27 27   |  end
-     ...|
-32 32   |      # dev/test
-33 33   |      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-34    - |      {:freedom_formatter, "~> 2.1", only: :dev},
-   34 + |      {:freedom_formatter, "~> 2.1", only: :dev}
-35 35   |    ]
-36 36   |  end
-     ...|
+[Moduledoc 1/1] The module Elixir.MyRepo.Migrations.CreateUsers is missing @moduledoc.
+[Specs 4/3] Functions should have a @spec type specification.
+[Specs 13/3] Functions should have a @spec type specification.
 
 File: test/my_code_test.exs
 Updates: 1
-Changed by: TestFileExt
+Changed by: TestFile
 Moved from: test/my_code_test.ex
+[Moduledoc 1/1] The module Elixir.MyCodeTest is missing @moduledoc.
+[TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
 
-Executed 244 tasks in 0.01s.
-Files: 19 (.ex: 15, .exs: 4)
+Completed 342 tasks in 0.02s.
+Files processed: 24 (.ex: 16, .exs: 7, .json: 1)
 Moved 1 file
 Updated 8 files
-Found 15 issues
+Found 26 issues
 Finished in 0.06s.
 ```
 
@@ -326,43 +322,82 @@ mode, all correctors are working as checkers.
 
 ```
 > cd examples/my_code
-> mix recode --no-autocorrect
-Found 11 files, including 2 scripts.
-.............................................................................
- File: lib/my_code.ex
+> mix recode --no-autocorrect --no-color --no-manifest
+Read 24 files in 0.02s
+...............................!!...!.!.............................!...............................................!...!..!!.....!...................!.....!..........!....!.......!....!!....!..!................!..........................!.....................................!.......!..!!..........!..!..!.!......!............!..........!...
+File: lib/my_code.ex
 [Specs 15/3] Functions should have a @spec type specification.
 
- File: lib/my_code/alias_expansion.ex
+File: lib/my_code/alias_expansion.ex
+[Moduledoc 1/1] The module Elixir.MyCode.AliasExpansion is missing @moduledoc.
 [AliasExpansion 2/3] Avoid multi aliases.
 [Specs 4/3] Functions should have a @spec type specification.
 
- File: lib/my_code/alias_order.ex
+File: lib/my_code/alias_order.ex
+[Moduledoc 13/1] The module Elixir.Mycode.AliasOrder is missing @moduledoc.
 [AliasOrder 15/3] The alias `MyCode.PipeFunOne` is not alphabetically ordered among its group
 [AliasOrder 16/3] The alias `MyCode` is not alphabetically ordered among its group
-[AliasOrder 16/26] The alias `Echo` is not alphabetically ordered among its multi group
 [AliasExpansion 16/3] Avoid multi aliases.
+[AliasOrder 16/26] The alias `Echo` is not alphabetically ordered among its multi group
 
- File: lib/my_code/fun.ex
-[Format -/-] The file is not formatted.
+File: lib/my_code/deep.ex
+[Moduledoc 1/1] The module Elixir.MyCode.Deep is missing @moduledoc.
+[Specs 2/3] Functions should have a @spec type specification.
+[Nesting 6/11] The body is nested too deep (max depth: 2).
 
- File: lib/my_code/multi.ex
-[PipeFunOne 9/7] Use parentheses for one-arity functions in pipes.
-[Dbg 9/32] There should be no calls to dbg.
-[SinglePipe 13/7] Use a function call when a pipeline is only one function long.
-[FilterCount 22/12] `Enum.count/2` is more efficient than `Enum.filter/2 |> Enum.count/1`
-[IOInspect 24/8] There should be no calls to IO.inspect.
+File: lib/my_code/fun.ex
+[LocalsWithoutParens 4/7] Unnecessary parens
 
- File: lib/my_code/pipe_fun_one.ex
+File: lib/my_code/multi.ex
+[Moduledoc 1/1] The module Elixir.MyCode.Multi is missing @moduledoc.
+[Specs 4/3] Functions should have a @spec type specification.
+[Specs 6/3] Functions should have a @spec type specification.
+[PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
+[Dbg 7/32] There should be no calls to dbg.
+[Specs 10/3] Functions should have a @spec type specification.
+[SinglePipe 11/7] Use a function call when a pipeline is only one function long.
+[Specs 14/3] Functions should have a @spec type specification.
+[Specs 18/3] Functions should have a @spec type specification.
+[FilterCount 20/12] `Enum.count/2` is more efficient than `Enum.filter/2 |> Enum.count/1`
+[IOInspect 22/8] There should be no calls to IO.inspect.
+
+File: lib/my_code/pipe_fun_one.ex
 [PipeFunOne 7/7] Use parentheses for one-arity functions in pipes.
 
- File: lib/my_code/single_pipe.ex
+File: lib/my_code/same_line.ex
+[Moduledoc 1/1] The module Elixir.MyCode.SameLine is missing @moduledoc.
+[Specs 2/3] Functions should have a @spec type specification.
+
+File: lib/my_code/single_pipe.ex
 [SinglePipe 7/7] Use a function call when a pipeline is only one function long.
 [SinglePipe 10/25] Use a function call when a pipeline is only one function long.
 
- File: test/my_code_test.ex
-[TestFileExt -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
+File: lib/my_code/tags.ex
+[TagTODO 3/-] Found a tag: TODO: add docs
+[TagFIXME 6/-] Found a tag: FIXME: add more functions
+[Specs 7/3] Functions should have a @spec type specification.
 
-Finished in 0.05 seconds.
+File: lib/my_code/trailing_comma.ex
+[SinglePipe 18/5] Use a function call when a pipeline is only one function long.
+
+File: mix.exs
+[Moduledoc 1/1] The module Elixir.MyCode.MixProject is missing @moduledoc.
+
+File: priv/repo/migrations/20190417140000_create_users.exs
+[Moduledoc 1/1] The module Elixir.MyRepo.Migrations.CreateUsers is missing @moduledoc.
+[Specs 4/3] Functions should have a @spec type specification.
+[LocalsWithoutParens 7/7] Unnecessary parens
+[Specs 13/3] Functions should have a @spec type specification.
+
+File: test/my_code_test.ex
+[Moduledoc 1/1] The module Elixir.MyCodeTest is missing @moduledoc.
+[TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
+[TestFile -/-] The file must be renamed to test/my_code_test.exs so that ExUnit can find it.
+
+Completed 342 tasks in 0.01s.
+Files processed: 24 (.ex: 17, .exs: 6, .json: 1)
+Found 41 issues
+Finished in 0.04s.
 ```
 
 With the switch `--autocorrect` (alias `-a`), correctors that are configured
@@ -456,6 +491,30 @@ Calls to dbg/2 should only appear in debug sessions.
 
 This task rewrites the code when mix recode runs with autocorrect: true.
 ```
+
+## Code style and formatting
+
+Code style and formatting are essential aspects of writing clean and 
+maintainable code. Different developers and teams may have varying preferences 
+when it comes to how code should be structured and formatted. Tools like 
+`recode` can help enforce consistency and improve readability by applying 
+predefined rules to the codebase. However, it's important to remember that 
+these rules are not set in stone and may not necessarily reflect the best 
+practices for every project.
+
+Ultimately, the goal of code formatting is to make the code more 
+understandable and maintainable. It can help identify potential issues and 
+improve the overall quality of the code. While `recode` offers a set of rules to 
+follow, developers are free to choose which rules they want to apply based on 
+their own preferences and the requirements of the project.
+
+It's worth noting that discussions around code style and formatting can be 
+subjective, and there is no one-size-fits-all solution. Developers should feel 
+empowered to make informed decisions about which formatting rules to apply and 
+adapt them as needed to suit their specific needs. There are numerous 
+resources available online that provide insights into code formatting best 
+practices, allowing developers to explore different approaches and find what 
+works best for them.
 
 
 ## Differences to Credo

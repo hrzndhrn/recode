@@ -58,7 +58,7 @@ defmodule Recode.Task.Format do
     current_formatter_opts =
       case DotFormatter.read(ignore_missing_sub_formatters: true) do
         {:ok, dot_formatter} -> DotFormatter.formatter_opts(dot_formatter)
-        {:error, _reason} -> []
+        {:error, reason} -> raise reason
       end
 
     merged_formatter_opts = Keyword.merge(current_formatter_opts, formatter_opts)

@@ -9,7 +9,6 @@ defmodule Recode.Task.IOInspect do
 
   use Recode.Task, corrector: true, category: :warning
 
-  alias Recode.Issue
   alias Rewrite.Source
   alias Sourceror.Zipper
 
@@ -21,17 +20,11 @@ defmodule Recode.Task.IOInspect do
     |> Zipper.traverse([], fn zipper, issues ->
       traverse(zipper, issues, opts[:autocorrect])
     end)
-    |> update(source, opts[:autocorrect])
+    |> update(source, opts)
   end
 
-  defp update({zipper, _issues}, source, true) do
-    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
-  end
-
-  defp update({_zipper, []}, source, false), do: source
-
-  defp update({_zipper, issues}, source, false) do
-    Source.add_issues(source, issues)
+  defp update({zipper, issues}, source, opts) do
+    update_source(source, opts, quoted: zipper, issues: issues)
   end
 
   defp traverse(
@@ -72,7 +65,8 @@ defmodule Recode.Task.IOInspect do
   end
 
   defp handle(zipper, issues, meta, false) do
-    issue = Issue.new(__MODULE__, @shortdoc, meta)
+    issue = new_issue(@shortdoc, meta)
+
     {zipper, [issue | issues]}
   end
 

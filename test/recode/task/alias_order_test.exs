@@ -13,7 +13,7 @@ defmodule Recode.Task.AliasOrderTest do
     |> refute_update()
   end
 
-  test "keeps a single alias outside a moudle" do
+  test "keeps a single alias outside a module" do
     "alias Alpha.Bravo"
     |> run_task(AliasOrder, autocorrect: true)
     |> refute_update()
@@ -500,6 +500,32 @@ defmodule Recode.Task.AliasOrderTest do
             alias Foo.Baz
           end
         end
+      end
+      """
+
+      code
+      |> run_task(AliasOrder, autocorrect: true)
+      |> assert_code(expected)
+    end
+
+    test "sorts aliases with comment" do
+      code = """
+      defmodule MyWeb do
+        import NewappWeb.CoreComponents
+
+        # Common modules used in templates
+        alias Phoenix.LiveView.JS
+        alias NewappWeb.Layouts
+      end
+      """
+
+      expected = """
+      defmodule MyWeb do
+        import NewappWeb.CoreComponents
+
+        # Common modules used in templates
+        alias NewappWeb.Layouts
+        alias Phoenix.LiveView.JS
       end
       """
 

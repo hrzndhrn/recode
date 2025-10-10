@@ -30,19 +30,32 @@ defmodule Mix.Tasks.Recode do
     * `-v`, `--verbose`, `--no-verbose` - Activate/deactivates the verbose mode.
       Overwrites the corresponding value in the configuration.
 
+    * `-s`, `--silent` - Activates the silent mode. In silent mode, only issues
+      will be printed to the console. Without any issue no output is printed.
+      Overwrites the corresponding value in the configuration.
+
     * `-t`, `--task`, specifies the task to use. With this option, the task is
       used even if it is specified as `active:  false` in the configuration.
       This option can appear multiple times in a call.
 
     * `--slowest-tasks` - prints timing information for the N slowest tasks.
 
-    * `--color` - enables color in the output.
+    * `--color` - enables color in the output. Defaults to `true` if ANSI
+      coloring is supported.
+
+    * `--manifest` - enables reading and writing of the `manifest` file.
+      Defaults to `true` if the `--task` flag is not given.
+
+    * `--force` - forces a run without reading the `manifest` file. A new
+      manifest file is created.
   """
 
   use Mix.Task
 
   alias Recode.Config
   alias Recode.Runner
+  alias Rewrite.DotFormatter
+  alias Rewrite.DotFormatterError
 
   @opts strict: [
           autocorrect: :boolean,
@@ -50,14 +63,18 @@ defmodule Mix.Tasks.Recode do
           config: :string,
           debug: :boolean,
           dry: :boolean,
+          force: :boolean,
+          manifest: :boolean,
+          silent: :boolean,
+          slowest_tasks: :integer,
           task: :keep,
-          verbose: :boolean,
-          slowest_tasks: :integer
+          verbose: :boolean
         ],
         aliases: [
           a: :autocorrect,
           c: :config,
           d: :dry,
+          s: :silent,
           t: :task,
           v: :verbose
         ]
@@ -76,19 +93,23 @@ defmodule Mix.Tasks.Recode do
   def run(opts) do
     {:ok, _apps} = Application.ensure_all_started(:recode)
 
+    :ok = check_dot_formatter()
+
     opts = opts!(opts)
 
     opts =
       opts
       |> Keyword.get(:config, ".recode.exs")
-      |> config!()
+      |> read_config!()
       |> validate_config!()
       |> validate_tasks!()
       |> update_task_configs!()
       |> merge_opts(opts)
-      |> Keyword.put(:cli_opts, acc_tasks(opts))
-      |> update(:verbose)
-      |> put_debug(opts)
+      |> Keyword.put(:cli_opts, cli_tasks(opts))
+      |> update_verbose()
+      |> update_manifest(opts)
+      |> put(opts, :debug, false)
+      |> put(opts, :force, false)
 
     case Runner.run(opts) do
       {:ok, 0} ->
@@ -105,7 +126,16 @@ defmodule Mix.Tasks.Recode do
   defp merge_opts(config, opts) do
     Keyword.merge(
       config,
-      Keyword.take(opts, [:verbose, :autocorrect, :dry, :inputs, :slowest_tasks, :color])
+      Keyword.take(opts, [
+        :autocorrect,
+        :color,
+        :dry,
+        :inputs,
+        :manifest,
+        :silent,
+        :slowest_tasks,
+        :verbose
+      ])
     )
   end
 
@@ -116,7 +146,7 @@ defmodule Mix.Tasks.Recode do
     end
   end
 
-  defp acc_tasks(opts) do
+  defp cli_tasks(opts) do
     tasks =
       Enum.reduce(opts, [], fn {key, value}, acc ->
         case key do
@@ -130,7 +160,7 @@ defmodule Mix.Tasks.Recode do
     |> Keyword.put(:tasks, tasks)
   end
 
-  defp config!(opts) do
+  defp read_config!(opts) do
     case Config.read(opts) do
       {:ok, config} ->
         config
@@ -165,24 +195,22 @@ defmodule Mix.Tasks.Recode do
   defp validate_task_config!(task, config) do
     keys = Keyword.keys(config) -- @task_config_keys
 
-    if !Enum.empty?(keys), do: task_config_error!(task, config, keys)
-  end
+    if not Enum.empty?(keys) do
+      config =
+        Enum.reduce(keys, config, fn key, config ->
+          {value, config} = Keyword.pop!(config, key)
 
-  defp task_config_error!(task, config, keys) do
-    config =
-      Enum.reduce(keys, config, fn key, config ->
-        {value, config} = Keyword.pop!(config, key)
-
-        Keyword.update(config, :config, [{key, value}], fn task_config ->
-          Keyword.put(task_config, key, value)
+          Keyword.update(config, :config, [{key, value}], fn task_config ->
+            Keyword.put(task_config, key, value)
+          end)
         end)
-      end)
 
-    Mix.raise("""
-    Invalid config keys #{inspect(keys)} for #{inspect(task)} found.
-    Did you want to create a task-specific configuration:
-    {#{inspect(task)}, #{inspect(config)}}
-    """)
+      Mix.raise("""
+      Invalid config keys #{inspect(keys)} for #{inspect(task)} found.
+      Did you want to create a task-specific configuration:
+      {#{inspect(task)}, #{inspect(config)}}
+      """)
+    end
   end
 
   defp validate_task!({:error, :nofile}, task) do
@@ -213,15 +241,43 @@ defmodule Mix.Tasks.Recode do
     end)
   end
 
-  defp update(opts, :verbose) do
-    case opts[:dry] do
-      true -> Keyword.put(opts, :verbose, true)
-      false -> opts
+  defp update_verbose(config) do
+    case config[:dry] do
+      true -> Keyword.put(config, :verbose, true)
+      false -> config
     end
   end
 
-  defp put_debug(config, opts) do
-    debug = Keyword.get(opts, :debug, false)
-    Keyword.put(config, :debug, debug)
+  defp update_manifest(config, opts) do
+    # Updates the manifest configuration based on CLI options and task presence.
+    # The manifest is disabled when specific tasks are provided via --task to
+    # ensure full task execution regardless of the manifest state.
+
+    manifest? =
+      if Keyword.has_key?(opts, :manifest) do
+        opts[:manifest]
+      else
+        Keyword.get(config, :manifest, true)
+      end
+
+    opts? = not Keyword.has_key?(opts, :task)
+
+    Keyword.put(config, :manifest, manifest? && opts?)
+  end
+
+  defp put(config, opts, key, default) do
+    value = Keyword.get(opts, key, default)
+    Keyword.put(config, key, value)
+  end
+
+  defp check_dot_formatter do
+    if File.exists?(".formatter.exs") do
+      case DotFormatter.read(ignore_missing_sub_formatters: true) do
+        {:error, reason} -> reason |> DotFormatterError.message() |> Mix.raise()
+        {:ok, _dot_formatter} -> :ok
+      end
+    else
+      :ok
+    end
   end
 end
