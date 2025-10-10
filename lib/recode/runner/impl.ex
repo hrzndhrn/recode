@@ -70,11 +70,8 @@ defmodule Recode.Runner.Impl do
     |> correctors_first()
     |> Enum.reduce(source, fn {module, opts}, source ->
       case exclude?(module, source, config) do
-        true ->
-          source
-
-        false ->
-          module.run(source, Keyword.put(opts, :dot_formatter, dot_formatter))
+        true -> source
+        false -> module.run(source, Keyword.put(opts, :dot_formatter, dot_formatter))
       end
     end)
     |> Source.get(:content)
