@@ -231,9 +231,10 @@ defmodule Recode.Runner.Impl do
     inputs = Keyword.fetch!(config, :inputs)
 
     if inputs == ["-"] do
-      stdin = IO.stream(:stdio, :line) |> Enum.to_list() |> IO.iodata_to_binary()
-
-      stdin
+      :stdio
+      |> IO.stream(:stdio, :line)
+      |> Enum.to_list()
+      |> IO.iodata_to_binary()
       |> Source.Ex.from_string(path: "nofile.ex")
       |> List.wrap()
       |> Rewrite.from_sources!()
