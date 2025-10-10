@@ -36,6 +36,10 @@ defmodule Recode.Task.FilterCount do
     |> update(source, opts)
   end
 
+  defp update({zipper, _issues}, source, true) do
+    Source.update(source, :quoted, Zipper.root(zipper), by: __MODULE__)
+  end
+
   defp update({zipper, issues}, source, opts) do
     update_source(source, opts, quoted: zipper, issues: issues)
   end
