@@ -232,7 +232,7 @@ defmodule Recode.Runner.Impl do
 
     if inputs == ["-"] do
       :stdio
-      |> IO.stream(:stdio, :line)
+      |> IO.stream(:line)
       |> Enum.to_list()
       |> IO.iodata_to_binary()
       |> Source.Ex.from_string(path: "nofile.ex")
