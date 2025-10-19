@@ -2,7 +2,21 @@ defmodule Recode.Task.PipeChainStart do
   @shortdoc "Checks if a pipe chain starts with a raw value."
 
   @moduledoc """
-  # TODO
+  Pipes should start with a raw value to improve readability.
+
+      # preferred
+      user
+      |> User.changeset(params)
+      |> Repo.insert()
+
+      # not preferred
+      User.changeset(user, params)
+      |> Repo.insert()
+
+  Starting a pipe chain with a function call instead of a raw value can make
+  the code harder to follow, as the data flow is less clear.
+
+  This task rewrites the code when `mix recode` runs with `autocorrect: true`.
   """
 
   use Recode.Task, corrector: true, category: :readability
