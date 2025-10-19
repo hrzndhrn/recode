@@ -215,7 +215,7 @@ defmodule Recode.Task.PipeChainStart do
 
   defp custom_sigil(_atom, nil), do: :error
 
-  defp custom_sigil(atom, _delimeter) do
+  defp custom_sigil(atom, _delimiter) do
     sigil? = atom |> to_string() |> String.starts_with?("sigil_")
 
     if sigil?, do: :ok, else: :error
