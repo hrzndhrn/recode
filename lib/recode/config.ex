@@ -48,6 +48,7 @@ defmodule Recode.Config do
       {Recode.Task.LocalsWithoutParens, []},
       {Recode.Task.Moduledoc, [exclude: ["test/**/*.{ex,exs}", "mix.exs"]]},
       {Recode.Task.Nesting, []},
+      {Recode.Task.PipeChainStart, [active: false]},
       {Recode.Task.PipeFunOne, []},
       {Recode.Task.SinglePipe, []},
       {Recode.Task.Specs, [exclude: ["test/**/*.{ex,exs}", "mix.exs"], config: [only: :visible]]},
