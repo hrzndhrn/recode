@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Recode.Help do
   @shortdoc "Lists recode tasks"
 
   @moduledoc """
-  Lists all availbale recode tasks with a short description or prints the
+  Lists all available recode tasks with a short description or prints the
   documentation for a given recode task.
 
   To print the documentation of a task run `mix recode.help {task-name}`. As a

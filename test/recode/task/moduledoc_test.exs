@@ -4,7 +4,7 @@ defmodule Recode.Task.ModuledocTest do
   alias Recode.Task.Moduledoc
 
   describe "run/1 not raises an issue" do
-    test "when no defmodule is availabel" do
+    test "when no defmodule is available" do
       """
       def foo(x) do
         {:ok, x}

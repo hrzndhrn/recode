@@ -147,7 +147,7 @@ defmodule RecodeCase do
     end
   end
 
-  def formated?(code) do
+  def formatted?(code) do
     String.trim(code) == code |> Code.format_string!() |> IO.iodata_to_binary()
   end
 

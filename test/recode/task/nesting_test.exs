@@ -55,7 +55,7 @@ defmodule Recode.Task.NestingTest do
       |> refute_issues()
     end
 
-    test "trigers not when max_depth is great enough" do
+    test "triggers not when max_depth is great enough" do
       """
       defmodule Sample do
         def function(x, y) do
@@ -78,7 +78,7 @@ defmodule Recode.Task.NestingTest do
     # cases raising issues
     #
 
-    test "trigers when max depth is exceeded" do
+    test "triggers when max depth is exceeded" do
       """
       defmodule Sample do
         def something(x, y) do
@@ -97,7 +97,7 @@ defmodule Recode.Task.NestingTest do
       |> assert_issue_with(reporter: Nesting, line: 5)
     end
 
-    test "trigers once when max depth is exceeded by more then one step" do
+    test "triggers once when max depth is exceeded by more then one step" do
       """
       defmodule Sample do
         def something(x, y) do
@@ -121,7 +121,7 @@ defmodule Recode.Task.NestingTest do
       |> assert_issue_with(reporter: Nesting, line: 5)
     end
 
-    test "trigers with a greate max_depth" do
+    test "triggers with a greater max_depth" do
       """
       defmodule Sample do
         def something(x, y) do
@@ -145,7 +145,7 @@ defmodule Recode.Task.NestingTest do
       |> assert_issue_with(reporter: Nesting, line: 7)
     end
 
-    test "trigers twice when max depth is exceeded twice" do
+    test "triggers twice when max depth is exceeded twice" do
       """
       defmodule Sample do
         def something(x, y) do
@@ -173,7 +173,7 @@ defmodule Recode.Task.NestingTest do
       |> assert_issues(2)
     end
 
-    test "trigers in an anonymous function" do
+    test "triggers in an anonymous function" do
       """
       defmodule Sample do
         def something(x) do

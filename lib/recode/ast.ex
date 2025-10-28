@@ -1,10 +1,10 @@
 defmodule Recode.AST do
   @moduledoc """
-  This module provides functions to get informations from the AST and to
+  This module provides functions to get information from the AST and to
   manipulate the AST.
 
   Most of the functions in this module require an AST with additional
-  informations. This information is provided by `Sourceror` or
+  information. This information is provided by `Sourceror` or
   `Code.string_to_quoted/2` with the options
   ```elixir
   [

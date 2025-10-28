@@ -4,7 +4,7 @@ defmodule Recode.Task.TagFIXME do
   @moduledoc """
   #{@shortdoc}
 
-  FIXME tags in comments and docs are used as a reminder and should be handeld in
+  FIXME tags in comments and docs are used as a reminder and should be handled in
   the near future.
 
   ## Examples

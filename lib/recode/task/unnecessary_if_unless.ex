@@ -2,7 +2,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
   @shortdoc "Removes redundant booleans"
 
   @moduledoc """
-  Redudant booleans make code needlesly verbose.
+  Redundant booleans make code needlessly verbose.
 
           # preferred
           foo == bar
@@ -29,13 +29,13 @@ defmodule Recode.Task.UnnecessaryIfUnless do
       |> Source.get(:quoted)
       |> Zipper.zip()
       |> Zipper.traverse([], fn zipper, issues ->
-        remove_unecessary_if_unless(zipper, issues, opts[:autocorrect])
+        remove_unnecessary_if_unless(zipper, issues, opts[:autocorrect])
       end)
 
     update_source(source, opts, quoted: zipper, issues: issues)
   end
 
-  defp remove_unecessary_if_unless(
+  defp remove_unnecessary_if_unless(
          %Zipper{node: {conditional, meta, body}} = zipper,
          issues,
          true
@@ -52,7 +52,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
     end
   end
 
-  defp remove_unecessary_if_unless(
+  defp remove_unnecessary_if_unless(
          %Zipper{node: {conditional, meta, body}} = zipper,
          issues,
          false
@@ -72,7 +72,7 @@ defmodule Recode.Task.UnnecessaryIfUnless do
     {zipper, issues}
   end
 
-  defp remove_unecessary_if_unless(zipper, issues, _autocorrect), do: {zipper, issues}
+  defp remove_unnecessary_if_unless(zipper, issues, _autocorrect), do: {zipper, issues}
 
   defp extract(
          [

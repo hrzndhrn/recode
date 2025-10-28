@@ -195,7 +195,7 @@ defmodule Recode.ContextTest do
       assert output =~ ~r/^234: requirements:.*Traverse.Pluto/m
     end
 
-    test "traveses script with vars named alias, import, etc.." do
+    test "traverses script with vars named alias, import, etc.." do
       src = File.read!("test/fixtures/context/vars.exs")
 
       output =
@@ -216,7 +216,7 @@ defmodule Recode.ContextTest do
       assert output == File.read!("test/fixtures/context/vars.exs.output")
     end
 
-    test "traveses module with vars named alias, import, etc.." do
+    test "traverses module with vars named alias, import, etc.." do
       src = File.read!("test/fixtures/context/vars.ex")
 
       output =
