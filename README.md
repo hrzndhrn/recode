@@ -19,7 +19,7 @@ Design tasks:
 TagFIXME            # Checker   - Checks if there are FIXME tags in the sources.
 TagTODO             # Checker   - Checks if there are TODO tags in the sources.
 Readability tasks:
-AliasExpansion      # Corrector - Exapnds multi aliases to separate aliases.
+AliasExpansion      # Corrector - Expands multi aliases to separate aliases.
 AliasOrder          # Corrector - Checks if aliases are sorted alphabetically.
 EnforceLineLength   # Corrector - Forces expressions to one line.
 Format              # Corrector - Does the same as `mix format`.

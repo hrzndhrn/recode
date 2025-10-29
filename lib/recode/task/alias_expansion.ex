@@ -1,5 +1,5 @@
 defmodule Recode.Task.AliasExpansion do
-  @shortdoc "Exapnds multi aliases to separate aliases."
+  @shortdoc "Expands multi aliases to separate aliases."
 
   @moduledoc """
   Multi aliases makes module uses harder to search for in large code bases.

@@ -198,7 +198,7 @@ defmodule Recode.Task.FilterCountTest do
       |> assert_code(expected)
     end
 
-    test "corrects code when Enum.count gets a pipline ending with Enum.filter as argument" do
+    test "corrects code when Enum.count gets a pipeline ending with Enum.filter as argument" do
       code = """
       def foo(arg) do
         Enum.count(arg |> Enum.reverse() |> Enum.filter(fn x -> rem(x, 2) == 0 end))
@@ -361,7 +361,7 @@ defmodule Recode.Task.FilterCountTest do
       |> assert_issue()
     end
 
-    test "reports issue when Enum.count gets a pipline ending with Enum.filter as argument" do
+    test "reports issue when Enum.count gets a pipeline ending with Enum.filter as argument" do
       """
       def foo(arg) do
         Enum.count(arg |> Enum.reverse() |> Enum.filter(fn x -> rem(x, 2) == 0 end))

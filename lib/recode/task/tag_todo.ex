@@ -4,7 +4,7 @@ defmodule Recode.Task.TagTODO do
   @moduledoc """
   #{@shortdoc}
 
-  TODO tags in comments and docs are used as a reminder and should be handeld in
+  TODO tags in comments and docs are used as a reminder and should be handled in
   the near future.
 
   ## Examples

@@ -8,7 +8,7 @@ defmodule Recode.Task.Format do
   """
 
   # The task can be configured like other tasks. This configuration is just for
-  # debuging and not part of the documentation.
+  # debugging and not part of the documentation.
   #
   # The default, formats code with Sourceror:
   # {Recode.Task.Format, []},

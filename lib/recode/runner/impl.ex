@@ -194,7 +194,7 @@ defmodule Recode.Runner.Impl do
       )
   end
 
-  # For now, all sources without a filetype Source.Ex are direclty excluded.
+  # For now, all sources without a filetype Source.Ex are directly excluded.
   # For the Source.Ex sources we check whether the source is excluded.
   defp exclude?(task, %Source{filetype: %Source.Ex{}} = source, config) do
     config
@@ -246,10 +246,10 @@ defmodule Recode.Runner.Impl do
 
   defp exclude_reading(config) do
     config_file = get_cli_opts(config, :config, ".recode.exs")
-    config_timestemp = Timestamp.for_file(config_file)
+    config_timestamp = Timestamp.for_file(config_file)
 
     case Manifest.read(config) do
-      {timestamp, ^config_file, paths} when timestamp > config_timestemp ->
+      {timestamp, ^config_file, paths} when timestamp > config_timestamp ->
         fn path ->
           cond do
             path in paths -> false

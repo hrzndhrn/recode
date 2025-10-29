@@ -167,7 +167,7 @@ defmodule Recode.Config do
   end
 
   @doc """
-  Reads the `Recode` cofiguration from the given `path`.
+  Reads the `Recode` configuration from the given `path`.
   """
   @spec read(Path.t()) :: {:ok, config()} | {:error, :not_found}
   def read(path \\ @config_filename) when is_binary(path) do

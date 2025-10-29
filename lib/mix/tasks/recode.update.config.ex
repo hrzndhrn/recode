@@ -4,10 +4,10 @@ defmodule Mix.Tasks.Recode.Update.Config do
   @moduledoc """
   #{@shortdoc}.
 
-  The task merges the exsiting config into the actual config and updates the
+  The task merges the existing config into the actual config and updates the
   version.  Using this task preserves changes in the actual config and adds new values.
 
-  The acutal default config:
+  The actual default config:
   ```elixir
   #{Recode.Config.to_string()}
   ```

@@ -32,7 +32,7 @@
 
 ## 0.7.2 - 2024/02/10
 
-+ Fix `Recode.AST.alias_info` fot `alias __MODULE__, as: MyModule`.
++ Fix `Recode.AST.alias_info` for `alias __MODULE__, as: MyModule`.
 
 ## 0.7.1 - 2024/01/09
 
@@ -50,7 +50,7 @@
 
 ## 0.6.5 - 2023/10/09
 
-+ Start `:recode` appliations in `mix recode` task.
++ Start `:recode` applications in `mix recode` task.
 
 ## 0.6.4 - 2023/09/15
 
@@ -135,7 +135,7 @@
 
 ## 0.3.0 - 2022/08/28
 
-+ Rename `Recode.Taks.SameLine` to `Recode.Task.EnforceLineLength`.
++ Rename `Recode.Task.SameLine` to `Recode.Task.EnforceLineLength`.
 
 ## 0.2.0 - 2022/08/21
 
