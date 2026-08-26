@@ -67,16 +67,20 @@ defmodule Recode.Task.AliasOrderTest do
     code = """
     defmodule MyModule do
       alias Beta
-      alias __MODULE__
+      alias __MODULE__.Zulu
       alias Alpha
+      alias __MODULE__.Alpha
+      alias __MODULE__
     end
     """
 
     expected = """
     defmodule MyModule do
+      alias __MODULE__
+      alias __MODULE__.Alpha
+      alias __MODULE__.Zulu
       alias Alpha
       alias Beta
-      alias __MODULE__
     end
     """
 
@@ -96,9 +100,9 @@ defmodule Recode.Task.AliasOrderTest do
 
     expected = """
     defmodule MyModule do
+      alias __MODULE__, as: Charlie
       alias Alpha, as: Gamma
       alias Beta, as: Delta
-      alias __MODULE__, as: Charlie
     end
     """
 
@@ -355,9 +359,9 @@ defmodule Recode.Task.AliasOrderTest do
     test "reports an issue for unsorted aliases in multi with and without __MODULE__" do
       """
       defmodule MyModule do
+        alias __MODULE__.{UserSocket, Endpoint}
         alias Alpha.Bravo
         alias Alpha.Bravo.{Charlie, Delta}
-        alias __MODULE__.{UserSocket, Endpoint}
       end
       """
       |> run_task(AliasOrder, autocorrect: false)
