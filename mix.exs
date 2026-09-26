@@ -1,7 +1,7 @@
 defmodule Recode.MixProject do
   use Mix.Project
 
-  @version "0.8.0"
+  @version "0.9.0"
   @source_url "https://github.com/hrzndhrn/recode"
   @docs_extras ["README.md", "CHANGELOG.md"]
 
@@ -9,7 +9,7 @@ defmodule Recode.MixProject do
     [
       app: :recode,
       version: @version,
-      elixir: "~> 1.13",
+      elixir: "~> 1.15",
       name: "Recode",
       description: description(),
       elixirc_paths: elixirc_paths(),

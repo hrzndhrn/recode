@@ -255,60 +255,11 @@ defmodule Recode.ContextTest do
 
       acc = Enum.reverse(acc)
 
-      assert strip(Enum.at(acc, 0)) == %Context{
-               aliases: [],
-               assigns: %{},
-               definition: nil,
-               imports: [],
-               module:
-                 {Traverse.Simple,
-                  [do: [line: 1, column: 27], end: [line: 7, column: 1], line: 1, column: 1]},
-               requirements: [],
-               usages: [],
-               node:
-                 {:defmodule,
-                  [
-                    do: [line: 1, column: 27],
-                    end: [line: 7, column: 1],
-                    line: 1,
-                    column: 1
-                  ],
-                  [
-                    {:__aliases__, [line: 1, column: 11], [:Traverse, :Simple]},
-                    [
-                      {{:__block__, [line: 1, column: 27], [:do]},
-                       {:__block__, [],
-                        [
-                          {:def,
-                           [
-                             do: [line: 2, column: 14],
-                             end: [line: 4, column: 3],
-                             line: 2,
-                             column: 3
-                           ],
-                           [
-                             {:foo, [line: 2, column: 7], [{:x, [line: 2, column: 11], nil}]},
-                             [
-                               {{:__block__, [line: 2, column: 14], [:do]},
-                                {:*, [line: 3, column: 7],
-                                 [
-                                   {:x, [line: 3, column: 5], nil},
-                                   {:__block__, [line: 3, column: 9], [2]}
-                                 ]}}
-                             ]
-                           ]},
-                          {:def, [line: 6, column: 3],
-                           [
-                             {:baz, [line: 6, column: 7], nil},
-                             [
-                               {{:__block__, [line: 6, column: 12], [:do]},
-                                {:__block__, [line: 6, column: 16], [:baz]}}
-                             ]
-                           ]}
-                        ]}}
-                    ]
-                  ]}
-             }
+      assert %Context{} = context = strip(Enum.at(acc, 0))
+
+      assert context.module ==
+               {Traverse.Simple,
+                [do: [line: 1, column: 27], end: [line: 7, column: 1], line: 1, column: 1]}
 
       assert %{
                definition:

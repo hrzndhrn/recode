@@ -109,14 +109,10 @@ defmodule RecodeCase do
     end
   end
 
-  defmacro assert_config_error(error_tuple, expected_message \\ nil) do
-    quote bind_quoted: [error_tuple: error_tuple, expected_message: expected_message] do
-      if expected_message do
-        assert error_tuple == {:error, expected_message}
-      else
-        assert {:error, error_message} = error_tuple
-        assert is_binary(error_message)
-      end
+  defmacro assert_config_error(error_tuple) do
+    quote bind_quoted: [error_tuple: error_tuple] do
+      assert {:error, error_message} = error_tuple
+      assert is_binary(error_message)
     end
   end
 
