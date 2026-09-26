@@ -214,7 +214,7 @@ defmodule Recode.Task.AliasOrder do
   defp lower_than?([value1 | _], [value2 | _]), do: lower_than?(value1, value2)
 
   defp lower_than?(value1, value2) when is_atom(value1) and is_atom(value2) do
-    String.upcase(to_string(value1)) < String.upcase(to_string(value2))
+    String.downcase(to_string(value1)) < String.downcase(to_string(value2))
   end
 
   defp sort_multi({:alias, meta1, [{{:., meta2, [aliases, opts]}, meta3, multi}]}) do
