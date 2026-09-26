@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.0 - 2026/10/26
+
++ Change sorting in the `AliasOrder` task
++ Require Elixir 1.15
+
 ## 0.8.0 - 2025/10/10
 
 + Use `Rewrite` version `~> 1.0`
